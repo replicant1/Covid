@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.RegionList
+import com.rodbailey.covid.dom.Report
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.net.CovidAPI
 import com.rodbailey.covid.net.CovidAPIClient
@@ -46,13 +47,39 @@ class MainViewModel : ViewModel() {
             initialValue = _regions.value,
         )
 
-    private val _reportData = MutableStateFlow<ReportData>(ReportData(
+    private val _reportData = MutableStateFlow<ReportData>(
+        ReportData(
         confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
-    ))
+    )
+    )
     val reportData = _reportData.asStateFlow()
+
+    private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
+    val reportDataTitle = _reportDataTitle.asStateFlow()
 
     init {
         loadRegionsFromNetwork()
+    }
+
+    fun loadReportDataForRegion(iso3Code: String) {
+        println("*** Beginning network load of report data for region $iso3Code")
+        val call : Call<Report>? = covidAPI?.getReport(iso3Code)
+        call?.enqueue(
+            object : Callback<Report> {
+                override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
+                    println("** onResponse = response")
+                    if (response != null) {
+                        val loadedData = response.body().data
+                        println("** loadedData = $loadedData")
+                        _reportData.value = loadedData
+                    }
+                }
+
+                override fun onFailure(call: Call<Report>?, t: Throwable?) {
+                    println("** onFailure $t")
+                }
+            }
+        )
     }
 
     private fun loadRegionsFromNetwork() {

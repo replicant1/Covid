@@ -45,42 +45,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
-//        val call : Call<RegionList>? = covidAPI?.getRegions()
-//        call?.enqueue(
-//            object : Callback<RegionList> {
-//                override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
-//                    println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
-//                    if (response != null) {
-//                        for (region in  response.body().regions) {
-//                            println("region = $region")
-//                        }
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
-//                    println("*** onFailure: $t")
-//                }
-//            }
-//        )
-
-//        val call : Call<Report>? = covidAPI?.getReport(null)
-//        call?.enqueue(
-//            object : Callback<Report> {
-//                override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
-//                    println("** onResponse = response")
-//                    if (response != null) {
-//                        val reportData = response.body().data
-//                        println("** reportData(null) = $reportData")
-//                    }
-//                }
-//
-//                override fun onFailure(call: Call<Report>?, t: Throwable?) {
-//                    println("** onFailure $t")
-//                }
-//            }
-//        )
-
         setContent {
             CovidTheme {
                 // A surface container using the 'background' color from the theme
@@ -92,6 +56,7 @@ class MainActivity : ComponentActivity() {
                     val regions by viewModel.regions.collectAsState()
                     val isSearching by viewModel.isSearching.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
+                    val reportDataTitle by viewModel.reportDataTitle.collectAsState()
 
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -109,11 +74,11 @@ class MainActivity : ComponentActivity() {
                                 .weight(1f)
                         ) {
                             items(regions) { region ->
-                                RegionSearchResultItem(region = region)
+                                RegionSearchResultItem(region = region, viewModel)
                             }
                         }
                         // ReportDataPanel here - toggle visibility
-                        RegionDataPanel(title = "Title", reportData = reportData)
+                        RegionDataPanel(title = reportDataTitle, reportData = reportData)
                     }
                 }
             }
@@ -121,19 +86,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview
-@Composable
-fun RegionSearchResultItemPreview() {
-    RegionSearchResultItem(region = Region("ELO", "Electric Light Orchestra"))
-}
+//@Preview
+//@Composable
+//fun RegionSearchResultItemPreview() {
+//    RegionSearchResultItem(region = Region("ELO", "Electric Light Orchestra", view))
+//}
 
+// TODO Pass click lambda instead of viewModel then restore @Preview
 @Composable
-fun RegionSearchResultItem(region: Region) {
+fun RegionSearchResultItem(region: Region, viewModel: MainViewModel) {
     Row(
         modifier = Modifier
             .padding(16.dp)
             .clickable {
                 println("*** Clicked on ${region.name} ***")
+                viewModel.loadReportDataForRegion(region.iso3Code)
             }) {
         Icon(
             modifier = Modifier.padding(end = 8.dp),
