@@ -27,15 +27,8 @@ class MainViewModel : ViewModel() {
 
     private val _regions = MutableStateFlow(
         emptyList<Region>()
-//        listOf<Region>(
-//            Region("AUS", "Australia"),
-//            Region("CHN", "China"),
-//            Region("JPN", "Japan"),
-//            Region("THA", "Thailand"),
-//            Region("KOR", "South Korea"),
-//            Region("SGP", "Singapore")
-//        )
     )
+
     val regions = searchText
         .combine(_regions) { text: String, regions: List<Region> ->
             if (text.isBlank()) {
@@ -64,7 +57,7 @@ class MainViewModel : ViewModel() {
                 override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
                     println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
                     if (response != null) {
-                        _regions.value = response.body().regions
+                        _regions.value = response.body().regions.sortedBy { it.name }
                     }
                 }
 
