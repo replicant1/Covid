@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.rodbailey.covid.dom.RegionList
+import com.rodbailey.covid.dom.Report
 import com.rodbailey.covid.net.CovidAPI
 import com.rodbailey.covid.net.CovidAPIClient
 import com.rodbailey.covid.ui.theme.CovidTheme
@@ -23,20 +24,37 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
-        val call : Call<RegionList>? = covidAPI?.getRegions()
+//        val call : Call<RegionList>? = covidAPI?.getRegions()
+//        call?.enqueue(
+//            object : Callback<RegionList> {
+//                override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
+//                    println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
+//                    if (response != null) {
+//                        for (region in  response.body().regions) {
+//                            println("region = $region")
+//                        }
+//                    }
+//                }
+//
+//                override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
+//                    println("*** onFailure: $t")
+//                }
+//            }
+//        )
+
+        val call : Call<Report>? = covidAPI?.getReport(null)
         call?.enqueue(
-            object : Callback<RegionList> {
-                override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
-                    println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
+            object : Callback<Report> {
+                override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
+                    println("** onResponse = response")
                     if (response != null) {
-                        for (region in  response.body().regions) {
-                            println("region = $region")
-                        }
+                        val reportData = response.body().data
+                        println("** reportData(null) = $reportData")
                     }
                 }
 
-                override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
-                    println("*** onFailure: $t")
+                override fun onFailure(call: Call<Report>?, t: Throwable?) {
+                    println("** onFailure $t")
                 }
             }
         )
