@@ -1,5 +1,7 @@
 package com.rodbailey.covid.dom
 
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import com.google.gson.annotations.SerializedName
 
 /**
@@ -10,4 +12,9 @@ data class Region(
     val iso3Code:String,
 
     @SerializedName("name")
-    val name:String)
+    val name:String) {
+
+    fun matchesSearchQuery(query : String) : Boolean {
+        return name.contains(query, ignoreCase = true)
+    }
+}
