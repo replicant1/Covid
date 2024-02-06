@@ -25,6 +25,9 @@ class MainViewModel : ViewModel() {
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
+    private val _isDataPanelExpanded = MutableStateFlow(false)
+    val isDataPanelExpanded = _isDataPanelExpanded.asStateFlow()
+
     val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
 
     private val _regions = MutableStateFlow(
@@ -61,9 +64,13 @@ class MainViewModel : ViewModel() {
         loadRegionsFromNetwork()
     }
 
-    fun loadReportDataForRegion(iso3Code: String) {
-        println("*** Beginning network load of report data for region $iso3Code")
-        val call : Call<Report>? = covidAPI?.getReport(iso3Code)
+    fun collapseDataPanel() {
+        _isDataPanelExpanded.value = false
+    }
+
+    fun loadReportDataForRegion(region: Region) {
+        println("*** Beginning network load of report data for region ${region.iso3Code}")
+        val call : Call<Report>? = covidAPI?.getReport(region.iso3Code)
         call?.enqueue(
             object : Callback<Report> {
                 override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
@@ -72,6 +79,8 @@ class MainViewModel : ViewModel() {
                         val loadedData = response.body().data
                         println("** loadedData = $loadedData")
                         _reportData.value = loadedData
+                        _reportDataTitle.value = region.name
+                        _isDataPanelExpanded.value = true
                     }
                 }
 

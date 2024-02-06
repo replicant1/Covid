@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -57,6 +60,7 @@ class MainActivity : ComponentActivity() {
                     val isSearching by viewModel.isSearching.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
                     val reportDataTitle by viewModel.reportDataTitle.collectAsState()
+                    val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()
 
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -77,8 +81,11 @@ class MainActivity : ComponentActivity() {
                                 RegionSearchResultItem(region = region, viewModel)
                             }
                         }
-                        // ReportDataPanel here - toggle visibility
-                        RegionDataPanel(title = reportDataTitle, reportData = reportData)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        AnimatedVisibility(visible = isDataPanelExpanded) {
+                            RegionDataPanel(title = reportDataTitle, reportData = reportData,
+                                viewModel = viewModel)
+                        }
                     }
                 }
             }
@@ -100,7 +107,7 @@ fun RegionSearchResultItem(region: Region, viewModel: MainViewModel) {
             .padding(16.dp)
             .clickable {
                 println("*** Clicked on ${region.name} ***")
-                viewModel.loadReportDataForRegion(region.iso3Code)
+                viewModel.loadReportDataForRegion(region)
             }) {
         Icon(
             modifier = Modifier.padding(end = 8.dp),
@@ -113,20 +120,20 @@ fun RegionSearchResultItem(region: Region, viewModel: MainViewModel) {
     }
 }
 
-@Preview
-@Composable
-fun RegionDataPanelPreview() {
-    RegionDataPanel(
-        title = "Big Country",
-        reportData = ReportData(
-            confirmed = 10000L,
-            deaths = 200L,
-            recovered = 1234L,
-            active = 9876L,
-            fatalityRate = 0.56F
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun RegionDataPanelPreview() {
+//    RegionDataPanel(
+//        title = "Big Country",
+//        reportData = ReportData(
+//            confirmed = 10000L,
+//            deaths = 200L,
+//            recovered = 1234L,
+//            active = 9876L,
+//            fatalityRate = 0.56F
+//        )
+//    )
+//}
 
 @Composable
 fun RowScope.TableCell(text: String, weight: Float) {
@@ -139,31 +146,34 @@ fun RowScope.TableCell(text: String, weight: Float) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegionDataPanel(title: String, reportData: ReportData) {
+fun RegionDataPanel(title: String, reportData: ReportData, viewModel: MainViewModel) {
     val tableData = mutableListOf<Pair<String, String>>()
     tableData.add(Pair("Confirmed:", "${reportData.confirmed}"))
     tableData.add(Pair("Deaths:", "${reportData.deaths}"))
     tableData.add(Pair("Active:", "${reportData.active}"))
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
-    Column() {
-        Text(
-            text = title,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 24.dp, bottom = 8.dp, top = 16.dp, end = 16.dp)
-        )
-        LazyColumn(
-            Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-        ) {
+    Card(onClick = { viewModel.collapseDataPanel() }) {
+        Column() {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(start = 24.dp, bottom = 8.dp, top = 16.dp, end = 16.dp)
+            )
+            LazyColumn(
+                Modifier
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
 
-            items(tableData) {
-                val (id, text) = it
-                Row() {
-                    TableCell(text = id.toString(), weight = .2f)
-                    TableCell(text = text, weight = .2f)
+                items(tableData) {
+                    val (id, text) = it
+                    Row() {
+                        TableCell(text = id.toString(), weight = .2f)
+                        TableCell(text = text, weight = .2f)
+                    }
                 }
             }
         }
