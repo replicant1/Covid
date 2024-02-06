@@ -91,6 +91,8 @@ class MainActivity : ComponentActivity() {
                     val searchText by viewModel.searchText.collectAsState()
                     val regions by viewModel.regions.collectAsState()
                     val isSearching by viewModel.isSearching.collectAsState()
+                    val reportData by viewModel.reportData.collectAsState()
+
                     Column(
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -111,6 +113,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         // ReportDataPanel here - toggle visibility
+                        RegionDataPanel(title = "Title", reportData = reportData)
                     }
                 }
             }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.RegionList
+import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.net.CovidAPI
 import com.rodbailey.covid.net.CovidAPIClient
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,11 @@ class MainViewModel : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = _regions.value,
         )
+
+    private val _reportData = MutableStateFlow<ReportData>(ReportData(
+        confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
+    ))
+    val reportData = _reportData.asStateFlow()
 
     init {
         loadRegionsFromNetwork()
