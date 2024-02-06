@@ -10,11 +10,37 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.rodbailey.covid.dom.RegionList
+import com.rodbailey.covid.net.CovidAPI
+import com.rodbailey.covid.net.CovidAPIClient
 import com.rodbailey.covid.ui.theme.CovidTheme
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
+        val call : Call<RegionList>? = covidAPI?.getRegions()
+        call?.enqueue(
+            object : Callback<RegionList> {
+                override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
+                    println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
+                    if (response != null) {
+                        for (region in  response.body().regions) {
+                            println("region = $region")
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
+                    println("*** onFailure: $t")
+                }
+            }
+        )
+
         setContent {
             CovidTheme {
                 // A surface container using the 'background' color from the theme
