@@ -3,11 +3,8 @@ package com.rodbailey.covid.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.RegionList
-import com.rodbailey.covid.dom.Report
 import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.net.CovidAPI
-import com.rodbailey.covid.net.CovidAPIClient
+import com.rodbailey.covid.repo.CovidRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,9 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class MainViewModel : ViewModel() {
 
@@ -41,8 +35,6 @@ class MainViewModel : ViewModel() {
     // True if master list of countries is being loaded
     private val _isRegionListLoading = MutableStateFlow(true)
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
-
-    private val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
 
     // Currently matching regions
     private val _regions = MutableStateFlow(
@@ -74,6 +66,8 @@ class MainViewModel : ViewModel() {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
+    private val repo = CovidRepository()
+
     init {
         loadRegionsFromNetwork()
     }
@@ -93,48 +87,35 @@ class MainViewModel : ViewModel() {
     }
 
     fun loadReportDataForRegion(regionName: String, regionIso3Code: String?) {
-        _isDataPanelExpanded.value = true
-        _isDataPanelLoading.value = true
-        val call: Call<Report>? = covidAPI?.getReport(regionIso3Code)
-        call?.enqueue(
-            object : Callback<Report> {
-                override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
-                    if (response != null) {
-                        val loadedData = response.body().data
-                        _reportData.value = loadedData
-                        _reportDataTitle.value = regionName
-                        _isDataPanelExpanded.value = true
-                        _isDataPanelLoading.value = false
-                    }
-                }
-
-                override fun onFailure(call: Call<Report>?, t: Throwable?) {
-                    _isDataPanelLoading.value = false
-                    _isDataPanelExpanded.value = false
-                    showErrorMessage("Failed to load data for \"${regionName}\".")
-                }
+        viewModelScope.launch {
+            try {
+                _isDataPanelExpanded.value = true
+                _isDataPanelLoading.value = true
+                _reportData.value = repo.getReport(regionIso3Code)
+                _reportDataTitle.value = regionName
+            } catch (ex: Exception) {
+                println("Exception while getting data for region ${regionName}")
+                showErrorMessage("Failed to load data for \"${regionName}\".")
+                _isDataPanelExpanded.value = false
+            } finally {
+                _isDataPanelLoading.value = false
             }
-        )
+        }
     }
 
-    private fun loadRegionsFromNetwork() {
-        _isRegionListLoading.value = true
-        val call: Call<RegionList>? = covidAPI?.getRegions()
-        call?.enqueue(
-            object : Callback<RegionList> {
-                override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
-                    _isRegionListLoading.value = false
-                    if (response != null) {
-                        _regions.value = response.body().regions.sortedBy { it.name }
-                    }
-                }
 
-                override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
-                    _isRegionListLoading.value = false
-                    showErrorMessage("Failed to load country list.")
-                }
+    private fun loadRegionsFromNetwork() {
+        viewModelScope.launch {
+            try {
+                _isRegionListLoading.value = true
+                _regions.value = repo.getRegions()
+            } catch (ex: Exception) {
+                println("Exception while loading counter list $ex")
+            } finally {
+                _isRegionListLoading.value = false
+                showErrorMessage("Failed to load country list.")
             }
-        )
+        }
     }
 
     fun onSearchTextChanged(text: String) {
