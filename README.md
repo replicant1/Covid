@@ -13,3 +13,5 @@ The following video demonstrates the application in use. Note the video will onl
 It is available separately from `/doc/screen_recording.mp4`
 
 ![Video](/doc/screen_recording.mp4)
+
+![Screen shot 1](/doc/screen_shot_1.png)
