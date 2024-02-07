@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,11 +57,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val searchText by viewModel.searchText.collectAsState()
                     val regions by viewModel.regions.collectAsState()
-                    val isSearching by viewModel.isSearching.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
                     val reportDataTitle by viewModel.reportDataTitle.collectAsState()
                     val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()
                     val isDataPanelLoading by viewModel.isDataPanelLoading.collectAsState()
+                    val isRegionListLoading by viewModel.isRegionListLoading.collectAsState()
 
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -71,7 +72,14 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier.fillMaxWidth(),
                             placeholder = { Text(text = "Search country") }
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(16.dp)
+                                .alpha(if (isRegionListLoading) 1f else 0f)
+                                .padding(bottom = 12.dp),
+                            color = MaterialTheme.colorScheme.secondary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant)
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()

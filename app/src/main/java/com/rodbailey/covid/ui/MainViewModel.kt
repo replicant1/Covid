@@ -31,6 +31,9 @@ class MainViewModel : ViewModel() {
     private val _isDataPanelLoading = MutableStateFlow(true)
     val isDataPanelLoading = _isDataPanelLoading.asStateFlow()
 
+    private val _isRegionListLoading = MutableStateFlow(true)
+    val isRegionListLoading = _isRegionListLoading.asStateFlow()
+
     val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
 
     private val _regions = MutableStateFlow(
@@ -64,7 +67,7 @@ class MainViewModel : ViewModel() {
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     init {
-        loadRegionsFromNetwork()
+          loadRegionsFromNetwork()
     }
 
     fun collapseDataPanel() {
@@ -100,11 +103,13 @@ class MainViewModel : ViewModel() {
 
     private fun loadRegionsFromNetwork() {
         println("*** Beginning network load of countries")
+        _isRegionListLoading.value = true
         val call: Call<RegionList>? = covidAPI?.getRegions()
         call?.enqueue(
             object : Callback<RegionList> {
                 override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
                     println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
+                    _isRegionListLoading.value = false
                     if (response != null) {
                         _regions.value = response.body().regions.sortedBy { it.name }
                     }
@@ -112,6 +117,7 @@ class MainViewModel : ViewModel() {
 
                 override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
                     println("*** onFailure: $t")
+                    _isRegionListLoading.value = false
                 }
             }
         )
