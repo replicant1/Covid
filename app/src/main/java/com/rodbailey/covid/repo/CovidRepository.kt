@@ -16,7 +16,7 @@ class CovidRepository(private val appContext: Context) {
     private val covidAPI = CovidAPIClient().getAPIClient()
 
     /**
-     * @param ISO-3 alpha code for region, or null for "Global"
+     * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"
      * @return Covid stats for the region with the given ISO-3 code
      * @throws Exception if the slightest thing goes wrong
      */
@@ -29,13 +29,8 @@ class CovidRepository(private val appContext: Context) {
      * @throws Exception if the slightest thing goes wrong
      */
     suspend fun getRegions(): List<Region> {
-        println("*** ======== about to build ROOM database =============")
-
         val appDatabase = Room.databaseBuilder(appContext, AppDatabase::class.java, "covid").build()
-        println("*** ==== databasse bulding finished =====")
-
         val numRegionsSaved = appDatabase.regionDao().getRegionCount()
-        println("*** ==== numRegionsSaved = $numRegionsSaved")
 
         return if (numRegionsSaved == 0) {
             // Get regions from the network and store in the database. Return the network equiv.
@@ -48,8 +43,13 @@ class CovidRepository(private val appContext: Context) {
         }
     }
 
+    /**
+     * @param db This app's database where covid data is cached
+     * @return All cached regions
+     */
     private suspend fun loadRegionsFromDb(db: AppDatabase): List<Region> {
         val allRegionEntities = db.regionDao().getAllRegions()
+        println("${allRegionEntities.size} regions loaded from db")
         val allRegions = mutableSetOf<Region>()
         for (regionEntity in allRegionEntities) {
             allRegions.add(Region(iso3Code = regionEntity.iso3code, name = regionEntity.name))
@@ -57,26 +57,28 @@ class CovidRepository(private val appContext: Context) {
         return allRegions.sortedBy { it.name }
     }
 
+    /**
+     * @param db This apps database where covid data is cached
+     * @param regions [Region] instances from network, ready to cache
+     */
     private suspend fun saveRegionsToDb(db: AppDatabase, regions: List<Region>) {
-        println("*** ==== passed ${regions.size} regions to converter function")
-
         val allRegionEntities = toRegionEntities(regions)
-        println("*** === converted entities = $allRegionEntities")
-
-        println("*** === about to insert entities")
         db.regionDao().insert(allRegionEntities)
-        println("*** === back from inserting entities")
-
         val rcount = db.regionDao().getRegionCount()
-        println("*** === new region count = $rcount")
+        println("$rcount new regions saved to db")
     }
 
+    /**
+     * @param regions [Region] list as just retrieved from network
+     * @return Equivalent [RegionEntity] list ready to save to db
+     */
     private fun toRegionEntities(regions: List<Region>): List<RegionEntity> {
         val result = mutableListOf<RegionEntity>()
         val usedCodes = mutableSetOf<String>()
         for (region in regions) {
             if (usedCodes.contains(region.iso3Code)) {
-                println("*** === iso3code duplication of \"${region.iso3Code}\"")
+                // Silently drop duplicate ISO-3 codes
+                println("Warning: iso3code duplication of \"${region.iso3Code}\"")
             } else {
                 usedCodes.add(region.iso3Code)
                 result.add(RegionEntity(iso3code = region.iso3Code, name = region.name))
