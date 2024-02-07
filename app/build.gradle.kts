@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -72,4 +73,15 @@ dependencies {
     implementation("com.google.code.gson:gson:2.6.2")
     implementation("com.squareup.retrofit2:converter-gson:2.1.0")
     implementation("com.squareup.okhttp3:logging-interceptor:3.4.1")
+
+//    def room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
+    // To use Kotlin annotation processing tool (kapt)
+//    kapt("androidx.room:room-compiler:2.6.1")
+    // To use Kotlin Symbol Processing (KSP)
+    //ksp "androidx.room:room-compiler:$room_version"
 }
