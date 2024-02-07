@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,16 +28,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.net.CovidAPI
-import com.rodbailey.covid.net.CovidAPIClient
 import com.rodbailey.covid.ui.MainViewModel
 import com.rodbailey.covid.ui.theme.CovidTheme
 
@@ -78,13 +72,15 @@ class MainActivity : ComponentActivity() {
                                 .weight(1f)
                         ) {
                             items(regions) { region ->
-                                RegionSearchResultItem(region = region, viewModel)
+                                RegionSearchResultItem(
+                                    region = region,
+                                    clickCallback = {viewModel.loadReportDataForRegion(region)} )
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         AnimatedVisibility(visible = isDataPanelExpanded) {
                             RegionDataPanel(title = reportDataTitle, reportData = reportData,
-                                viewModel = viewModel)
+                                clickCallback = {viewModel.collapseDataPanel()})
                         }
                     }
                 }
@@ -93,69 +89,85 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//@Preview
-//@Composable
-//fun RegionSearchResultItemPreview() {
-//    RegionSearchResultItem(region = Region("ELO", "Electric Light Orchestra", view))
-//}
-
-// TODO Pass click lambda instead of viewModel then restore @Preview
+@Preview
 @Composable
-fun RegionSearchResultItem(region: Region, viewModel: MainViewModel) {
+fun RegionSearchResultItemPreview() {
+    RegionSearchResultItem(
+        region = Region("ELO", "Electric Light Orchestra")
+    ) {}
+}
+
+/**
+ * @param region The country represented by this item
+ * @param clickCallback Invoked when user clicks on this item
+ */
+@Composable
+fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(16.dp)
-            .clickable {
-                println("*** Clicked on ${region.name} ***")
-                viewModel.loadReportDataForRegion(region)
-            }) {
+            .clickable (
+                onClick = clickCallback
+            )) {
         Icon(
             modifier = Modifier.padding(end = 8.dp),
             imageVector = Icons.Default.AccountBox,
             contentDescription = "Icon"
         )
         Text(
-            text = "${region.name}"
+            text = region.name
         )
     }
 }
 
-//@Preview
-//@Composable
-//fun RegionDataPanelPreview() {
-//    RegionDataPanel(
-//        title = "Big Country",
-//        reportData = ReportData(
-//            confirmed = 10000L,
-//            deaths = 200L,
-//            recovered = 1234L,
-//            active = 9876L,
-//            fatalityRate = 0.56F
-//        )
-//    )
-//}
+@Preview
+@Composable
+fun RegionDataPanelPreview() {
+    RegionDataPanel(
+        title = "Big Country",
+        reportData = ReportData(
+            confirmed = 10000L,
+            deaths = 200L,
+            recovered = 1234L,
+            active = 9876L,
+            fatalityRate = 0.56F
+        ),
+        clickCallback = {}
+    )
+}
 
+/**
+ * A cell in the data table part of a [RegionDataPanel]
+ * @param text Textual contents of the table cell
+ * @param weight Proportional width of this cell
+ */
 @Composable
 fun RowScope.TableCell(text: String, weight: Float) {
     Text(
         text = text,
         modifier = Modifier
-//            .border(1.dp, Color.Black)
             .weight(weight)
             .padding(8.dp)
     )
 }
 
+/**
+ * Panel of covid statistics for a particular region.
+ *
+ * @param title Name of the region - appears above data table
+ * @param reportData Covid stats to put in the data table
+ * @param clickCallback Invoked when user clicks on this panel
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegionDataPanel(title: String, reportData: ReportData, viewModel: MainViewModel) {
+fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> Unit) {
     val tableData = mutableListOf<Pair<String, String>>()
     tableData.add(Pair("Confirmed:", "${reportData.confirmed}"))
     tableData.add(Pair("Deaths:", "${reportData.deaths}"))
     tableData.add(Pair("Active:", "${reportData.active}"))
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
-    Card(onClick = { viewModel.collapseDataPanel() }) {
+    Card(onClick =  clickCallback ) {
         Column() {
             Text(
                 text = title,
@@ -171,7 +183,7 @@ fun RegionDataPanel(title: String, reportData: ReportData, viewModel: MainViewMo
                 items(tableData) {
                     val (id, text) = it
                     Row() {
-                        TableCell(text = id.toString(), weight = .2f)
+                        TableCell(text = id, weight = .2f)
                         TableCell(text = text, weight = .2f)
                     }
                 }
