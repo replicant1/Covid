@@ -8,35 +8,46 @@ import com.rodbailey.covid.dom.Report
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.net.CovidAPI
 import com.rodbailey.covid.net.CovidAPIClient
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class MainViewModel : ViewModel() {
 
+    // Text contents of search field
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
+    // Error text from network ops
+    private val _errorMessage = MutableSharedFlow<String>()
+    val errorMessage = _errorMessage.asSharedFlow()
+
+    // True if regional data panel is showing
     private val _isDataPanelExpanded = MutableStateFlow(false)
     val isDataPanelExpanded = _isDataPanelExpanded.asStateFlow()
 
+    // True if loading progress indicator is showing on regional data panel
     private val _isDataPanelLoading = MutableStateFlow(true)
     val isDataPanelLoading = _isDataPanelLoading.asStateFlow()
 
+    // True if master list of countries is being loaded
     private val _isRegionListLoading = MutableStateFlow(true)
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
 
-    val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
+    private val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
 
+    // Currently matching regions
     private val _regions = MutableStateFlow(
         emptyList<Region>()
     )
-
     val regions = searchText
         .combine(_regions) { text: String, regions: List<Region> ->
             if (text.isBlank()) {
@@ -53,10 +64,10 @@ class MainViewModel : ViewModel() {
             initialValue = _regions.value,
         )
 
-    private val _reportData = MutableStateFlow<ReportData>(
+    private val _reportData = MutableStateFlow(
         ReportData(
-        confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
-    )
+            confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
+        )
     )
     val reportData = _reportData.asStateFlow()
 
@@ -64,7 +75,13 @@ class MainViewModel : ViewModel() {
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     init {
-          loadRegionsFromNetwork()
+        loadRegionsFromNetwork()
+    }
+
+    private fun showErrorMessage(message: String) {
+        viewModelScope.launch {
+            _errorMessage.emit(message)
+        }
     }
 
     fun collapseDataPanel() {
@@ -75,17 +92,15 @@ class MainViewModel : ViewModel() {
         loadReportDataForRegion("Global", null)
     }
 
-    fun loadReportDataForRegion(regionName:String, regionIso3Code:String?) {
+    fun loadReportDataForRegion(regionName: String, regionIso3Code: String?) {
         _isDataPanelExpanded.value = true
         _isDataPanelLoading.value = true
-        val call : Call<Report>? = covidAPI?.getReport(regionIso3Code)
+        val call: Call<Report>? = covidAPI?.getReport(regionIso3Code)
         call?.enqueue(
             object : Callback<Report> {
                 override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
-                    println("** onResponse = response")
                     if (response != null) {
                         val loadedData = response.body().data
-                        println("** loadedData = $loadedData")
                         _reportData.value = loadedData
                         _reportDataTitle.value = regionName
                         _isDataPanelExpanded.value = true
@@ -94,22 +109,20 @@ class MainViewModel : ViewModel() {
                 }
 
                 override fun onFailure(call: Call<Report>?, t: Throwable?) {
-                    println("** onFailure $t")
                     _isDataPanelLoading.value = false
                     _isDataPanelExpanded.value = false
+                    showErrorMessage("Failed to load data for \"${regionName}\".")
                 }
             }
         )
     }
 
     private fun loadRegionsFromNetwork() {
-        println("*** Beginning network load of countries")
         _isRegionListLoading.value = true
         val call: Call<RegionList>? = covidAPI?.getRegions()
         call?.enqueue(
             object : Callback<RegionList> {
                 override fun onResponse(call: Call<RegionList>?, response: Response<RegionList>?) {
-                    println("*** onResponse: region count =  ${response?.body()?.regions?.size}")
                     _isRegionListLoading.value = false
                     if (response != null) {
                         _regions.value = response.body().regions.sortedBy { it.name }
@@ -117,8 +130,8 @@ class MainViewModel : ViewModel() {
                 }
 
                 override fun onFailure(call: Call<RegionList>?, t: Throwable?) {
-                    println("*** onFailure: $t")
                     _isRegionListLoading.value = false
+                    showErrorMessage("Failed to load country list.")
                 }
             }
         )

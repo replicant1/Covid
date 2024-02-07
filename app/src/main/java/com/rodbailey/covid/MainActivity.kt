@@ -1,6 +1,7 @@
 package com.rodbailey.covid
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -31,11 +32,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +59,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    val context = LocalContext.current
+                    
+                    LaunchedEffect(Unit) {
+                        viewModel.errorMessage.collect { message ->
+                            Toast.makeText(context, message, Toast.LENGTH_LONG ).show()
+                        }
+                    }
+                    
                     val searchText by viewModel.searchText.collectAsState()
                     val regions by viewModel.regions.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
@@ -78,6 +89,7 @@ class MainActivity : ComponentActivity() {
                             },
                             placeholder = { Text(text = "Search country") }
                         )
+                        // Tracks progress of region list loading
                         LinearProgressIndicator(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -87,6 +99,7 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.secondary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
+                        // List of countries that match current contents of search field
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -95,10 +108,12 @@ class MainActivity : ComponentActivity() {
                             items(regions) { region ->
                                 RegionSearchResultItem(
                                     region = region,
-                                    clickCallback = { viewModel.loadReportDataForGlobal() })
+                                    clickCallback = { viewModel.
+                                    loadReportDataForRegion(region.name, region.iso3Code) })
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
+                        // Data panel shows covid stats for current country or global.
                         AnimatedVisibility(visible = isDataPanelExpanded) {
                             RegionDataPanel(
                                 title = reportDataTitle, reportData = reportData,
@@ -118,7 +133,7 @@ fun GlobalRegion(clickCallback: () -> Unit) {
     Icon(
         imageVector = Icons.Default.AccountCircle,
         contentDescription = "Global",
-        modifier = Modifier.clickable(onClick = clickCallback, onClickLabel = "Global")
+        modifier = Modifier.clickable(onClick = clickCallback)
     )
 }
 
@@ -254,9 +269,9 @@ fun RegionDataPanel(
                             TableCell(text = id, weight = .2f)
                             TableCell(text = text, weight = .2f)
                         }
-                    }
-                }
+                    } // items
+                } // LazyColumn
             } // Column
         } // Box
-    }
+    } // Card
 }
