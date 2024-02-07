@@ -73,6 +73,7 @@ class MainViewModel : ViewModel() {
 
     fun loadReportDataForRegion(region: Region) {
         println("*** Beginning network load of report data for region ${region.iso3Code}")
+        _isDataPanelExpanded.value = true
         _isDataPanelLoading.value = true
         val call : Call<Report>? = covidAPI?.getReport(region.iso3Code)
         call?.enqueue(
