@@ -22,9 +22,6 @@ class MainViewModel : ViewModel() {
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    private val _isSearching = MutableStateFlow(false)
-    val isSearching = _isSearching.asStateFlow()
-
     private val _isDataPanelExpanded = MutableStateFlow(false)
     val isDataPanelExpanded = _isDataPanelExpanded.asStateFlow()
 
