@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -14,11 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +31,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,6 +60,7 @@ class MainActivity : ComponentActivity() {
                     val reportData by viewModel.reportData.collectAsState()
                     val reportDataTitle by viewModel.reportDataTitle.collectAsState()
                     val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()
+                    val isDataPanelLoading by viewModel.isDataPanelLoading.collectAsState()
 
                     Column(
                         modifier = Modifier.fillMaxSize()
@@ -80,7 +86,9 @@ class MainActivity : ComponentActivity() {
                         Spacer(modifier = Modifier.height(16.dp))
                         AnimatedVisibility(visible = isDataPanelExpanded) {
                             RegionDataPanel(title = reportDataTitle, reportData = reportData,
-                                clickCallback = {viewModel.collapseDataPanel()})
+                                clickCallback = {viewModel.collapseDataPanel()},
+                                isLoading = isDataPanelLoading
+                            )
                         }
                     }
                 }
@@ -106,7 +114,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
     Row(
         modifier = Modifier
             .padding(16.dp)
-            .clickable (
+            .clickable(
                 onClick = clickCallback
             )) {
         Icon(
@@ -122,7 +130,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
 
 @Preview
 @Composable
-fun RegionDataPanelPreview() {
+fun RegionDataPanelPreviewNotLoading() {
     RegionDataPanel(
         title = "Big Country",
         reportData = ReportData(
@@ -132,7 +140,25 @@ fun RegionDataPanelPreview() {
             active = 9876L,
             fatalityRate = 0.56F
         ),
-        clickCallback = {}
+        clickCallback = {},
+        isLoading = false
+    )
+}
+
+@Preview
+@Composable
+fun RegionDataPanelPreviewLoading() {
+    RegionDataPanel(
+        title = "Big Country",
+        reportData = ReportData(
+            confirmed = 10000L,
+            deaths = 200L,
+            recovered = 1234L,
+            active = 9876L,
+            fatalityRate = 0.56F
+        ),
+        clickCallback = {},
+        isLoading = true
     )
 }
 
@@ -160,7 +186,7 @@ fun RowScope.TableCell(text: String, weight: Float) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> Unit) {
+fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> Unit, isLoading: Boolean) {
     val tableData = mutableListOf<Pair<String, String>>()
     tableData.add(Pair("Confirmed:", "${reportData.confirmed}"))
     tableData.add(Pair("Deaths:", "${reportData.deaths}"))
@@ -168,26 +194,37 @@ fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> 
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
     Card(onClick =  clickCallback ) {
-        Column() {
-            Text(
-                text = title,
-                fontWeight = FontWeight.Bold,
+        Box() {
+            CircularProgressIndicator(
                 modifier = Modifier
-                    .padding(start = 24.dp, bottom = 8.dp, top = 16.dp, end = 16.dp)
-            )
-            LazyColumn(
-                Modifier
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                    .width(64.dp)
+                    .alpha(if (isLoading) 1f else 0f)
+                    .align(Alignment.Center),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant)
+            Column(
+                modifier = Modifier.alpha(if (isLoading) 0f else 1f)
             ) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(start = 24.dp, bottom = 8.dp, top = 16.dp, end = 16.dp)
+                )
+                LazyColumn(
+                    Modifier
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ) {
 
-                items(tableData) {
-                    val (id, text) = it
-                    Row() {
-                        TableCell(text = id, weight = .2f)
-                        TableCell(text = text, weight = .2f)
+                    items(tableData) {
+                        val (id, text) = it
+                        Row() {
+                            TableCell(text = id, weight = .2f)
+                            TableCell(text = text, weight = .2f)
+                        }
                     }
                 }
-            }
-        }
+            } // Column
+        } // Box
     }
 }

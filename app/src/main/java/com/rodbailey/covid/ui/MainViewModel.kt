@@ -28,6 +28,9 @@ class MainViewModel : ViewModel() {
     private val _isDataPanelExpanded = MutableStateFlow(false)
     val isDataPanelExpanded = _isDataPanelExpanded.asStateFlow()
 
+    private val _isDataPanelLoading = MutableStateFlow(true)
+    val isDataPanelLoading = _isDataPanelLoading.asStateFlow()
+
     val covidAPI = CovidAPIClient().getAPIClient()?.create(CovidAPI::class.java)
 
     private val _regions = MutableStateFlow(
@@ -70,6 +73,7 @@ class MainViewModel : ViewModel() {
 
     fun loadReportDataForRegion(region: Region) {
         println("*** Beginning network load of report data for region ${region.iso3Code}")
+        _isDataPanelLoading.value = true
         val call : Call<Report>? = covidAPI?.getReport(region.iso3Code)
         call?.enqueue(
             object : Callback<Report> {
@@ -81,11 +85,14 @@ class MainViewModel : ViewModel() {
                         _reportData.value = loadedData
                         _reportDataTitle.value = region.name
                         _isDataPanelExpanded.value = true
+                        _isDataPanelLoading.value = false
                     }
                 }
 
                 override fun onFailure(call: Call<Report>?, t: Throwable?) {
                     println("** onFailure $t")
+                    _isDataPanelLoading.value = false
+                    _isDataPanelExpanded.value = false
                 }
             }
         )
