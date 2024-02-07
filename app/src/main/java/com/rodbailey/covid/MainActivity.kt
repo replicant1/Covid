@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -70,6 +71,11 @@ class MainActivity : ComponentActivity() {
                             value = searchText,
                             onValueChange = viewModel::onSearchTextChanged,
                             modifier = Modifier.fillMaxWidth(),
+                            trailingIcon = {
+                                GlobalRegion {
+                                    viewModel.loadReportDataForGlobal()
+                                }
+                            },
                             placeholder = { Text(text = "Search country") }
                         )
                         LinearProgressIndicator(
@@ -79,7 +85,8 @@ class MainActivity : ComponentActivity() {
                                 .alpha(if (isRegionListLoading) 1f else 0f)
                                 .padding(bottom = 12.dp),
                             color = MaterialTheme.colorScheme.secondary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -88,13 +95,14 @@ class MainActivity : ComponentActivity() {
                             items(regions) { region ->
                                 RegionSearchResultItem(
                                     region = region,
-                                    clickCallback = {viewModel.loadReportDataForRegion(region)} )
+                                    clickCallback = { viewModel.loadReportDataForGlobal() })
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         AnimatedVisibility(visible = isDataPanelExpanded) {
-                            RegionDataPanel(title = reportDataTitle, reportData = reportData,
-                                clickCallback = {viewModel.collapseDataPanel()},
+                            RegionDataPanel(
+                                title = reportDataTitle, reportData = reportData,
+                                clickCallback = { viewModel.collapseDataPanel() },
                                 isLoading = isDataPanelLoading
                             )
                         }
@@ -103,6 +111,15 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+@Composable
+fun GlobalRegion(clickCallback: () -> Unit) {
+    Icon(
+        imageVector = Icons.Default.AccountCircle,
+        contentDescription = "Global",
+        modifier = Modifier.clickable(onClick = clickCallback, onClickLabel = "Global")
+    )
 }
 
 @Preview
@@ -124,7 +141,8 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
             .padding(16.dp)
             .clickable(
                 onClick = clickCallback
-            )) {
+            )
+    ) {
         Icon(
             modifier = Modifier.padding(end = 8.dp),
             imageVector = Icons.Default.AccountBox,
@@ -194,14 +212,19 @@ fun RowScope.TableCell(text: String, weight: Float) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> Unit, isLoading: Boolean) {
+fun RegionDataPanel(
+    title: String,
+    reportData: ReportData,
+    clickCallback: () -> Unit,
+    isLoading: Boolean
+) {
     val tableData = mutableListOf<Pair<String, String>>()
     tableData.add(Pair("Confirmed:", "${reportData.confirmed}"))
     tableData.add(Pair("Deaths:", "${reportData.deaths}"))
     tableData.add(Pair("Active:", "${reportData.active}"))
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
-    Card(onClick =  clickCallback ) {
+    Card(onClick = clickCallback) {
         Box() {
             CircularProgressIndicator(
                 modifier = Modifier
@@ -209,7 +232,8 @@ fun RegionDataPanel(title: String, reportData: ReportData, clickCallback: () -> 
                     .alpha(if (isLoading) 1f else 0f)
                     .align(Alignment.Center),
                 color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant)
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
             Column(
                 modifier = Modifier.alpha(if (isLoading) 0f else 1f)
             ) {

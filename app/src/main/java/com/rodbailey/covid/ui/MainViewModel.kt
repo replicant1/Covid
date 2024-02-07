@@ -71,11 +71,14 @@ class MainViewModel : ViewModel() {
         _isDataPanelExpanded.value = false
     }
 
-    fun loadReportDataForRegion(region: Region) {
-        println("*** Beginning network load of report data for region ${region.iso3Code}")
+    fun loadReportDataForGlobal() {
+        loadReportDataForRegion("Global", null)
+    }
+
+    fun loadReportDataForRegion(regionName:String, regionIso3Code:String?) {
         _isDataPanelExpanded.value = true
         _isDataPanelLoading.value = true
-        val call : Call<Report>? = covidAPI?.getReport(region.iso3Code)
+        val call : Call<Report>? = covidAPI?.getReport(regionIso3Code)
         call?.enqueue(
             object : Callback<Report> {
                 override fun onResponse(call: Call<Report>?, response: Response<Report>?) {
@@ -84,7 +87,7 @@ class MainViewModel : ViewModel() {
                         val loadedData = response.body().data
                         println("** loadedData = $loadedData")
                         _reportData.value = loadedData
-                        _reportDataTitle.value = region.name
+                        _reportDataTitle.value = regionName
                         _isDataPanelExpanded.value = true
                         _isDataPanelLoading.value = false
                     }
