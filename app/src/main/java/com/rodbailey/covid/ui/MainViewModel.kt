@@ -1,5 +1,7 @@
 package com.rodbailey.covid.ui
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.dom.Region
@@ -14,7 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(app:Application) : AndroidViewModel(app) {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -66,7 +68,7 @@ class MainViewModel : ViewModel() {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-    private val repo = CovidRepository()
+    private val repo = CovidRepository(getApplication<Application>().applicationContext)
 
     init {
         loadRegionsFromNetwork()
@@ -111,9 +113,9 @@ class MainViewModel : ViewModel() {
                 _regions.value = repo.getRegions()
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
+                showErrorMessage("Failed to load country list.")
             } finally {
                 _isRegionListLoading.value = false
-                showErrorMessage("Failed to load country list.")
             }
         }
     }
