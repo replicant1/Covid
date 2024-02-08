@@ -13,6 +13,19 @@ This is an Android technical exercise centered on the presentation of COVID data
 - **GSON** for parsing of JSON
 - **Espresso** for instrumented testing
 
+# Build
+
+This Github repository contains a single Android Studio project that is ready to build and install.
+It has been built with `Android Studio Hedgehog | 2023.1.1 Patch 2`
+
+# Architecture
+
+The app has a layered architecture. The UI layer uses the MVVM pattern with the UI in `Compose` and the `ViewModel` class from the Android Architecture Components. The data layer exposes a `Repository` that fetches data either from the network or the local database.
+
+# UI Design
+
+The UI conforms to the Material Design 3 guidelines.
+
 # Screen
 
 The app has only a single screen. A search field is used to filter the country list below it. The circular icon at the right of the search field provides a way to access "Global" statistics. The card at the bottom of the screen displays the covid statistics for the currently selected country (or Global). Tapping the card hides it.
