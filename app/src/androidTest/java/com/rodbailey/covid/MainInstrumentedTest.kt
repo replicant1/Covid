@@ -84,10 +84,27 @@ class MainInstrumentedTest {
         
         waitForCountryStatsToLoad()
 
-        // Only checking title - should also check data in table underneath
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title")
-            .assertTextEquals("Global")
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals("Global")
+        rule.onNodeWithText("676544789", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText("6881737", useUnmergedTree = true).assertIsDisplayed() // deaths
+        rule.onNodeWithText("669663052", useUnmergedTree = true).assertIsDisplayed() // active cases
+        rule.onNodeWithText("0.0102", useUnmergedTree = true).assertIsDisplayed() // fatality rate
+    }
+
+    @Test
+    fun click_albania_shows_albania_stats() {
+        waitForCountryListToLoad()
+
+        rule.onNodeWithText("Albania").performClick()
+
+        waitForCountryStatsToLoad()
+
+        rule.onNodeWithTag("tag.card").assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = "334457").assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(useUnmergedTree = true, text="3598").assertIsDisplayed() // deaths
+        rule.onNodeWithText(useUnmergedTree = true, text = "330859") // active cases
+        rule.onNodeWithText(useUnmergedTree = true, text = "0.0108") // fatality rate
     }
 
     /**
