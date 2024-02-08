@@ -85,6 +85,7 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
     }
 
     fun loadReportDataForGlobal() {
+        println("*** Loading report data for global ***")
         loadReportDataForRegion("Global", null)
     }
 
@@ -95,11 +96,13 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
                 _isDataPanelLoading.value = true
                 _reportData.value = repo.getReport(regionIso3Code)
                 _reportDataTitle.value = regionName
+                println("*** Loaded region data for $regionName OK")
             } catch (ex: Exception) {
                 println("Exception while getting data for region ${regionName}")
                 showErrorMessage("Failed to load data for \"${regionName}\".")
                 _isDataPanelExpanded.value = false
             } finally {
+                println("*** Finished loading for rebion $regionName")
                 _isDataPanelLoading.value = false
             }
         }
