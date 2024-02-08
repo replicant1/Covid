@@ -18,7 +18,9 @@ The app has only a single screen. A search field is used to filter the country l
 
 The country list is cached in a local database and the only way to clear the database is to uninstall the application.
 
-![Screen](/doc/sample_screenshot.png)
+![Portrait](/doc/sample_screenshot_portrait.png)
+
+![Landscape](/doc/sample_screenshot_landscape.png)
 
 # Video
 
