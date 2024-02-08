@@ -11,6 +11,7 @@ This is an Android technical exercise centered on the presentation of COVID data
 - **Room** for caching of loaded data (country list only)
 - **Retrofit** for network communications
 - **GSON** for parsing of JSON
+- **Espresso** for instrumented testing
 
 # Screen
 
@@ -28,6 +29,12 @@ The following video demonstrates the application in use. You may need to downloa
 
 ![Video](/doc/sample_video.mp4)
 
+# Tests
+
+Currently there is a single suite of instrumented tests that perform very basic testing.
+
+![Tests](/doc/main_instrumented_tests.png)
+
 # Addendum
 
 If time permitted, the following would be nice to do: 
@@ -35,6 +42,6 @@ If time permitted, the following would be nice to do:
 - Extend local data caching to covid stats for individual countries
 - Use a surrogate key for regions instead of the ISO 3 character code. The data has two entries for `TWN`. At the moment I silently ignore one.
 - Add units of measurements for the stats to the UI
-- Better way of accessing Global stats. Current method (icon at right of search field) seems strange.
-- Tests - instrumented and un-instrumented
+- Better UI for accessing Global stats. Current method = icon at right of search field.
+- Improve tests
 

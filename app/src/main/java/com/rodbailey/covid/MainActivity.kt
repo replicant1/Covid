@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -81,9 +82,9 @@ class MainActivity : ComponentActivity() {
                         TextField(
                             value = searchText,
                             onValueChange = viewModel::onSearchTextChanged,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("tag.text.search"),
                             trailingIcon = {
-                                GlobalRegion {
+                                GlobalRegion() {
                                     viewModel.loadReportDataForGlobal()
                                 }
                             },
@@ -92,6 +93,7 @@ class MainActivity : ComponentActivity() {
                         // Tracks progress of region list loading
                         LinearProgressIndicator(
                             modifier = Modifier
+                                .testTag("tag.progress.search")
                                 .fillMaxWidth()
                                 .height(16.dp)
                                 .alpha(if (isRegionListLoading) 1f else 0f)
@@ -104,6 +106,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
+                                .testTag("tag.lazy.column.search")
                         ) {
                             items(regions) { region ->
                                 RegionSearchResultItem(
@@ -133,7 +136,7 @@ fun GlobalRegion(clickCallback: () -> Unit) {
     Icon(
         imageVector = Icons.Default.AccountCircle,
         contentDescription = "Global",
-        modifier = Modifier.clickable(onClick = clickCallback)
+        modifier = Modifier.clickable(onClick = clickCallback).testTag("tag.icon.global")
     )
 }
 
@@ -239,7 +242,7 @@ fun RegionDataPanel(
     tableData.add(Pair("Active:", "${reportData.active}"))
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
-    Card(onClick = clickCallback) {
+    Card(onClick = clickCallback, modifier = Modifier.testTag("tag.card")) {
         Box() {
             CircularProgressIndicator(
                 modifier = Modifier
@@ -257,6 +260,7 @@ fun RegionDataPanel(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(start = 24.dp, bottom = 8.dp, top = 16.dp, end = 16.dp)
+                        .testTag("tag.card.title")
                 )
                 LazyColumn(
                     Modifier
