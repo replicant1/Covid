@@ -43,13 +43,19 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.ui.MainViewModel
 import com.rodbailey.covid.ui.theme.CovidTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+    @Inject
+    lateinit var db: AppDatabase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,6 +73,10 @@ class MainActivity : ComponentActivity() {
                             Toast.makeText(context, message, Toast.LENGTH_LONG ).show()
                         }
                     }
+
+                    println("***************************")
+                    println("db = $db")
+                    println("***************************")
                     
                     val searchText by viewModel.searchText.collectAsState()
                     val regions by viewModel.regions.collectAsState()

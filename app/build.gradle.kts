@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -74,7 +75,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.1.0")
     implementation("com.squareup.okhttp3:logging-interceptor:3.4.1")
 
-//    def room_version = "2.6.1"
+    // Room
 
     implementation("androidx.room:room-runtime:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
@@ -84,4 +85,8 @@ dependencies {
 //    kapt("androidx.room:room-compiler:2.6.1")
     // To use Kotlin Symbol Processing (KSP)
     //ksp "androidx.room:room-compiler:$room_version"
+
+    // Hilt dependencies
+    implementation ("com.google.dagger:hilt-android:2.48.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.48.1")
 }
