@@ -50,7 +50,7 @@ class CovidRepository(private val appContext: Context) {
     private suspend fun loadRegionsFromDb(db: AppDatabase): List<Region> {
         val allRegionEntities = db.regionDao().getAllRegions()
         println("${allRegionEntities.size} regions loaded from db")
-        val allRegions = mutableSetOf<Region>()
+        val allRegions = mutableListOf<Region>()
         for (regionEntity in allRegionEntities) {
             allRegions.add(Region(iso3Code = regionEntity.iso3code, name = regionEntity.name))
         }
@@ -74,15 +74,8 @@ class CovidRepository(private val appContext: Context) {
      */
     private fun toRegionEntities(regions: List<Region>): List<RegionEntity> {
         val result = mutableListOf<RegionEntity>()
-        val usedCodes = mutableSetOf<String>()
         for (region in regions) {
-            if (usedCodes.contains(region.iso3Code)) {
-                // Silently drop duplicate ISO-3 codes
-                println("Warning: iso3code duplication of \"${region.iso3Code}\"")
-            } else {
-                usedCodes.add(region.iso3Code)
-                result.add(RegionEntity(iso3code = region.iso3Code, name = region.name))
-            }
+            result.add(RegionEntity(iso3code = region.iso3Code, name = region.name))
         }
         return result
     }
