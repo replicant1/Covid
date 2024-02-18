@@ -22,5 +22,8 @@ data class RegionStatsEntity (
     val recovered: Long,
 
     @ColumnInfo(name = "active")
-    val active: Long
+    val active: Long,
+
+    @ColumnInfo(name = "fatalityRate")
+    val fatalityRate: Float
 )

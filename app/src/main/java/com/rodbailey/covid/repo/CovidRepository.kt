@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.db.RegionEntity
+import com.rodbailey.covid.db.RegionStatsEntity
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.net.CovidAPIClient
@@ -12,8 +13,12 @@ import com.rodbailey.covid.net.CovidAPIClient
  * Accesses covid data from some source - perhaps network, perhaps local database
  * ... clients do not know. Only network is currently supported.
  */
-class CovidRepository(private val appContext: Context) {
+class CovidRepository(appContext: Context) {
+    companion object {
+        private const val GLOBAL_ISO3_CODE = "___"
+    }
     private val covidAPI = CovidAPIClient().getAPIClient()
+    private val appDatabase = Room.databaseBuilder(appContext, AppDatabase::class.java, "covid").build()
 
     /**
      * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"
@@ -21,7 +26,56 @@ class CovidRepository(private val appContext: Context) {
      * @throws Exception if the slightest thing goes wrong
      */
     suspend fun getReport(regionIso3Code: String?): ReportData {
-        return covidAPI.getReport(regionIso3Code).data
+        if (regionIso3Code != null) {
+            val dataSets = appDatabase.regionStatsDao().getRegionStats(regionIso3Code)
+            if (dataSets.isEmpty()) {
+                // ReportData is not in database, so get from network
+                val apiData = covidAPI.getReport(regionIso3Code).data
+                saveRegionStatsToDb(regionIso3Code, apiData)
+                println("Data for $regionIso3Code has been retrieved from network")
+                return apiData
+            } else {
+                // Take the first result only
+                println("Data for $regionIso3Code has been retrieved from database")
+                return toReportData(dataSets[0])
+            }
+        } else {
+            val dbGlobal = appDatabase.regionStatsDao().getRegionStats(GLOBAL_ISO3_CODE)
+            if (dbGlobal.isEmpty()) {
+                // Global data is not in database, so get from network
+                val globalData = covidAPI.getReport(null).data
+                saveRegionStatsToDb(GLOBAL_ISO3_CODE, globalData)
+                println("Data for GLOBAL has been retrieved from network")
+                return globalData
+            } else {
+                // Get global data from database. Assert: there is only one
+                println("Data for GLOBAL has been reterieved from database")
+                return toReportData(dbGlobal[0])
+            }
+        }
+    }
+
+    private fun toReportData(dbStats : RegionStatsEntity) : ReportData {
+        return ReportData(
+            confirmed = dbStats.confirmed,
+            deaths = dbStats.deaths,
+            recovered = dbStats.recovered,
+            active = dbStats.active,
+            fatalityRate = dbStats.fatalityRate
+        )
+    }
+
+    private suspend fun saveRegionStatsToDb(isoCode : String, stats: ReportData) {
+        appDatabase.regionStatsDao().insert(
+            RegionStatsEntity(
+                iso3code = isoCode,
+                confirmed = stats.confirmed,
+                deaths = stats.deaths,
+                recovered = stats.recovered,
+                active = stats.active,
+                fatalityRate = stats.fatalityRate
+            )
+        )
     }
 
     /**
@@ -29,7 +83,6 @@ class CovidRepository(private val appContext: Context) {
      * @throws Exception if the slightest thing goes wrong
      */
     suspend fun getRegions(): List<Region> {
-        val appDatabase = Room.databaseBuilder(appContext, AppDatabase::class.java, "covid").build()
         val numRegionsSaved = appDatabase.regionDao().getRegionCount()
 
         return if (numRegionsSaved == 0) {
