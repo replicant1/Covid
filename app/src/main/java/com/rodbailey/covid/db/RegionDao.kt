@@ -15,6 +15,9 @@ interface RegionDao {
     @Query("select count(*) from regions")
     suspend fun getRegionCount() : Int
 
+    @Query("select * from regions where iso3code = :iso3code")
+    suspend fun getRegion(iso3code : String) : RegionEntity?
+
     @Query("delete from regions")
     suspend fun deleteAllRegions()
 }

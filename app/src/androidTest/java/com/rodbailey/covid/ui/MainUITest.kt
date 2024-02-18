@@ -1,4 +1,4 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.rodbailey.covid.MainActivity
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -24,7 +25,7 @@ import org.junit.runner.RunWith
  * See [waitForCountryListToLoad] for example.
  */
 @RunWith(AndroidJUnit4::class)
-class MainInstrumentedTest {
+class MainUITest {
 
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()

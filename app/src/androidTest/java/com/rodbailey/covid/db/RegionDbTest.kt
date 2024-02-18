@@ -1,12 +1,9 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.db
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.rodbailey.covid.db.AppDatabase
-import com.rodbailey.covid.db.RegionDao
-import com.rodbailey.covid.db.RegionEntity
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -16,7 +13,7 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @SmallTest
-class DbInstrumentedTest {
+class RegionDbTest {
 
     private lateinit var db:AppDatabase
     private lateinit var regionDao: RegionDao
@@ -68,5 +65,11 @@ class DbInstrumentedTest {
 
         regionDao.deleteAllRegions()
         Assert.assertEquals(0, regionDao.getRegionCount())
+    }
+
+    @Test
+    fun getNonExistentRegion_IsNull() = runBlocking {
+        val result = regionDao.getRegion("XXX")
+        Assert.assertNull(result)
     }
 }
