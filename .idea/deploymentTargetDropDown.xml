@@ -5,13 +5,13 @@
       <entry key="DbInstrumentedTest">
         <State />
       </entry>
-      <entry key="ExampleInstrumentedTest">
-        <State />
-      </entry>
-      <entry key="MainInstrumentedTest">
-        <State />
-      </entry>
       <entry key="RegionDbInstrumentedTest">
+        <State />
+      </entry>
+      <entry key="RegionDbTest">
+        <State />
+      </entry>
+      <entry key="RegionStatsDbTest">
         <State />
       </entry>
       <entry key="StatsDbInstrumentedTest">

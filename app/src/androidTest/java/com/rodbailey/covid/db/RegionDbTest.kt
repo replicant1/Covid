@@ -34,7 +34,7 @@ class RegionDbTest {
 
     @Test
     fun insertRegion_retrievedRegionIsSame() = runBlocking() {
-        val region = RegionEntity("AUS", "Australia")
+        val region = RegionEntity(iso3code = "AUS", name = "Australia")
         regionDao.insert(listOf(region))
 
         val result = regionDao.getAllRegions()
@@ -46,8 +46,8 @@ class RegionDbTest {
 
     @Test
     fun insertTwoRegions_regionCountIsTwo() = runBlocking {
-        val region1 = RegionEntity("TWN", "Taiwan")
-        val region2 = RegionEntity("CHN", "China")
+        val region1 = RegionEntity(iso3code = "TWN", name = "Taiwan")
+        val region2 = RegionEntity(iso3code = "CHN", name = "China")
         val regionList = listOf(region1, region2)
 
         regionDao.insert(regionList)
@@ -58,7 +58,7 @@ class RegionDbTest {
 
     @Test
     fun insertRegionAndDeleteIt_RegionCountIsZero() = runBlocking {
-        val region = RegionEntity("AUS", "Australia")
+        val region = RegionEntity(iso3code = "AUS", name = "Australia")
 
         regionDao.insert(listOf(region))
         Assert.assertEquals(1, regionDao.getRegionCount())
@@ -68,8 +68,32 @@ class RegionDbTest {
     }
 
     @Test
-    fun getNonExistentRegion_IsNull() = runBlocking {
-        val result = regionDao.getRegion("XXX")
-        Assert.assertNull(result)
+    fun getNonExistentRegion_IsEmpty() = runBlocking {
+        val results = regionDao.getRegionsByIso3Code("XXX")
+        Assert.assertTrue(results.isEmpty())
+    }
+
+    @Test
+    fun insertTwoRegions_DifferentPrimaryKeys() = runBlocking {
+        val region1 = RegionEntity(iso3code = "TWN", name = "North Taiwan")
+        val region2 = RegionEntity(iso3code = "TWN", name = "South Taiwan")
+
+        regionDao.insert(listOf(region1, region2))
+
+        val allRegions = regionDao.getAllRegions()
+        Assert.assertEquals(2, allRegions.size)
+        Assert.assertNotEquals(allRegions[0].id, allRegions[1].id)
+    }
+
+    @Test
+    fun insertThenDeleteAllRegions_emptyCount() = runBlocking {
+        val region1 = RegionEntity(iso3code = "AAA", name = "Alabama")
+        val region2 = RegionEntity(iso3code = "BBB", name = "Bahamas")
+
+        regionDao.insert(listOf(region1, region2))
+        regionDao.deleteAllRegions()
+
+        val count = regionDao.getRegionCount()
+        Assert.assertEquals(0, count)
     }
 }

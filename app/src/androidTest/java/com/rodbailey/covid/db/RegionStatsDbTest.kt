@@ -46,17 +46,18 @@ class RegionStatsDbTest {
         val statsOut =  statsDao.getRegionStats("AUS")
 
         Assert.assertNotNull(statsOut)
-        Assert.assertEquals("AUS", statsOut!!.iso3code)
-        Assert.assertEquals(1234L, statsOut!!.confirmed)
-        Assert.assertEquals(101L, statsOut!!.deaths)
-        Assert.assertEquals(2345L, statsOut!!.recovered)
-        Assert.assertEquals(999L, statsOut!!.active)
+        Assert.assertFalse(statsOut.isEmpty())
+        Assert.assertEquals("AUS", statsOut[0].iso3code)
+        Assert.assertEquals(1234L, statsOut[0].confirmed)
+        Assert.assertEquals(101L, statsOut[0].deaths)
+        Assert.assertEquals(2345L, statsOut[0].recovered)
+        Assert.assertEquals(999L, statsOut[0].active)
     }
 
     @Test
-    fun retrieveBadIso3Code_IsNull() = runBlocking {
+    fun retrieveBadIso3Code_IsEmpty() = runBlocking {
         val result = statsDao.getRegionStats("UAS")
-        Assert.assertNull(result)
+        Assert.assertTrue(result.isEmpty())
     }
 
     @Test
@@ -70,8 +71,23 @@ class RegionStatsDbTest {
         )
         statsDao.insert(ausStats)
 
-        statsDao.deleteAllStats()
+        statsDao.deleteAllRegionStats()
         val rowCount = statsDao.getRegionStatsCount()
         Assert.assertEquals(0, rowCount)
+    }
+
+    @Test
+    fun insertTwoStats_UniquePrimaryKeys() = runBlocking {
+        val stats1 = RegionStatsEntity(
+            iso3code = "AAA", confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L
+        )
+        val stats2 = RegionStatsEntity(
+            iso3code = "AAA", confirmed = 1L, deaths = 2L, recovered = 3L, active = 4L
+        )
+        statsDao.insert(stats1)
+        statsDao.insert(stats2)
+
+        val results = statsDao.getRegionStats("AAA")
+        Assert.assertNotEquals(results[0].id, results[1].id)
     }
 }

@@ -6,7 +6,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "stats")
 data class RegionStatsEntity (
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
+    @ColumnInfo(name = "iso3code")
     val iso3code: String,
 
     @ColumnInfo(name = "confirmed")

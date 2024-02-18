@@ -10,10 +10,10 @@ interface RegionStatsDao {
     suspend fun insert(regionStatsEntity : RegionStatsEntity)
 
     @Query("select * from stats where iso3code = :iso3code")
-    suspend fun getRegionStats(iso3code : String) : RegionStatsEntity?
+    suspend fun getRegionStats(iso3code : String) : List<RegionStatsEntity>
 
     @Query("delete from stats")
-    suspend fun deleteAllStats()
+    suspend fun deleteAllRegionStats()
 
     @Query("select count(*) from stats")
     suspend fun getRegionStatsCount() : Int
