@@ -1,24 +1,55 @@
 package com.rodbailey.covid.repo
 
 import android.content.Context
-import androidx.room.Room
 import com.rodbailey.covid.db.AppDatabase
+import com.rodbailey.covid.db.RegionDao
 import com.rodbailey.covid.db.RegionEntity
+import com.rodbailey.covid.db.RegionStatsDao
 import com.rodbailey.covid.db.RegionStatsEntity
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.net.CovidAPIClient
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 
 /**
  * Accesses covid data from some source - perhaps network, perhaps local database
- * ... clients do not know. Only network is currently supported.
+ * ... clients do not know.
  */
-class CovidRepository(appContext: Context) {
+class CovidRepository(val appContext: Context) {
     companion object {
         private const val GLOBAL_ISO3_CODE = "___"
     }
+
     private val covidAPI = CovidAPIClient().getAPIClient()
-    private val appDatabase = Room.databaseBuilder(appContext, AppDatabase::class.java, "covid").build()
+
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface CovidRepositoryEntryPoint {
+        fun regionStatsDao() : RegionStatsDao
+        fun regionDao() : RegionDao
+    }
+
+    /**
+     * @return [RegionDao] as provided by Hilt
+     */
+    private fun getRegionDao() : RegionDao {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            appContext,
+            CovidRepositoryEntryPoint::class.java
+        )
+        return entryPoint.regionDao()
+    }
+
+    private fun getRegionStatsDao() : RegionStatsDao {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            appContext,
+            CovidRepositoryEntryPoint::class.java
+        )
+        return entryPoint.regionStatsDao()
+    }
 
     /**
      * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"
@@ -27,7 +58,7 @@ class CovidRepository(appContext: Context) {
      */
     suspend fun getReport(regionIso3Code: String?): ReportData {
         if (regionIso3Code != null) {
-            val dataSets = appDatabase.regionStatsDao().getRegionStats(regionIso3Code)
+            val dataSets = getRegionStatsDao().getRegionStats(regionIso3Code)
             if (dataSets.isEmpty()) {
                 // ReportData is not in database, so get from network
                 val apiData = covidAPI.getReport(regionIso3Code).data
@@ -40,7 +71,7 @@ class CovidRepository(appContext: Context) {
                 return toReportData(dataSets[0])
             }
         } else {
-            val dbGlobal = appDatabase.regionStatsDao().getRegionStats(GLOBAL_ISO3_CODE)
+            val dbGlobal = getRegionStatsDao().getRegionStats(GLOBAL_ISO3_CODE)
             if (dbGlobal.isEmpty()) {
                 // Global data is not in database, so get from network
                 val globalData = covidAPI.getReport(null).data
@@ -66,7 +97,7 @@ class CovidRepository(appContext: Context) {
     }
 
     private suspend fun saveRegionStatsToDb(isoCode : String, stats: ReportData) {
-        appDatabase.regionStatsDao().insert(
+        getRegionStatsDao().insert(
             RegionStatsEntity(
                 iso3code = isoCode,
                 confirmed = stats.confirmed,
@@ -83,16 +114,16 @@ class CovidRepository(appContext: Context) {
      * @throws Exception if the slightest thing goes wrong
      */
     suspend fun getRegions(): List<Region> {
-        val numRegionsSaved = appDatabase.regionDao().getRegionCount()
+        val numRegionsSaved = getRegionDao().getRegionCount()
 
         return if (numRegionsSaved == 0) {
             // Get regions from the network and store in the database. Return the network equiv.
             val allRegions: List<Region> = covidAPI.getRegions().regions
-            saveRegionsToDb(appDatabase, allRegions)
+            saveRegionsToDb(allRegions)
             allRegions.sortedBy { it.name }
         } else {
             // Get regions from db and convert to network equiv.
-            loadRegionsFromDb(appDatabase)
+            loadRegionsFromDb()
         }
     }
 
@@ -100,8 +131,8 @@ class CovidRepository(appContext: Context) {
      * @param db This app's database where covid data is cached
      * @return All cached regions
      */
-    private suspend fun loadRegionsFromDb(db: AppDatabase): List<Region> {
-        val allRegionEntities = db.regionDao().getAllRegions()
+    private suspend fun loadRegionsFromDb(): List<Region> {
+        val allRegionEntities = getRegionDao().getAllRegions()
         println("${allRegionEntities.size} regions loaded from db")
         val allRegions = mutableListOf<Region>()
         for (regionEntity in allRegionEntities) {
@@ -114,10 +145,10 @@ class CovidRepository(appContext: Context) {
      * @param db This apps database where covid data is cached
      * @param regions [Region] instances from network, ready to cache
      */
-    private suspend fun saveRegionsToDb(db: AppDatabase, regions: List<Region>) {
+    private suspend fun saveRegionsToDb(regions: List<Region>) {
         val allRegionEntities = toRegionEntities(regions)
-        db.regionDao().insert(allRegionEntities)
-        val rcount = db.regionDao().getRegionCount()
+        getRegionDao().insert(allRegionEntities)
+        val rcount = getRegionDao().getRegionCount()
         println("$rcount new regions saved to db")
     }
 
