@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.repo.CovidRepository
+import com.rodbailey.covid.repo.ICovidRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +18,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() {
+class MainViewModel @Inject constructor(val repo: ICovidRepository): ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
