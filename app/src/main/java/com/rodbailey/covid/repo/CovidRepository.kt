@@ -8,6 +8,7 @@ import com.rodbailey.covid.db.RegionStatsDao
 import com.rodbailey.covid.db.RegionStatsEntity
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.net.CovidAPI
 import com.rodbailey.covid.net.CovidAPIClient
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -18,13 +19,11 @@ import dagger.hilt.components.SingletonComponent
  * Accesses covid data from some source - perhaps network, perhaps local database
  * ... clients do not know.
  */
-class CovidRepository(val appDatabase: AppDatabase) {
+class CovidRepository(val appDatabase: AppDatabase, val covidAPI : CovidAPI) {
+
     companion object {
         private const val GLOBAL_ISO3_CODE = "___"
     }
-
-    private val covidAPI = CovidAPIClient().getAPIClient()
-
 
     /**
      * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"

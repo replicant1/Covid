@@ -1,8 +1,7 @@
 package com.rodbailey.covid.di
 
-import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.net.CovidAPI
-import com.rodbailey.covid.repo.CovidRepository
+import com.rodbailey.covid.net.CovidAPIClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,10 +9,10 @@ import dagger.hilt.components.SingletonComponent
 
 @InstallIn(SingletonComponent::class)
 @Module
-object RepositoryModule {
+object NetworkModule {
 
     @Provides
-    fun provideCovidRepository(db : AppDatabase, api: CovidAPI) : CovidRepository {
-        return CovidRepository(db, api)
+    fun provideCovidAPI() : CovidAPI {
+        return CovidAPIClient().getAPIClient()
     }
 }
