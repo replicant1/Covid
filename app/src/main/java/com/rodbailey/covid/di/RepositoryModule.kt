@@ -14,6 +14,6 @@ object RepositoryModule {
 
     @Provides
     fun provideCovidRepository(db : AppDatabase, api: CovidAPI) : CovidRepository {
-        return CovidRepository(db, api)
+        return CovidRepository(db.regionDao(), db.regionStatsDao(), api)
     }
 }
