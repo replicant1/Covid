@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(appDatabase: AppDatabase): ViewModel() {
+class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -72,11 +72,9 @@ class MainViewModel @Inject constructor(appDatabase: AppDatabase): ViewModel() {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-    private val repo = CovidRepository(appDatabase)
-
     init {
         println("*********************")
-        println("** appDatabase = $appDatabase **")
+        println("** repo = $repo **")
         println("********************")
         loadRegionsFromNetwork()
     }
