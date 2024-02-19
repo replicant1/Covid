@@ -1,10 +1,7 @@
 package com.rodbailey.covid.ui
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.repo.CovidRepository
@@ -17,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,9 +71,6 @@ class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() 
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     init {
-        println("*********************")
-        println("** repo = $repo **")
-        println("********************")
         loadRegionsFromNetwork()
     }
 
@@ -90,7 +85,7 @@ class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() 
     }
 
     fun loadReportDataForGlobal() {
-        println("*** Loading report data for global ***")
+        Timber.i("Loading report data for global")
         loadReportDataForRegion("Global", null)
     }
 
@@ -101,13 +96,13 @@ class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() 
                 _isDataPanelLoading.value = true
                 _reportData.value = repo.getReport(regionIso3Code)
                 _reportDataTitle.value = regionName
-                println("*** Loaded region data for $regionName OK")
+                Timber.i("Loaded region data for $regionName OK")
             } catch (ex: Exception) {
-                println("Exception while getting data for region ${regionName}")
+                Timber.e(ex, "Exception while getting data for region ${regionName}")
                 showErrorMessage("Failed to load data for \"${regionName}\".")
                 _isDataPanelExpanded.value = false
             } finally {
-                println("*** Finished loading for rebion $regionName")
+                Timber.i("Finished loading for region $regionName")
                 _isDataPanelLoading.value = false
             }
         }
@@ -120,7 +115,7 @@ class MainViewModel @Inject constructor(val repo: CovidRepository): ViewModel() 
                 _isRegionListLoading.value = true
                 _regions.value = repo.getRegions()
             } catch (ex: Exception) {
-                println("Exception while loading counter list $ex")
+                Timber.e(ex, "Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
             } finally {
                 _isRegionListLoading.value = false

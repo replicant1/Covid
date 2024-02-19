@@ -40,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -89,4 +90,8 @@ dependencies {
     // Hilt dependencies
     implementation ("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-android-compiler:2.48.1")
+
+    // Timber
+    implementation("com.jakewharton.timber:timber:4.7.1")
+
 }

@@ -14,6 +14,7 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 
 /**
  * Accesses covid data from some source - perhaps network, perhaps local database
@@ -37,11 +38,11 @@ class CovidRepository(val appDatabase: AppDatabase, val covidAPI : CovidAPI) {
                 // ReportData is not in database, so get from network
                 val apiData = covidAPI.getReport(regionIso3Code).data
                 saveRegionStatsToDb(regionIso3Code, apiData)
-                println("Data for $regionIso3Code has been retrieved from network")
+                Timber.i("Data for $regionIso3Code has been retrieved from network")
                 return apiData
             } else {
                 // Take the first result only
-                println("Data for $regionIso3Code has been retrieved from database")
+                Timber.i("Data for $regionIso3Code has been retrieved from database")
                 return toReportData(dataSets[0])
             }
         } else {
@@ -50,11 +51,11 @@ class CovidRepository(val appDatabase: AppDatabase, val covidAPI : CovidAPI) {
                 // Global data is not in database, so get from network
                 val globalData = covidAPI.getReport(null).data
                 saveRegionStatsToDb(GLOBAL_ISO3_CODE, globalData)
-                println("Data for GLOBAL has been retrieved from network")
+                Timber.i("Data for GLOBAL has been retrieved from network")
                 return globalData
             } else {
                 // Get global data from database. Assert: there is only one
-                println("Data for GLOBAL has been reterieved from database")
+                Timber.i("Data for GLOBAL has been retrieved from database")
                 return toReportData(dbGlobal[0])
             }
         }
@@ -107,7 +108,7 @@ class CovidRepository(val appDatabase: AppDatabase, val covidAPI : CovidAPI) {
      */
     private suspend fun loadRegionsFromDb(): List<Region> {
         val allRegionEntities = appDatabase.regionDao().getAllRegions()
-        println("${allRegionEntities.size} regions loaded from db")
+        Timber.i("${allRegionEntities.size} regions loaded from db")
         val allRegions = mutableListOf<Region>()
         for (regionEntity in allRegionEntities) {
             allRegions.add(Region(iso3Code = regionEntity.iso3code, name = regionEntity.name))
@@ -123,7 +124,7 @@ class CovidRepository(val appDatabase: AppDatabase, val covidAPI : CovidAPI) {
         val allRegionEntities = toRegionEntities(regions)
         appDatabase.regionDao().insert(allRegionEntities)
         val rcount = appDatabase.regionDao().getRegionCount()
-        println("$rcount new regions saved to db")
+        Timber.i("$rcount new regions saved to db")
     }
 
     /**
