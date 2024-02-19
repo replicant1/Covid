@@ -4,9 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.repo.CovidRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,8 +17,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(app:Application) : AndroidViewModel(app) {
+@HiltViewModel
+class MainViewModel @Inject constructor(appDatabase: AppDatabase): ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -68,9 +72,12 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-    private val repo = CovidRepository(getApplication<Application>().applicationContext)
+    private val repo = CovidRepository(appDatabase)
 
     init {
+        println("*********************")
+        println("** appDatabase = $appDatabase **")
+        println("********************")
         loadRegionsFromNetwork()
     }
 

@@ -18,38 +18,13 @@ import dagger.hilt.components.SingletonComponent
  * Accesses covid data from some source - perhaps network, perhaps local database
  * ... clients do not know.
  */
-class CovidRepository(val appContext: Context) {
+class CovidRepository(val appDatabase: AppDatabase) {
     companion object {
         private const val GLOBAL_ISO3_CODE = "___"
     }
 
     private val covidAPI = CovidAPIClient().getAPIClient()
 
-    @InstallIn(SingletonComponent::class)
-    @EntryPoint
-    interface CovidRepositoryEntryPoint {
-        fun regionStatsDao() : RegionStatsDao
-        fun regionDao() : RegionDao
-    }
-
-    /**
-     * @return [RegionDao] as provided by Hilt
-     */
-    private fun getRegionDao() : RegionDao {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            appContext,
-            CovidRepositoryEntryPoint::class.java
-        )
-        return entryPoint.regionDao()
-    }
-
-    private fun getRegionStatsDao() : RegionStatsDao {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            appContext,
-            CovidRepositoryEntryPoint::class.java
-        )
-        return entryPoint.regionStatsDao()
-    }
 
     /**
      * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"
@@ -58,7 +33,7 @@ class CovidRepository(val appContext: Context) {
      */
     suspend fun getReport(regionIso3Code: String?): ReportData {
         if (regionIso3Code != null) {
-            val dataSets = getRegionStatsDao().getRegionStats(regionIso3Code)
+            val dataSets = appDatabase.regionStatsDao().getRegionStats(regionIso3Code)
             if (dataSets.isEmpty()) {
                 // ReportData is not in database, so get from network
                 val apiData = covidAPI.getReport(regionIso3Code).data
@@ -71,7 +46,7 @@ class CovidRepository(val appContext: Context) {
                 return toReportData(dataSets[0])
             }
         } else {
-            val dbGlobal = getRegionStatsDao().getRegionStats(GLOBAL_ISO3_CODE)
+            val dbGlobal = appDatabase.regionStatsDao().getRegionStats(GLOBAL_ISO3_CODE)
             if (dbGlobal.isEmpty()) {
                 // Global data is not in database, so get from network
                 val globalData = covidAPI.getReport(null).data
@@ -97,7 +72,7 @@ class CovidRepository(val appContext: Context) {
     }
 
     private suspend fun saveRegionStatsToDb(isoCode : String, stats: ReportData) {
-        getRegionStatsDao().insert(
+        appDatabase.regionStatsDao().insert(
             RegionStatsEntity(
                 iso3code = isoCode,
                 confirmed = stats.confirmed,
@@ -114,7 +89,7 @@ class CovidRepository(val appContext: Context) {
      * @throws Exception if the slightest thing goes wrong
      */
     suspend fun getRegions(): List<Region> {
-        val numRegionsSaved = getRegionDao().getRegionCount()
+        val numRegionsSaved = appDatabase.regionDao().getRegionCount()
 
         return if (numRegionsSaved == 0) {
             // Get regions from the network and store in the database. Return the network equiv.
@@ -132,7 +107,7 @@ class CovidRepository(val appContext: Context) {
      * @return All cached regions
      */
     private suspend fun loadRegionsFromDb(): List<Region> {
-        val allRegionEntities = getRegionDao().getAllRegions()
+        val allRegionEntities = appDatabase.regionDao().getAllRegions()
         println("${allRegionEntities.size} regions loaded from db")
         val allRegions = mutableListOf<Region>()
         for (regionEntity in allRegionEntities) {
@@ -147,8 +122,8 @@ class CovidRepository(val appContext: Context) {
      */
     private suspend fun saveRegionsToDb(regions: List<Region>) {
         val allRegionEntities = toRegionEntities(regions)
-        getRegionDao().insert(allRegionEntities)
-        val rcount = getRegionDao().getRegionCount()
+        appDatabase.regionDao().insert(allRegionEntities)
+        val rcount = appDatabase.regionDao().getRegionCount()
         println("$rcount new regions saved to db")
     }
 
