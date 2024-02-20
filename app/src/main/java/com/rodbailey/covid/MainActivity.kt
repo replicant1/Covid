@@ -130,6 +130,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        viewModel.loadRegionsFromRepository()
     }
 }
 

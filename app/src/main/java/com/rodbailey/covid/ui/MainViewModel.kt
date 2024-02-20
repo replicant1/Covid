@@ -67,10 +67,6 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     private val _reportDataTitle = MutableStateFlow("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-    init {
-        //loadRegionsFromRepository()
-    }
-
     @VisibleForTesting
     fun showErrorMessage(message: String) {
         viewModelScope.launch {
