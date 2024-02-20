@@ -62,6 +62,13 @@ class FakeCovidRepository : ICovidRepository {
             Region("NLD", "Netherlands"),
             Region("SMR", "San Marino")
         )
+        val GLOBAL_REPORT_DATA = ReportData(
+            confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L, fatalityRate = 0.5F
+        )
+        val NON_GLOBAL_REPORT_DATA = ReportData(
+            confirmed = 5L, deaths = 6L, recovered = 7L, active = 8L, fatalityRate = 0.4F
+        )
+        val GLOBAL_DATA_SET_TITLE = "Global"
     }
 
     /**
@@ -75,13 +82,10 @@ class FakeCovidRepository : ICovidRepository {
      * @see [ICovidRepository.getReport]
      */
     override suspend fun getReport(regionIso3Code: String?): ReportData {
-        return ReportData(
-            confirmed = 10L,
-            deaths = 20L,
-            recovered = 30L,
-            active = 40L,
-            fatalityRate = 0.5F
-        )
+        return if (regionIso3Code == null)
+            GLOBAL_REPORT_DATA
+        else
+            NON_GLOBAL_REPORT_DATA
     }
 
 }

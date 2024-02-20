@@ -7,17 +7,17 @@ import com.google.gson.annotations.SerializedName
  */
 data class ReportData(
     @SerializedName("confirmed")
-    val confirmed: Long,
+    val confirmed: Long = -1L,
 
     @SerializedName("deaths")
-    val deaths: Long,
+    val deaths: Long = -1L,
 
     @SerializedName("recovered")
-    val recovered: Long,
+    val recovered: Long = -1L,
 
     @SerializedName("active")
-    val active: Long,
+    val active: Long = -1L,
 
     @SerializedName("fatality_rate")
-    val fatalityRate: Float
+    val fatalityRate: Float = -1F
 )

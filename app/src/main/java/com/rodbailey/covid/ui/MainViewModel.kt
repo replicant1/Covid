@@ -8,17 +8,15 @@ import com.rodbailey.covid.repo.ICovidRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val repo: ICovidRepository): ViewModel() {
+class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -37,44 +35,42 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository): ViewModel()
     val isDataPanelLoading = _isDataPanelLoading.asStateFlow()
 
     // True if master list of countries is being loaded
-    private val _isRegionListLoading = MutableStateFlow(true)
+    private val _isRegionListLoading = MutableStateFlow(false)
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
 
     // Currently matching regions
     private val _regions = MutableStateFlow(
         emptyList<Region>()
     )
-    val regions = searchText
-        .combine(_regions) { text: String, regions: List<Region> ->
-            if (text.isBlank()) {
-                regions
-            } else {
-                regions.filter {
-                    it.matchesSearchQuery(text)
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = _regions.value,
-        )
+    val regions = _regions.asStateFlow()
+//        searchText
+//        .combine(_regions) { text: String, regions: List<Region> ->
+//            if (text.isBlank()) {
+//                regions
+//            } else {
+//                regions.filter {
+//                    it.matchesSearchQuery(text)
+//                }
+//            }
+//        }
+//        .stateIn(
+//            scope = viewModelScope,
+//            started = SharingStarted.WhileSubscribed(5000),
+//            initialValue = _regions.value,
+//        )
 
-    private val _reportData = MutableStateFlow(
-        ReportData(
-            confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
-        )
-    )
+    private val _reportData = MutableStateFlow(ReportData())
     val reportData = _reportData.asStateFlow()
 
-    private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
+    private val _reportDataTitle = MutableStateFlow("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     init {
-        loadRegionsFromNetwork()
+        //loadRegionsFromRepository()
     }
 
-    private fun showErrorMessage(message: String) {
+    @VisibleForTesting
+    fun showErrorMessage(message: String) {
         viewModelScope.launch {
             _errorMessage.emit(message)
         }
@@ -108,8 +104,8 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository): ViewModel()
         }
     }
 
-
-    private fun loadRegionsFromNetwork() {
+    @VisibleForTesting
+    fun loadRegionsFromRepository() {
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true

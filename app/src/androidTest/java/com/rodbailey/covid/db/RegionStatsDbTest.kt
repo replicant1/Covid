@@ -39,7 +39,8 @@ class RegionStatsDbTest {
             confirmed = 1234L,
             deaths = 101L,
             recovered = 2345L,
-            active = 999L
+            active = 999L,
+            fatalityRate = 0.5F
         )
         statsDao.insert(statsIn)
 
@@ -67,7 +68,8 @@ class RegionStatsDbTest {
             confirmed = 10L,
             deaths = 20L,
             recovered = 30L,
-            active = 40L
+            active = 40L,
+            fatalityRate = 0.5F
         )
         statsDao.insert(ausStats)
 
@@ -79,10 +81,12 @@ class RegionStatsDbTest {
     @Test
     fun insertTwoStats_UniquePrimaryKeys() = runBlocking {
         val stats1 = RegionStatsEntity(
-            iso3code = "AAA", confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L
+            iso3code = "AAA", confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L,
+            fatalityRate = 0.5F
         )
         val stats2 = RegionStatsEntity(
-            iso3code = "AAA", confirmed = 1L, deaths = 2L, recovered = 3L, active = 4L
+            iso3code = "AAA", confirmed = 1L, deaths = 2L, recovered = 3L, active = 4L,
+            fatalityRate = 0.5F
         )
         statsDao.insert(stats1)
         statsDao.insert(stats2)
