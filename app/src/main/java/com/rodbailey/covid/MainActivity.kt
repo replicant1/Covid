@@ -43,7 +43,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.ui.MainViewModel
@@ -72,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val searchText by viewModel.searchText.collectAsState()
-                    val regions by viewModel.regions.collectAsState()
+                    val regions by viewModel.matchingRegions.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
                     val reportDataTitle by viewModel.reportDataTitle.collectAsState()
                     val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()

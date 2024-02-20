@@ -38,11 +38,13 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     private val _isRegionListLoading = MutableStateFlow(false)
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
 
+    private val allRegions = mutableListOf<Region>()
+
     // Currently matching regions
-    private val _regions = MutableStateFlow(
+    private val _matchingRegions = MutableStateFlow(
         emptyList<Region>()
     )
-    val regions = _regions.asStateFlow()
+    val matchingRegions = _matchingRegions.asStateFlow()
 //        searchText
 //        .combine(_regions) { text: String, regions: List<Region> ->
 //            if (text.isBlank()) {
@@ -109,7 +111,9 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true
-                _regions.value = repo.getRegions()
+                allRegions.clear()
+                allRegions.addAll(repo.getRegions())
+                updateMatchingRegionsPerSearchText()
             } catch (ex: Exception) {
                 Timber.e(ex, "Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
@@ -121,5 +125,18 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
 
     fun onSearchTextChanged(text: String) {
         _searchText.value = text
+        updateMatchingRegionsPerSearchText()
+    }
+
+    // Recalculate the regions list in light of the new search text
+    private fun updateMatchingRegionsPerSearchText() {
+        val text = _searchText.value
+        _matchingRegions.value = if (text.isBlank()) {
+            allRegions
+        } else {
+            allRegions.filter {
+                it.matchesSearchQuery(text)
+            }
+        }
     }
 }

@@ -1,14 +1,9 @@
 package com.rodbailey.covid.ui
 
-import androidx.compose.runtime.collectAsState
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rodbailey.covid.CoroutinesTestRule
-import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.repo.FakeCovidRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Assert
 import org.junit.Before
@@ -16,9 +11,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Assumes
- */
 @RunWith(AndroidJUnit4::class)
 class MainViewModelTest {
 
@@ -41,17 +33,10 @@ class MainViewModelTest {
     @Test
     fun regionsLoadAtStartup() = runBlockingTest {
         viewModel.loadRegionsFromRepository()
-        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.regions.value.size)
+        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.matchingRegions.value.size)
         Assert.assertFalse(viewModel.isRegionListLoading.value)
 
         // TODO: Check sorting of regions by name
-    }
-
-    @Test
-    fun changesToSearchTextContentAreCached() = runBlockingTest {
-        val searchText = "searchme"
-        viewModel.onSearchTextChanged(searchText)
-        Assert.assertEquals(searchText, viewModel.searchText.value)
     }
 
 //    @Test
@@ -88,5 +73,21 @@ class MainViewModelTest {
         Assert.assertFalse(viewModel.isDataPanelLoading.value)
         Assert.assertEquals(FakeCovidRepository.GLOBAL_DATA_SET_TITLE, viewModel.reportDataTitle.value)
         Assert.assertEquals(FakeCovidRepository.GLOBAL_REPORT_DATA, viewModel.reportData.value)
+    }
+
+    @Test
+    fun emptySearchTextMatchesAllRegions() = runBlockingTest {
+        viewModel.loadRegionsFromRepository()
+        viewModel.onSearchTextChanged("")
+        Assert.assertEquals("", viewModel.searchText.value)
+        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.matchingRegions.value.size)
+    }
+
+    @Test
+    fun searchTextBrazilMatchesOneRegion() = runBlockingTest {
+        viewModel.loadRegionsFromRepository()
+        viewModel.onSearchTextChanged("Brazil")
+        Assert.assertEquals(1, viewModel.matchingRegions.value.size)
+        Assert.assertEquals("Brazil", viewModel.matchingRegions.value[0].name)
     }
 }
