@@ -38,32 +38,20 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     private val _isRegionListLoading = MutableStateFlow(false)
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
 
+    // Raw region lists as loaded from network and sorted.
     private val allRegions = mutableListOf<Region>()
 
-    // Currently matching regions
+    // Subset of [allRegions] that matches the current [searchText]
     private val _matchingRegions = MutableStateFlow(
         emptyList<Region>()
     )
     val matchingRegions = _matchingRegions.asStateFlow()
-//        searchText
-//        .combine(_regions) { text: String, regions: List<Region> ->
-//            if (text.isBlank()) {
-//                regions
-//            } else {
-//                regions.filter {
-//                    it.matchesSearchQuery(text)
-//                }
-//            }
-//        }
-//        .stateIn(
-//            scope = viewModelScope,
-//            started = SharingStarted.WhileSubscribed(5000),
-//            initialValue = _regions.value,
-//        )
 
+    // The covid statistial data appearing in the data panel
     private val _reportData = MutableStateFlow(ReportData())
     val reportData = _reportData.asStateFlow()
 
+    // Title string at the top of the data panel
     private val _reportDataTitle = MutableStateFlow("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
@@ -124,7 +112,9 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
         updateMatchingRegionsPerSearchText()
     }
 
-    // Recalculate the regions list in light of the new search text
+    /**
+     * Recalculate the regions list in light of the new search text
+     */
     private fun updateMatchingRegionsPerSearchText() {
         val text = _searchText.value
         _matchingRegions.value = if (text.isBlank()) {

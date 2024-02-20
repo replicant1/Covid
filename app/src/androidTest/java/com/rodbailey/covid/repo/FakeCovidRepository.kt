@@ -68,7 +68,7 @@ class FakeCovidRepository : ICovidRepository {
         val NON_GLOBAL_REPORT_DATA = ReportData(
             confirmed = 5L, deaths = 6L, recovered = 7L, active = 8L, fatalityRate = 0.4F
         )
-        val GLOBAL_DATA_SET_TITLE = "Global"
+        const val GLOBAL_DATA_SET_TITLE = "Global"
     }
 
     /**
