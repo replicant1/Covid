@@ -5,11 +5,8 @@ import com.rodbailey.covid.db.RegionStatsEntity
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.dom.TransformUtils
-import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Test
-
-import org.junit.Assert.*
-import org.junit.Before
 
 /**
  * Example local unit test, which will execute on the development machine (host).
