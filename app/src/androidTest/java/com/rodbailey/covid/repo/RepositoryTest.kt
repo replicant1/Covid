@@ -157,9 +157,27 @@ class RepositoryTest {
     }
 
     @Test
-    fun load_null_region_stats_gives_global_stats() = runBlocking {
+    fun first_load_global_stats_is_from_network() = runBlocking {
         val globalStats = repo.getReport(null)
+        Assert.assertTrue(covidAPICalledFlag.isSet)
         Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA, globalStats)
+
+        // Check database for global stats
+        val dbStats = regionStatsDao.getRegionStats(CovidRepository.GLOBAL_ISO3_CODE)
+        Assert.assertEquals(1, dbStats.size)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA.active, dbStats[0].active)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA.confirmed, dbStats[0].confirmed)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA.deaths, dbStats[0].deaths)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA.recovered, dbStats[0].recovered)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA.fatalityRate, dbStats[0].fatalityRate)
+    }
+
+    @Test
+    fun second_load_global_stats_is_from_database() = runBlocking {
+        repo.getReport(null)
+        covidAPICalledFlag.clear()
+        repo.getReport(null)
+        Assert.assertFalse(covidAPICalledFlag.isSet)
     }
 
     private fun containsRegion(allRegions: List<Region>, iso: String, name: String): Boolean {

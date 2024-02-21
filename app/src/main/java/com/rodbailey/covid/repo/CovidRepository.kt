@@ -19,7 +19,7 @@ class CovidRepository(
 ) : ICovidRepository {
 
     companion object {
-        private const val GLOBAL_ISO3_CODE = "___"
+        const val GLOBAL_ISO3_CODE = "___"
     }
 
     override suspend fun getReport(regionIso3Code: String?): ReportData {
