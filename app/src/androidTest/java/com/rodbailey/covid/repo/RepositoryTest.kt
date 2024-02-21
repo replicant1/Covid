@@ -25,10 +25,10 @@ import org.junit.runner.RunWith
 class RepositoryTest {
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
-    private lateinit var regionStatsDao : RegionStatsDao
-    private lateinit var covidAPI : CovidAPI
-    private lateinit var repo : CovidRepository
-    private val covidAPICalledFlag : Flag = Flag()
+    private lateinit var regionStatsDao: RegionStatsDao
+    private lateinit var covidAPI: CovidAPI
+    private lateinit var repo: CovidRepository
+    private val covidAPICalledFlag: Flag = Flag()
 
     class Flag() {
         var isSet: Boolean = false
@@ -44,26 +44,41 @@ class RepositoryTest {
 
     class FakeCovidAPI(val flag: Flag) : CovidAPI {
         companion object {
-            val REPORT_DATA = ReportData(
+            val DEFAULT_DATA = ReportData(
                 confirmed = 1L,
                 deaths = 2L,
                 recovered = 3L,
                 active = 4L,
                 fatalityRate = 0.5F
             )
+            val GLOBAL_DATA = ReportData(
+                confirmed = 5L,
+                deaths = 10L,
+                recovered = 15L,
+                active = 20L,
+                fatalityRate = 0.05F
+            )
         }
+
         override suspend fun getReport(iso3Code: String?): Report {
-            println("getReport called with ido3code = $iso3Code")
+            println("getReport called with iso3code = $iso3Code")
             flag.set()
-            return Report(REPORT_DATA)
+
+            return if (iso3Code == null) {
+                Report(GLOBAL_DATA)
+            } else {
+                Report(DEFAULT_DATA)
+            }
         }
 
         override suspend fun getRegions(): RegionList {
             flag.set()
-            return RegionList(listOf(
-                Region("AUS", "Australia"),
-                Region("VNM", "Vietnam")
-            ))
+            return RegionList(
+                listOf(
+                    Region("AUS", "Australia"),
+                    Region("VNM", "Vietnam")
+                )
+            )
         }
     }
 
@@ -96,7 +111,7 @@ class RepositoryTest {
         val cachedRegions = regionDao.getAllRegions()
         Assert.assertEquals(2, cachedRegions.size)
         Assert.assertTrue(containsRegionEntity(cachedRegions, "AUS", "Australia"))
-        Assert.assertTrue(containsRegionEntity(cachedRegions,"VNM", "Vietnam"))
+        Assert.assertTrue(containsRegionEntity(cachedRegions, "VNM", "Vietnam"))
 
         // Regions should have been fetched from the network
         Assert.assertTrue(covidAPICalledFlag.isSet)
@@ -121,30 +136,33 @@ class RepositoryTest {
         val repoData = repo.getReport("AUS")
 
         Assert.assertTrue(covidAPICalledFlag.isSet)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA, repoData)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA, repoData)
 
         // The data just retrieved should also be cached in the database
         val cachedRepoData = regionStatsDao.getRegionStats("AUS")
         Assert.assertEquals(1, cachedRepoData.size)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA.active, cachedRepoData[0].active)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA.deaths, cachedRepoData[0].deaths)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA.fatalityRate, cachedRepoData[0].fatalityRate)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA.confirmed, cachedRepoData[0].confirmed)
-        Assert.assertEquals(FakeCovidAPI.REPORT_DATA.recovered, cachedRepoData[0].recovered)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA.active, cachedRepoData[0].active)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA.deaths, cachedRepoData[0].deaths)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA.fatalityRate, cachedRepoData[0].fatalityRate)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA.confirmed, cachedRepoData[0].confirmed)
+        Assert.assertEquals(FakeCovidAPI.DEFAULT_DATA.recovered, cachedRepoData[0].recovered)
     }
 
     @Test
     fun second_region_stats_load_is_from_database() = runBlocking {
         repo.getReport("AUS")
         covidAPICalledFlag.clear()
-
-        val repoData = repo.getReport("AUS")
+        repo.getReport("AUS")
         Assert.assertFalse(covidAPICalledFlag.isSet)
-
-
     }
 
-    private fun containsRegion(allRegions: List<Region>, iso:String, name:String): Boolean {
+    @Test
+    fun load_null_region_stats_gives_global_stats() = runBlocking {
+        val globalStats = repo.getReport(null)
+        Assert.assertEquals(FakeCovidAPI.GLOBAL_DATA, globalStats)
+    }
+
+    private fun containsRegion(allRegions: List<Region>, iso: String, name: String): Boolean {
         for (region in allRegions) {
             if (region.iso3Code == iso && region.name == name) {
                 return true
@@ -153,7 +171,11 @@ class RepositoryTest {
         return false
     }
 
-    private fun containsRegionEntity(allRegions: List<RegionEntity>, iso:String, name:String) : Boolean {
+    private fun containsRegionEntity(
+        allRegions: List<RegionEntity>,
+        iso: String,
+        name: String
+    ): Boolean {
         for (region in allRegions) {
             if (region.iso3code == iso && region.name == name) {
                 return true
