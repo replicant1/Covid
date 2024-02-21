@@ -14,7 +14,7 @@ interface ICovidRepository {
      *
      * @param regionIso3Code ISO-3 alpha code for region, or null for "Global"
      * @return Covid stats for the region with the given ISO-3 code
-     * @throws Exception if the slightest thing goes wrong
+     * @throws Exception if no country with the given [regionIso3Code] or other error
      */
     suspend fun getReport(regionIso3Code : String?): ReportData
 
@@ -23,7 +23,7 @@ interface ICovidRepository {
      * [getReport].
      *
      * @return All known regions in ascending order by name
-     * @throws Exception if the slightest thing goes wrong
+     * @throws Exception any error in getting the region list
      */
     suspend fun getRegions(): List<Region>
 }

@@ -45,13 +45,11 @@ class MainUITest {
 
     @Test
     fun aus_is_displayed_immediately_after_load() {
-        waitForCountryListToLoad()
         rule.onNodeWithText("Australia").assertIsDisplayed()
     }
 
     @Test
     fun can_scroll_to_last_region_in_list() {
-        waitForCountryListToLoad()
         rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(
             FakeCovidRepository.REGIONS.size - 1)
         rule.onNodeWithText("Vietnam").assertIsDisplayed()
@@ -59,7 +57,6 @@ class MainUITest {
 
     @Test
     fun search_for_fg_matches_only_afghanistan() {
-        waitForCountryListToLoad()
         rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
 
         // There should be an easier way to test that "Afghanistan" is the only child node
@@ -72,7 +69,6 @@ class MainUITest {
 
     @Test
     fun text_clearance_restores_search_results() {
-        waitForCountryListToLoad()
         rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
         rule.onNodeWithTag("tag.text.search").performTextClearance()
 
@@ -83,12 +79,8 @@ class MainUITest {
 
     @Test
     fun click_global_icon_shows_global_stats() {
-        waitForCountryListToLoad()
-
         rule.onNodeWithTag("tag.icon.global").performClick()
         
-        waitForCountryStatsToLoad()
-
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
         rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals("Global")
         rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.confirmed}", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
@@ -98,33 +90,23 @@ class MainUITest {
     }
 
     @Test
+    fun click_data_panel_collapses_data_panel() {
+        rule.onNodeWithTag("tag.icon.global").performClick()
+
+        rule.onNodeWithTag("tag.card").assertIsDisplayed()
+        rule.onNodeWithTag("tag.card").performClick()
+
+        rule.onNodeWithTag("tag.card").assertDoesNotExist()
+    }
+
+    @Test
     fun click_aus_shows_aus_stats() {
-        waitForCountryListToLoad()
-
         rule.onNodeWithText("Australia").performClick()
-
-        waitForCountryStatsToLoad()
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
         rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.confirmed}").assertIsDisplayed() // confirmed cases
         rule.onNodeWithText(useUnmergedTree = true, text="${FakeCovidRepository.AUS_REPORT_DATA.deaths}").assertIsDisplayed() // deaths
         rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.active}") // active cases
         rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.fatalityRate}") // fatality rate
-    }
-
-    /**
-     * This is a stop-gap measure only. Detecting "idle" on a Jetpack Compose interface seems
-     * to be problematic at the moment. Should be able to use "idle" or wait for progress
-     * bar to disappear.
-     */
-    private fun waitForCountryListToLoad() {
-        Thread.sleep(100)
-    }
-
-    /**
-     * @see #waitForCountryListToLoad
-     */
-    private fun waitForCountryStatsToLoad() {
-        Thread.sleep(100)
     }
 }
