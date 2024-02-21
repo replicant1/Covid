@@ -43,12 +43,10 @@ class MainViewModelTest {
         Assert.assertEquals("Vietnam", viewModel.matchingRegions.value.last().name)
     }
 
-//    @Test
-//    fun showErrorMessage() = runBlockingTest {
-//        val errorText = "error-message"
-//        val result = viewModel.errorMessage.collect() { println("***** $it")}
-//        viewModel.showErrorMessage(errorText)
-//    }
+    @Test
+    fun showErrorMessage() = runTest(UnconfinedTestDispatcher()) {
+        viewModel.showErrorMessage("An error has occurred.")
+    }
 
     @Test
     fun dataPanelIsHiddenAtStartup() = runTest(UnconfinedTestDispatcher()) {
