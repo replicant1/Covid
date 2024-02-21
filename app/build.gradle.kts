@@ -16,7 +16,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "com.rodbailey.covid.di.CustomTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -90,6 +90,7 @@ dependencies {
     // Hilt dependencies
     implementation ("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-android-compiler:2.48.1")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.48.1")
 
     // Timber
     implementation("com.jakewharton.timber:timber:4.7.1")

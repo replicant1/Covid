@@ -67,7 +67,7 @@ class MainViewModelTest {
         Assert.assertTrue(viewModel.isDataPanelExpanded.value)
         Assert.assertFalse(viewModel.isDataPanelLoading.value)
         Assert.assertEquals("China", viewModel.reportDataTitle.value)
-        Assert.assertEquals(FakeCovidRepository.NON_GLOBAL_REPORT_DATA, viewModel.reportData.value)
+        Assert.assertEquals(FakeCovidRepository.DEFAULT_REPORT_DATA, viewModel.reportData.value)
     }
 
     @Test

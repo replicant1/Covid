@@ -12,45 +12,49 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rodbailey.covid.MainActivity
+import com.rodbailey.covid.repo.FakeCovidRepository
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Instrumented test, which will execute on an Android device. These tests are tied to the
- * present state of the data at https://covid-api.com. They also contain some workarounds
- * for general problems with the testing of Jetpack Compose applications.
- *
- * See [waitForCountryListToLoad] for example.
+ * Instrumented test, which will execute on an Android device or emulator. These tests are tied to
+ * the data in [FakeCovidRepository].
  */
-@RunWith(AndroidJUnit4::class)
+@HiltAndroidTest
 class MainUITest {
 
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
 
+    @get:Rule
+    val hiltRule = HiltAndroidRule(this)
+
     @Test
-    fun search_field_is_displayed() {
+    fun search_field_is_displayed_on_startup() {
         rule.onNodeWithTag("tag.text.search").assertIsDisplayed()
     }
 
     @Test
-    fun search_progress_indicator_is_displayed() {
+    fun search_progress_indicator_is_displayed_on_startup() {
         rule.onNodeWithTag("tag.progress.search").assertIsDisplayed()
     }
 
     @Test
-    fun argentina_is_displayed() {
+    fun aus_is_displayed_immediately_after_load() {
         waitForCountryListToLoad()
-        rule.onNodeWithText("Argentina").assertIsDisplayed()
+        rule.onNodeWithText("Australia").assertIsDisplayed()
     }
 
     @Test
-    fun can_scroll_to_zimbabwe() {
+    fun can_scroll_to_last_region_in_list() {
         waitForCountryListToLoad()
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(218)
-        rule.onNodeWithText("Zimbabwe").assertIsDisplayed()
+        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(
+            FakeCovidRepository.REGIONS.size - 1)
+        rule.onNodeWithText("Vietnam").assertIsDisplayed()
     }
 
     @Test
@@ -58,12 +62,12 @@ class MainUITest {
         waitForCountryListToLoad()
         rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
 
-        // There should be a way to test that "Afghanistan" is the only child node
+        // There should be an easier way to test that "Afghanistan" is the only child node
         // of the lazy column that is displayed. Apparently not.
         // https://issuetracker.google.com/issues/187188981
         rule.onNodeWithText("Afghanistan").assertIsDisplayed() // created and visible
-        rule.onNodeWithText("Fiji").assertDoesNotExist() // not created (fragile!)
-        rule.onNodeWithText("Albania").assertIsNotDisplayed() // created but invisible (fragile!)
+        rule.onNodeWithText("Austria").assertIsNotDisplayed() // created but invisible
+        rule.onNodeWithText("Australia").assertIsNotDisplayed() // created but invisible
     }
 
     @Test
@@ -73,7 +77,7 @@ class MainUITest {
         rule.onNodeWithTag("tag.text.search").performTextClearance()
 
         rule.onNodeWithText("Afghanistan").assertIsDisplayed()
-        rule.onNodeWithText("Albania").assertIsDisplayed()
+        rule.onNodeWithText("Austria").assertIsDisplayed()
         rule.onNodeWithText("Algeria").assertIsDisplayed()
     }
 
@@ -87,25 +91,25 @@ class MainUITest {
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
         rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals("Global")
-        rule.onNodeWithText("676544789", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText("6881737", useUnmergedTree = true).assertIsDisplayed() // deaths
-        rule.onNodeWithText("669663052", useUnmergedTree = true).assertIsDisplayed() // active cases
-        rule.onNodeWithText("0.0102", useUnmergedTree = true).assertIsDisplayed() // fatality rate
+        rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.confirmed}", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.deaths}", useUnmergedTree = true).assertIsDisplayed() // deaths
+        rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.active}", useUnmergedTree = true).assertIsDisplayed() // active cases
+        rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.fatalityRate}", useUnmergedTree = true).assertIsDisplayed() // fatality rate
     }
 
     @Test
-    fun click_albania_shows_albania_stats() {
+    fun click_aus_shows_aus_stats() {
         waitForCountryListToLoad()
 
-        rule.onNodeWithText("Albania").performClick()
+        rule.onNodeWithText("Australia").performClick()
 
         waitForCountryStatsToLoad()
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = "334457").assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText(useUnmergedTree = true, text="3598").assertIsDisplayed() // deaths
-        rule.onNodeWithText(useUnmergedTree = true, text = "330859") // active cases
-        rule.onNodeWithText(useUnmergedTree = true, text = "0.0108") // fatality rate
+        rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.confirmed}").assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(useUnmergedTree = true, text="${FakeCovidRepository.AUS_REPORT_DATA.deaths}").assertIsDisplayed() // deaths
+        rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.active}") // active cases
+        rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.fatalityRate}") // fatality rate
     }
 
     /**
@@ -114,13 +118,13 @@ class MainUITest {
      * bar to disappear.
      */
     private fun waitForCountryListToLoad() {
-        Thread.sleep(5000)
+        Thread.sleep(100)
     }
 
     /**
      * @see #waitForCountryListToLoad
      */
     private fun waitForCountryStatsToLoad() {
-        Thread.sleep(5000)
+        Thread.sleep(100)
     }
 }
