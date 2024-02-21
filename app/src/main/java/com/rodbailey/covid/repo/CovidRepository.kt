@@ -67,8 +67,10 @@ class CovidRepository(
     }
 
     /**
+     * Load all cached regions from the db and sort ascending by name.
+     *
      * @param db This app's database where covid data is cached
-     * @return All cached regions
+     * @return All cached regions sorted ascending by name
      */
     private suspend fun loadAndSortRegionsFromDb(): List<Region> {
         val allRegionEntities = regionDao.getAllRegions()
@@ -78,12 +80,20 @@ class CovidRepository(
     }
 
     /**
+     * Save the given regions to the db.
+     *
      * @param regions [Region] instances from network, ready to cache
      */
     private suspend fun saveRegionsToDb(regions: List<Region>) {
         regionDao.insert(regionListToRegionEntityList(regions))
     }
 
+    /**
+     * Save the given covid stats for a region to the db.
+     *
+     * @param isoCode 3 letter code for the region
+     * @param stats covid statistics for the region
+     */
     private suspend fun saveRegionStatsToDb(isoCode: String, stats: ReportData) {
         regionStatsDao.insert(reportDataToRegionStatsEntity(isoCode, stats))
     }
