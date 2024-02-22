@@ -3,7 +3,7 @@ package com.rodbailey.covid.repo
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 
-class FakeCovidRepository : ICovidRepository {
+class FakeCovidRepository() : ICovidRepository {
 
     companion object {
         val REGIONS = listOf(
@@ -79,9 +79,18 @@ class FakeCovidRepository : ICovidRepository {
     }
 
     /**
+     * If tests set this to true, the next call to [getRegions] or [getReport] will throw
+     * an exception.
+     */
+    var nextOpThrowsException = false
+
+    /**
      * @see [ICovidRepository.getRegions]
      */
     override suspend fun getRegions(): List<Region> {
+        if (nextOpThrowsException) {
+            throw RuntimeException()
+        }
         return REGIONS.sortedBy { it.name }
     }
 
@@ -89,6 +98,9 @@ class FakeCovidRepository : ICovidRepository {
      * @see [ICovidRepository.getReport]
      */
     override suspend fun getReport(regionIso3Code: String?): ReportData {
+        if (nextOpThrowsException) {
+            throw RuntimeException()
+        }
         return when (regionIso3Code) {
             null -> GLOBAL_REPORT_DATA
             "AUS" -> AUS_REPORT_DATA
