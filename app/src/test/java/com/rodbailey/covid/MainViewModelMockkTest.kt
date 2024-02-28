@@ -90,4 +90,42 @@ class MainViewModelMockkTest {
         Assert.assertEquals(ReportData(10,20,30,40),
             viewModel.reportData.value)
     }
+
+    @Test
+    fun loadReportForGlobal_GlobalDataAppearsInPanel() = runTest {
+        coEvery { repo.getReport(null)} returns ReportData(1,2,3,4,0.5F)
+        viewModel.loadReportDataForGlobal()
+        coVerify { repo.getReport(null)}
+        Assert.assertTrue(viewModel.isDataPanelExpanded.value)
+        Assert.assertFalse(viewModel.isDataPanelLoading.value)
+        Assert.assertEquals("Global", viewModel.reportDataTitle.value)
+        Assert.assertEquals(
+            ReportData(1,2,3,4,0.5F),
+            viewModel.reportData.value
+        )
+    }
+
+    @Test
+    fun emptySearchTextMatchesAllRegions() = runTest {
+        coEvery { repo.getRegions() } returns listOf(
+            Region("CHN", "China"),
+            Region("SGP", "Singapore"))
+        viewModel.loadRegionsFromRepository()
+        coVerify { repo.getRegions() }
+        viewModel.onSearchTextChanged("")
+        Assert.assertEquals("", viewModel.searchText.value)
+        Assert.assertEquals(2, viewModel.matchingRegions.value.size)
+    }
+
+    @Test
+    fun searchTextChinaMatchesOneRegion() = runTest {
+        coEvery { repo.getRegions() } returns listOf(
+            Region("AUS", "Australia"),
+            Region("ALK", "Alaska"))
+        viewModel.loadRegionsFromRepository()
+        coVerify { repo.getRegions() }
+        viewModel.onSearchTextChanged("Alas")
+        Assert.assertEquals(1, viewModel.matchingRegions.value.size)
+        Assert.assertEquals("Alaska", viewModel.matchingRegions.value[0].name)
+    }
 }
