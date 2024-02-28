@@ -5,10 +5,7 @@
       <entry key="MainUITest">
         <State />
       </entry>
-      <entry key="MainViewModelTest">
-        <State />
-      </entry>
-      <entry key="RepositoryTest">
+      <entry key="MainViewModelMockkTest">
         <State />
       </entry>
       <entry key="app">

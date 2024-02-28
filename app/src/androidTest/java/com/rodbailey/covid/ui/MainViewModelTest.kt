@@ -62,7 +62,7 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun showErrorMessage() = runTest(UnconfinedTestDispatcher()) {
-        viewModel.showErrorMessage("An error has occurred.")
+        viewModel.showErrorMessage(UIText.DynamicString("An error has occurred."))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
