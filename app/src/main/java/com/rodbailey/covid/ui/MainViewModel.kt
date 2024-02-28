@@ -2,6 +2,7 @@ package com.rodbailey.covid.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rodbailey.covid.R
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.ReportData
 import com.rodbailey.covid.repo.ICovidRepository
@@ -23,7 +24,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     val searchText = _searchText.asStateFlow()
 
     // Error text from network ops
-    private val _errorMessage = MutableSharedFlow<String>()
+    private val _errorMessage = MutableSharedFlow<UIText>()
     val errorMessage = _errorMessage.asSharedFlow()
 
     // True if regional data panel is showing
@@ -56,7 +57,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     @VisibleForTesting
-    fun showErrorMessage(message: String) {
+    fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
             _errorMessage.emit(message)
         }
@@ -81,7 +82,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
                 Timber.i("Loaded region data for $regionName OK")
             } catch (ex: Exception) {
                 Timber.e(ex, "Exception while getting data for region ${regionName}")
-                showErrorMessage("Failed to load data for \"${regionName}\".")
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_data_for, regionName))
                 _isDataPanelExpanded.value = false
             } finally {
                 Timber.i("Finished loading for region $regionName")
@@ -100,7 +101,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
                 updateMatchingRegionsPerSearchText()
             } catch (ex: Exception) {
                 Timber.e(ex, "Exception while loading counter list $ex")
-                showErrorMessage("Failed to load country list.")
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
             } finally {
                 _isRegionListLoading.value = false
             }

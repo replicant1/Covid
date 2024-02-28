@@ -66,7 +66,10 @@ class MainActivity : ComponentActivity() {
                     
                     LaunchedEffect(Unit) {
                         viewModel.errorMessage.collect { message ->
-                            Toast.makeText(context, message, Toast.LENGTH_LONG ).show()
+                            Toast.makeText(
+                                context,
+                                message.asString(context),
+                                Toast.LENGTH_LONG ).show()
                         }
                     }
 

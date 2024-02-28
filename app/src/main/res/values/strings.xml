@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Covid</string>
+    <string name="failed_to_load_data_for">Failed to load data for \"%1$s\".</string>
+    <string name="failed_to_load_country_list">Failed to load country list.</string>
 </resources>
