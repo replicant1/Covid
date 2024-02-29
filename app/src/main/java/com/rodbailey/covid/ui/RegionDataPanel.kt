@@ -26,11 +26,14 @@ import com.rodbailey.covid.dom.ReportData
 
 
 /**
- * Panel of covid statistics for a particular region.
+ * Panel of covid statistics for a particular region. Shows confirmed, deaths, active and
+ * fatality rate.
  *
  * @param title Name of the region - appears above data table
  * @param reportData Covid stats to put in the data table
  * @param clickCallback Invoked when user clicks on this panel
+ * @param isLoading true if the data to be displayed is still loading, so show a progress monitor
+ * instead of the data table.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +49,9 @@ fun RegionDataPanel(
     tableData.add(Pair("Active:", "${reportData.active}"))
     tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
 
-    Card(onClick = clickCallback, modifier = Modifier.testTag("tag.card")) {
+    Card(onClick = clickCallback, modifier = Modifier
+        .padding(horizontal = 16.dp)
+        .testTag("tag.card")) {
         Box() {
             CircularProgressIndicator(
                 modifier = Modifier

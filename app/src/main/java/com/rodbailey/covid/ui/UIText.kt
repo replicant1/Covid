@@ -35,7 +35,7 @@ sealed class UIText {
     fun asString(ctx: Context): String {
         return when (this) {
             is DynamicString -> value
-            is StringResource -> ctx.getString(resId, args)
+            is StringResource -> ctx.getString(resId, *args)
         }
     }
 }

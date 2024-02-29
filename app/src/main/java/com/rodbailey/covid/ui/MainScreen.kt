@@ -28,7 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.ui.theme.CovidTheme
 
-
+/**
+ * Main (only) screen of the covid application. Search field at top of screen, list of matching
+ * regions in middle of screen, animated data panel at bottom of screen showing covid statistics
+ * for the selected region.
+ */
 @Composable
 fun MainScreen() {
     CovidTheme {
@@ -62,6 +66,7 @@ fun MainScreen() {
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
+                // Search text field with global icon at right
                 TextField(
                     value = searchText,
                     onValueChange = viewModel::onSearchTextChanged,
@@ -107,6 +112,7 @@ fun MainScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Data panel shows covid stats for current country or global.
+                // Clicking on the data panel collapses it.
                 AnimatedVisibility(visible = isDataPanelExpanded) {
                     RegionDataPanel(
                         title = reportDataTitle, reportData = reportData,
