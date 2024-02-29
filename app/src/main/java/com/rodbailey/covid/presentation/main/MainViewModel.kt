@@ -6,7 +6,7 @@ import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.data.repo.ICovidRepository
-import com.rodbailey.covid.presentation.UIText
+import com.rodbailey.covid.presentation.core.UIText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

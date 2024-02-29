@@ -1,4 +1,4 @@
-package com.rodbailey.covid.presentation
+package com.rodbailey.covid.presentation.core
 
 import android.content.Context
 import androidx.annotation.StringRes
