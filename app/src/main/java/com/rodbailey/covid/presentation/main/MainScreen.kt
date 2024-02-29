@@ -30,7 +30,7 @@ import com.rodbailey.covid.presentation.theme.CovidTheme
 /**
  * Main (only) screen of the covid application. Search field at top of screen, list of matching
  * regions in middle of screen, animated data panel at bottom of screen showing covid statistics
- * for the selected region.
+ * for the selected region or global statistics.
  */
 @Composable
 fun MainScreen() {

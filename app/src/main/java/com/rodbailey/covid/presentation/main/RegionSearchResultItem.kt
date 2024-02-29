@@ -17,12 +17,15 @@ import androidx.compose.ui.unit.sp
 import com.rodbailey.covid.domain.Region
 
 /**
+ * An item in the list, representing a country whose name matches the current search text.
+ *
  * @param region The country represented by this item
  * @param clickCallback Invoked when user clicks on this item
  */
 @Composable
 fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .height(48.dp)
             .clickable(
@@ -30,7 +33,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
             )
     ) {
         Icon(
-            modifier = Modifier.padding(start =  16.dp, end = 8.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
             imageVector = Icons.Default.AccountBox,
             contentDescription = "Icon"
         )
@@ -48,6 +51,5 @@ fun RegionSearchResultItemPreview() {
     RegionSearchResultItem(
         region = Region("ELO", "Electric Light Orchestra")
     ) {
-        println()
     }
 }
