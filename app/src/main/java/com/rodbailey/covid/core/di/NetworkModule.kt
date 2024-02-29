@@ -1,4 +1,4 @@
-package com.rodbailey.covid.di
+package com.rodbailey.covid.core.di
 
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.net.CovidAPIClient
