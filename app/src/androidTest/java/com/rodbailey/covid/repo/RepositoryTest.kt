@@ -12,7 +12,7 @@ import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.RegionList
 import com.rodbailey.covid.dom.Report
 import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.net.CovidAPI
+import com.rodbailey.covid.data.net.CovidAPI
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert

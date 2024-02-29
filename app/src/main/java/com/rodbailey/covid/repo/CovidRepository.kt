@@ -8,7 +8,7 @@ import com.rodbailey.covid.dom.TransformUtils.regionEntityListToRegionList
 import com.rodbailey.covid.dom.TransformUtils.regionListToRegionEntityList
 import com.rodbailey.covid.dom.TransformUtils.regionStatsEntityToReportData
 import com.rodbailey.covid.dom.TransformUtils.reportDataToRegionStatsEntity
-import com.rodbailey.covid.net.CovidAPI
+import com.rodbailey.covid.data.net.CovidAPI
 import timber.log.Timber
 
 

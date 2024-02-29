@@ -1,7 +1,7 @@
 package com.rodbailey.covid.di
 
-import com.rodbailey.covid.net.CovidAPI
-import com.rodbailey.covid.net.CovidAPIClient
+import com.rodbailey.covid.data.net.CovidAPI
+import com.rodbailey.covid.data.net.CovidAPIClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
