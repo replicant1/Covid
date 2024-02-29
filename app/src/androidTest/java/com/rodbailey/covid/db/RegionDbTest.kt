@@ -4,6 +4,9 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import com.rodbailey.covid.data.db.AppDatabase
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionEntity
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -15,7 +18,7 @@ import org.junit.runner.RunWith
 @SmallTest
 class RegionDbTest {
 
-    private lateinit var db:AppDatabase
+    private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
 
     @Before

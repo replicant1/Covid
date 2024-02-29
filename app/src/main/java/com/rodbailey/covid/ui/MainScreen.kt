@@ -1,7 +1,6 @@
 package com.rodbailey.covid.ui
 
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -74,7 +73,7 @@ fun MainScreen() {
                         .fillMaxWidth()
                         .testTag("tag.text.search"),
                     trailingIcon = {
-                        GlobalRegion() {
+                        GlobalRegionIcon() {
                             viewModel.loadReportDataForGlobal()
                         }
                     },

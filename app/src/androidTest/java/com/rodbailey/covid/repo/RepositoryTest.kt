@@ -4,10 +4,10 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.rodbailey.covid.db.AppDatabase
-import com.rodbailey.covid.db.RegionDao
-import com.rodbailey.covid.db.RegionEntity
-import com.rodbailey.covid.db.RegionStatsDao
+import com.rodbailey.covid.data.db.AppDatabase
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionEntity
+import com.rodbailey.covid.data.db.RegionStatsDao
 import com.rodbailey.covid.dom.Region
 import com.rodbailey.covid.dom.RegionList
 import com.rodbailey.covid.dom.Report

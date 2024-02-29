@@ -2,9 +2,9 @@ package com.rodbailey.covid.di
 
 import android.content.Context
 import androidx.room.Room
-import com.rodbailey.covid.db.AppDatabase
-import com.rodbailey.covid.db.RegionDao
-import com.rodbailey.covid.db.RegionStatsDao
+import com.rodbailey.covid.data.db.AppDatabase
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionStatsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -8,8 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 
+/**
+ * Icon at right of search field. When clicked it reveals the "Global" coffvid stats in the
+ * [RegionDataPanel]
+ */
 @Composable
-fun GlobalRegion(clickCallback: () -> Unit) {
+fun GlobalRegionIcon(clickCallback: () -> Unit) {
     Icon(
         imageVector = Icons.Default.AccountCircle,
         contentDescription = "Global",

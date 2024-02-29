@@ -1,7 +1,7 @@
 package com.rodbailey.covid.dom
 
-import com.rodbailey.covid.db.RegionEntity
-import com.rodbailey.covid.db.RegionStatsEntity
+import com.rodbailey.covid.data.db.RegionEntity
+import com.rodbailey.covid.data.db.RegionStatsEntity
 
 object TransformUtils {
 
