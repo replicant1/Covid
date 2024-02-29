@@ -3,7 +3,7 @@ package com.rodbailey.covid
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.data.repo.ICovidRepository
-import com.rodbailey.covid.ui.MainViewModel
+import com.rodbailey.covid.presentation.main.MainViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

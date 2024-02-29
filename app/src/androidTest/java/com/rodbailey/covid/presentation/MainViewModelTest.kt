@@ -1,7 +1,8 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rodbailey.covid.CoroutinesTestRule
+import com.rodbailey.covid.presentation.main.MainViewModel
 import com.rodbailey.covid.repo.FakeCovidRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

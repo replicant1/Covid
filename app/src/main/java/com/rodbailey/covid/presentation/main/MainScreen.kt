@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation.main
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.rodbailey.covid.ui.theme.CovidTheme
+import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
  * Main (only) screen of the covid application. Search field at top of screen, list of matching

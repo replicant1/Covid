@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui.theme
+package com.rodbailey.covid.presentation.theme
 
 import android.app.Activity
 import android.os.Build

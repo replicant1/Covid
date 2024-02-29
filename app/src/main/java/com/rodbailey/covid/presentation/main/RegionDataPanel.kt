@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

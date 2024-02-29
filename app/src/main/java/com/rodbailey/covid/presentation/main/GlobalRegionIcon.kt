@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation.main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons

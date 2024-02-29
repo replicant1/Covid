@@ -4,8 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import com.rodbailey.covid.ui.MainScreen
-import com.rodbailey.covid.ui.MainViewModel
+import com.rodbailey.covid.presentation.main.MainScreen
+import com.rodbailey.covid.presentation.main.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

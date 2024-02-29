@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation
 
 import android.content.Context
 import androidx.annotation.StringRes

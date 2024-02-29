@@ -1,4 +1,4 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,6 +6,7 @@ import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.data.repo.ICovidRepository
+import com.rodbailey.covid.presentation.UIText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +83,12 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
                 Timber.i("Loaded region data for $regionName OK")
             } catch (ex: Exception) {
                 Timber.e(ex, "Exception while getting data for region ${regionName}")
-                showErrorMessage(UIText.StringResource(R.string.failed_to_load_data_for, regionName))
+                showErrorMessage(
+                    UIText.StringResource(
+                        R.string.failed_to_load_data_for,
+                        regionName
+                    )
+                )
                 _isDataPanelExpanded.value = false
             } finally {
                 Timber.i("Finished loading for region $regionName")
