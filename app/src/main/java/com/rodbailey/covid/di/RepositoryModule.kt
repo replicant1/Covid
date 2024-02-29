@@ -2,8 +2,8 @@ package com.rodbailey.covid.di
 
 import com.rodbailey.covid.data.db.AppDatabase
 import com.rodbailey.covid.data.net.CovidAPI
-import com.rodbailey.covid.repo.CovidRepository
-import com.rodbailey.covid.repo.ICovidRepository
+import com.rodbailey.covid.data.repo.CovidRepository
+import com.rodbailey.covid.data.repo.ICovidRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

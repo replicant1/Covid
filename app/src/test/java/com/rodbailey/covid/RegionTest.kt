@@ -1,6 +1,6 @@
 package com.rodbailey.covid
 
-import com.rodbailey.covid.dom.Region
+import com.rodbailey.covid.domain.Region
 import org.junit.Assert
 import org.junit.Test
 

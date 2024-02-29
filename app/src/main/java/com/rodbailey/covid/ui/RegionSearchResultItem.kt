@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rodbailey.covid.dom.Region
+import com.rodbailey.covid.domain.Region
 
 /**
  * @param region The country represented by this item

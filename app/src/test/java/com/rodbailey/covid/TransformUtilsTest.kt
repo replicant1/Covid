@@ -2,9 +2,9 @@ package com.rodbailey.covid
 
 import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.data.db.RegionStatsEntity
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.dom.TransformUtils
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.TransformUtils
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

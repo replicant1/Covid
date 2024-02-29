@@ -1,7 +1,8 @@
 package com.rodbailey.covid.repo
 
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.data.repo.ICovidRepository
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
 
 class FakeCovidRepository() : ICovidRepository {
 

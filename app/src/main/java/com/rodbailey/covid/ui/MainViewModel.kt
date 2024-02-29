@@ -3,9 +3,9 @@ package com.rodbailey.covid.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.repo.ICovidRepository
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.data.repo.ICovidRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

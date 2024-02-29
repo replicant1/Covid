@@ -1,8 +1,8 @@
 package com.rodbailey.covid
 
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.repo.ICovidRepository
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.ui.MainViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify

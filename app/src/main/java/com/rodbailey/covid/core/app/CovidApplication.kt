@@ -1,4 +1,4 @@
-package com.rodbailey.covid.app
+package com.rodbailey.covid.core.app
 
 import android.app.Application
 import com.rodbailey.covid.BuildConfig

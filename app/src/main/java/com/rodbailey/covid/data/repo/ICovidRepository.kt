@@ -1,7 +1,7 @@
-package com.rodbailey.covid.repo
+package com.rodbailey.covid.data.repo
 
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
 
 /**
  * Provides covid data from some source - perhaps network, perhaps local database

@@ -1,13 +1,13 @@
-package com.rodbailey.covid.repo
+package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.db.RegionStatsDao
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
-import com.rodbailey.covid.dom.TransformUtils.regionEntityListToRegionList
-import com.rodbailey.covid.dom.TransformUtils.regionListToRegionEntityList
-import com.rodbailey.covid.dom.TransformUtils.regionStatsEntityToReportData
-import com.rodbailey.covid.dom.TransformUtils.reportDataToRegionStatsEntity
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.TransformUtils.regionEntityListToRegionList
+import com.rodbailey.covid.domain.TransformUtils.regionListToRegionEntityList
+import com.rodbailey.covid.domain.TransformUtils.regionStatsEntityToReportData
+import com.rodbailey.covid.domain.TransformUtils.reportDataToRegionStatsEntity
 import com.rodbailey.covid.data.net.CovidAPI
 import timber.log.Timber
 
