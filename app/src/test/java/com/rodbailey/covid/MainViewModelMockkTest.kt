@@ -126,6 +126,6 @@ class MainViewModelMockkTest {
         coVerify { repo.getRegions() }
         viewModel.onSearchTextChanged("Alas")
         Assert.assertEquals(1, viewModel.matchingRegions.value.size)
-        Assert.assertEquals("Alaska", viewModel.matchingRegions.value[0].name)
+        Assert.assertEquals("Alaska", viewModel.matchingRegions.value[0].name   )
     }
 }
