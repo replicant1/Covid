@@ -1,4 +1,4 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.presentation.core
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
