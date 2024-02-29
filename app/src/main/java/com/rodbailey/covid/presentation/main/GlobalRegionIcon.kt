@@ -7,7 +7,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.rodbailey.covid.R
 
 /**
  * Icon at right of search field. When clicked it reveals the "Global" covid stats in the
@@ -17,8 +19,10 @@ import androidx.compose.ui.tooling.preview.Preview
 fun GlobalRegionIcon(clickCallback: () -> Unit) {
     Icon(
         imageVector = Icons.Default.AccountCircle,
-        contentDescription = "Global",
-        modifier = Modifier.clickable(onClick = clickCallback).testTag("tag.icon.global")
+        contentDescription = stringResource(R.string.region_global),
+        modifier = Modifier
+            .clickable(onClick = clickCallback)
+            .testTag("tag.icon.global")
     )
 }
 

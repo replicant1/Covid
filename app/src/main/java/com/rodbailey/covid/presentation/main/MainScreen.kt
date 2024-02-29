@@ -23,8 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.rodbailey.covid.R
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
@@ -77,7 +79,7 @@ fun MainScreen() {
                             viewModel.loadReportDataForGlobal()
                         }
                     },
-                    placeholder = { Text(text = "Search country") }
+                    placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
                 )
 
                 // Tracks progress of region list loading

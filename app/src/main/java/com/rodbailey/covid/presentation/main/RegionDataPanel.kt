@@ -18,10 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.ReportData
 
 
@@ -44,10 +46,10 @@ fun RegionDataPanel(
     isLoading: Boolean
 ) {
     val tableData = mutableListOf<Pair<String, String>>()
-    tableData.add(Pair("Confirmed:", "${reportData.confirmed}"))
-    tableData.add(Pair("Deaths:", "${reportData.deaths}"))
-    tableData.add(Pair("Active:", "${reportData.active}"))
-    tableData.add(Pair("Fatality Rate:", "${reportData.fatalityRate}"))
+    tableData.add(Pair(stringResource(R.string.data_field_confirmed), "${reportData.confirmed}"))
+    tableData.add(Pair(stringResource(R.string.data_field_deaths), "${reportData.deaths}"))
+    tableData.add(Pair(stringResource(R.string.data_field_active), "${reportData.active}"))
+    tableData.add(Pair(stringResource(R.string.data_field_fatality_rate), "${reportData.fatalityRate}"))
 
     Card(onClick = clickCallback, modifier = Modifier
         .padding(horizontal = 16.dp)
