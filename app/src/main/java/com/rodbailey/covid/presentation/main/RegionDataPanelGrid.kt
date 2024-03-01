@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -116,7 +117,7 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 
         // "Fatality Rate" field value
         Text(
-            text = "${reportData.fatalityRate}%",
+            text = "${reportData.fatalityRate}",
             fontSize = 16.sp,
             modifier = Modifier.constrainAs(fieldValueFatalityRate) {
                 start.linkTo(barrier)
@@ -129,6 +130,7 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 
 @Preview
 @Composable
-fun RegionDataPanelGridPreview() {
-    RegionDataPanelGrid(previewReportData())
+fun RegionDataPanelGridPreview(
+    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData) {
+    RegionDataPanelGrid(reportData)
 }

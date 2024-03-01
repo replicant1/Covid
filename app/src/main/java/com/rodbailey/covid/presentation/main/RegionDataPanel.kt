@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rodbailey.covid.domain.ReportData
@@ -40,10 +41,12 @@ fun RegionDataPanel(
     clickCallback: () -> Unit,
     isLoading: Boolean
 ) {
-    Card(onClick = clickCallback, modifier = Modifier
-        .padding(horizontal = 16.dp)
-        .fillMaxWidth()
-        .testTag("tag.card")) {
+    Card(
+        onClick = clickCallback, modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .testTag("tag.card")
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -60,6 +63,7 @@ fun RegionDataPanel(
             Column(
                 modifier = Modifier.alpha(if (isLoading) 0f else 1f)
             ) {
+                // Region name is title of the data panel
                 Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
@@ -78,10 +82,12 @@ fun RegionDataPanel(
 
 @Preview
 @Composable
-fun RegionDataPanelPreviewNotLoading() {
+fun RegionDataPanelPreviewNotLoading(
+    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData
+) {
     RegionDataPanel(
-        title = previewRegionName(),
-        reportData = previewReportData(),
+        title = ReportDataParameterProvider.title,
+        reportData = reportData,
         clickCallback = {},
         isLoading = false
     )
@@ -89,20 +95,13 @@ fun RegionDataPanelPreviewNotLoading() {
 
 @Preview
 @Composable
-fun RegionDataPanelPreviewLoading() {
+fun RegionDataPanelPreviewLoading(
+    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData
+) {
     RegionDataPanel(
-        title = "Big Country",
-        reportData = previewReportData(),
+        title = ReportDataParameterProvider.title,
+        reportData = reportData,
         clickCallback = {},
         isLoading = true
     )
 }
-
-fun previewRegionName() = "Sample Country"
-fun previewReportData() = ReportData(
-    confirmed = 10000L,
-    deaths = 200L,
-    recovered = 1234L,
-    active = 9876L,
-    fatalityRate = 0.56F
-)
