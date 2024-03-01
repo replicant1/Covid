@@ -3,15 +3,15 @@ package com.rodbailey.covid.presentation.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
+import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.presentation.core.UIText
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 import timber.log.Timber
@@ -24,9 +24,9 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    // Error text from network ops
-    private val _errorMessage = MutableSharedFlow<UIText>()
-    val errorMessage = _errorMessage.asSharedFlow()
+    // Error text from network failures etc
+    private val errorChannel = Channel<UIText>()
+    val errorFlow = errorChannel.receiveAsFlow()
 
     // True if regional data panel is showing
     private val _isDataPanelExpanded = MutableStateFlow(false)
@@ -49,18 +49,18 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     )
     val matchingRegions = _matchingRegions.asStateFlow()
 
-    // The covid statistial data appearing in the data panel
+    // The covid statistical data appearing in the data panel
     private val _reportData = MutableStateFlow(ReportData())
     val reportData = _reportData.asStateFlow()
 
     // Title string at the top of the data panel
-    private val _reportDataTitle = MutableStateFlow("Initial Title")
+    private val _reportDataTitle = MutableStateFlow("")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
     @VisibleForTesting
     fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
-            _errorMessage.emit(message)
+            errorChannel.send(message)
         }
     }
 
@@ -114,6 +114,12 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
         }
     }
 
+    /**
+     * Invoked when user modifies text in the search field. Triggers update of list of
+     * matching regions.
+     *
+     * @param text New search string to match against [Region] names
+     */
     fun onSearchTextChanged(text: String) {
         _searchText.value = text
         updateMatchingRegionsPerSearchText()

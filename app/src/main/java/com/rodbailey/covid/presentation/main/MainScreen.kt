@@ -47,10 +47,10 @@ fun MainScreen() {
 
             // Error toast
             LaunchedEffect(Unit) {
-                viewModel.errorMessage.collect { message ->
+                viewModel.errorFlow.collect { uiText ->
                     Toast.makeText(
                         context,
-                        message.asString(context),
+                        uiText.asString(context),
                         Toast.LENGTH_LONG
                     ).show()
                 }
