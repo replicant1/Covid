@@ -46,6 +46,7 @@ fun RegionDataPanel(
         .testTag("tag.card")) {
         Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(16.dp)
         ) {
             CircularProgressIndicator(
@@ -64,7 +65,7 @@ fun RegionDataPanel(
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = 20.dp)
                         .testTag("tag.card.title")
                 )
 
@@ -79,14 +80,8 @@ fun RegionDataPanel(
 @Composable
 fun RegionDataPanelPreviewNotLoading() {
     RegionDataPanel(
-        title = "Big Country",
-        reportData = ReportData(
-            confirmed = 10000L,
-            deaths = 200L,
-            recovered = 1234L,
-            active = 9876L,
-            fatalityRate = 0.56F
-        ),
+        title = previewRegionName(),
+        reportData = previewReportData(),
         clickCallback = {},
         isLoading = false
     )
@@ -97,14 +92,17 @@ fun RegionDataPanelPreviewNotLoading() {
 fun RegionDataPanelPreviewLoading() {
     RegionDataPanel(
         title = "Big Country",
-        reportData = ReportData(
-            confirmed = 10000L,
-            deaths = 200L,
-            recovered = 1234L,
-            active = 9876L,
-            fatalityRate = 0.56F
-        ),
+        reportData = previewReportData(),
         clickCallback = {},
         isLoading = true
     )
 }
+
+fun previewRegionName() = "Sample Country"
+fun previewReportData() = ReportData(
+    confirmed = 10000L,
+    deaths = 200L,
+    recovered = 1234L,
+    active = 9876L,
+    fatalityRate = 0.56F
+)
