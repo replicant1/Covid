@@ -1,4 +1,4 @@
-package com.rodbailey.covid.presentation
+package com.rodbailey.covid.presentation.main
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
@@ -12,7 +12,7 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.rodbailey.covid.presentation.core.MainActivity
 import com.rodbailey.covid.presentation.main.MainScreenTag
-import com.rodbailey.covid.repo.FakeCovidRepository
+import com.rodbailey.covid.data.repo.FakeCovidRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Rule

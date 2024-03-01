@@ -1,7 +1,7 @@
-package com.rodbailey.covid.di
+package com.rodbailey.covid.core.di
 
 import com.rodbailey.covid.core.di.RepositoryModule
-import com.rodbailey.covid.repo.FakeCovidRepository
+import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.data.repo.ICovidRepository
 import dagger.Module
 import dagger.Provides

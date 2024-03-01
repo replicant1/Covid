@@ -2,7 +2,13 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="MainViewModelMockkTest">
+      <entry key="MainUITest">
+        <State />
+      </entry>
+      <entry key="MainViewModelTest">
+        <State />
+      </entry>
+      <entry key="RegionDbTest">
         <State />
       </entry>
       <entry key="UITextTest">

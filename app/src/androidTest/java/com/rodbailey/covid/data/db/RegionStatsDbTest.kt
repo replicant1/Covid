@@ -1,4 +1,4 @@
-package com.rodbailey.covid.db
+package com.rodbailey.covid.data.db
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider

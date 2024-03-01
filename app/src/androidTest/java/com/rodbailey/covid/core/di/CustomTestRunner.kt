@@ -1,4 +1,4 @@
-package com.rodbailey.covid.di
+package com.rodbailey.covid.core.di
 
 import android.app.Application
 import android.content.Context

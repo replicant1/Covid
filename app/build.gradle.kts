@@ -17,7 +17,7 @@ android {
         versionName = "1.0"
 
 
-        testInstrumentationRunner = "com.rodbailey.covid.di.CustomTestRunner"
+        testInstrumentationRunner = "com.rodbailey.covid.core.di.CustomTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }

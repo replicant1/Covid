@@ -1,4 +1,4 @@
-package com.rodbailey.covid.repo
+package com.rodbailey.covid.data.repo
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider

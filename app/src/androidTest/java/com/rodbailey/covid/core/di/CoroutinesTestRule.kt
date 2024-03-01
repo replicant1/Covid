@@ -1,4 +1,4 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.core.di
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

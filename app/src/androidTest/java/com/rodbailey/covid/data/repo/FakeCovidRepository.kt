@@ -1,4 +1,4 @@
-package com.rodbailey.covid.repo
+package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
