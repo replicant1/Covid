@@ -45,7 +45,7 @@ fun RegionDataPanel(
         onClick = clickCallback, modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .testTag("tag.card")
+            .testTag(MainScreenTag.TAG_CARD.tag)
     ) {
         Box(
             modifier = Modifier
@@ -70,7 +70,7 @@ fun RegionDataPanel(
                     fontSize = 20.sp,
                     modifier = Modifier
                         .padding(bottom = 20.dp)
-                        .testTag("tag.card.title")
+                        .testTag(MainScreenTag.TAG_CARD_TITLE.tag)
                 )
 
                 RegionDataPanelGrid(reportData)

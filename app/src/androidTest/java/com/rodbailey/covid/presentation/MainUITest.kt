@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.rodbailey.covid.presentation.core.MainActivity
+import com.rodbailey.covid.presentation.main.MainScreenTag
 import com.rodbailey.covid.repo.FakeCovidRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -32,12 +33,12 @@ class MainUITest {
 
     @Test
     fun search_field_is_displayed_on_startup() {
-        rule.onNodeWithTag("tag.text.search").assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
     fun search_progress_indicator_is_displayed_on_startup() {
-        rule.onNodeWithTag("tag.progress.search").assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
@@ -47,14 +48,14 @@ class MainUITest {
 
     @Test
     fun can_scroll_to_last_region_in_list() {
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(
             FakeCovidRepository.REGIONS.size - 1)
         rule.onNodeWithText("Vietnam").assertIsDisplayed()
     }
 
     @Test
     fun search_for_fg_matches_only_afghanistan() {
-        rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextInput("fgh")
 
         // There should be an easier way to test that "Afghanistan" is the only child node
         // of the lazy column that is displayed. Apparently not.
@@ -66,8 +67,8 @@ class MainUITest {
 
     @Test
     fun text_clearance_restores_search_results() {
-        rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
-        rule.onNodeWithTag("tag.text.search").performTextClearance()
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextInput("fgh")
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextClearance()
 
         rule.onNodeWithText("Afghanistan").assertIsDisplayed()
         rule.onNodeWithText("Austria").assertIsDisplayed()
@@ -76,10 +77,10 @@ class MainUITest {
 
     @Test
     fun click_global_icon_shows_global_stats() {
-        rule.onNodeWithTag("tag.icon.global").performClick()
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
         
-        rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals("Global")
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag).assertTextEquals("Global")
         rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.confirmed}", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
         rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.deaths}", useUnmergedTree = true).assertIsDisplayed() // deaths
         rule.onNodeWithText("${FakeCovidRepository.GLOBAL_REPORT_DATA.active}", useUnmergedTree = true).assertIsDisplayed() // active cases
@@ -88,19 +89,19 @@ class MainUITest {
 
     @Test
     fun click_data_panel_collapses_data_panel() {
-        rule.onNodeWithTag("tag.icon.global").performClick()
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
 
-        rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag("tag.card").performClick()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).performClick()
 
-        rule.onNodeWithTag("tag.card").assertDoesNotExist()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
     }
 
     @Test
     fun click_aus_shows_aus_stats() {
         rule.onNodeWithText("Australia").performClick()
 
-        rule.onNodeWithTag("tag.card").assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
         rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.confirmed}").assertIsDisplayed() // confirmed cases
         rule.onNodeWithText(useUnmergedTree = true, text="${FakeCovidRepository.AUS_REPORT_DATA.deaths}").assertIsDisplayed() // deaths
         rule.onNodeWithText(useUnmergedTree = true, text = "${FakeCovidRepository.AUS_REPORT_DATA.active}") // active cases

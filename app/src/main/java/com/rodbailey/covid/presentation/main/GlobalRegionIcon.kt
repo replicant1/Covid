@@ -22,7 +22,7 @@ fun GlobalRegionIcon(clickCallback: () -> Unit) {
         contentDescription = stringResource(R.string.region_global),
         modifier = Modifier
             .clickable(onClick = clickCallback)
-            .testTag("tag.icon.global")
+            .testTag(MainScreenTag.TAG_ICON_GLOBAL.tag)
     )
 }
 

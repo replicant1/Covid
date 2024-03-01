@@ -73,7 +73,7 @@ fun MainScreen() {
                     onValueChange = viewModel::onSearchTextChanged,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("tag.text.search"),
+                        .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
                     trailingIcon = {
                         GlobalRegionIcon() {
                             viewModel.loadReportDataForGlobal()
@@ -85,7 +85,7 @@ fun MainScreen() {
                 // Tracks progress of region list loading
                 LinearProgressIndicator(
                     modifier = Modifier
-                        .testTag("tag.progress.search")
+                        .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
                         .fillMaxWidth()
                         .height(16.dp)
                         .alpha(if (isRegionListLoading) 1f else 0f)
@@ -99,7 +99,7 @@ fun MainScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .testTag("tag.lazy.column.search")
+                        .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
                     items(regions) { region ->
                         RegionSearchResultItem(
