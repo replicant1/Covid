@@ -22,40 +22,27 @@ class CovidRepository(
         const val GLOBAL_ISO3_CODE = "___"
     }
 
+    /**
+     * @see [ICovidRepository.getReport]
+     */
     override suspend fun getReport(regionIso3Code: String?): ReportData {
-        if (regionIso3Code != null) {
-            val dataSets = regionStatsDao.getRegionStats(regionIso3Code)
-            return if (dataSets.isEmpty()) {
-                // ReportData is not in database, so get from network
-                val apiData = covidAPI.getReport(regionIso3Code).data
-                saveRegionStatsToDb(regionIso3Code, apiData)
-                Timber.i("Data for $regionIso3Code has been retrieved from network")
-                apiData
-            } else {
-                // Take the first result only
-                Timber.i("Data for $regionIso3Code has been retrieved from database")
-                regionStatsEntityToReportData(dataSets[0])
-            }
+        val regionStats = regionStatsDao.getRegionStats(regionIso3Code ?: GLOBAL_ISO3_CODE)
+        return if (regionStats.isEmpty()) {
+            // ReportData is not in the database, so get from network then cache in database
+            val apiData = covidAPI.getReport(regionIso3Code).data
+            saveRegionStatsToDb(regionIso3Code ?: GLOBAL_ISO3_CODE, apiData)
+            apiData
         } else {
-            val dbGlobal = regionStatsDao.getRegionStats(GLOBAL_ISO3_CODE)
-            return if (dbGlobal.isEmpty()) {
-                // Global data is not in database, so get from network
-                val globalData = covidAPI.getReport(null).data
-                saveRegionStatsToDb(GLOBAL_ISO3_CODE, globalData)
-                Timber.i("Data for GLOBAL has been retrieved from network")
-                globalData
-            } else {
-                // Get global data from database. Assert: there is only one
-                Timber.i("Data for GLOBAL has been retrieved from database")
-                regionStatsEntityToReportData(dbGlobal[0])
-            }
+            // ReportData already cached in database
+            regionStatsEntityToReportData(regionStats[0])
         }
     }
 
+    /**
+     * @see [ICovidRepository.getRegions]
+     */
     override suspend fun getRegions(): List<Region> {
-        val numRegionsSaved = regionDao.getRegionCount()
-
-        return if (numRegionsSaved == 0) {
+        return if (regionDao.getRegionCount() == 0) {
             // Get regions from the network and store in the database. Return the network equiv.
             val allRegions: List<Region> = covidAPI.getRegions().regions
             saveRegionsToDb(allRegions)
