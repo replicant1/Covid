@@ -1,4 +1,4 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.domain
 
 import com.rodbailey.covid.domain.Region
 import org.junit.Assert
