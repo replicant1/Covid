@@ -56,20 +56,14 @@ fun MainScreen() {
                 }
             }
 
-            val searchText by viewModel.searchText.collectAsState()
-            val regions by viewModel.matchingRegions.collectAsState()
-            val reportData by viewModel.reportData.collectAsState()
-            val reportDataTitle by viewModel.reportDataTitle.collectAsState()
-            val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()
-            val isDataPanelLoading by viewModel.isDataPanelLoading.collectAsState()
-            val isRegionListLoading by viewModel.isRegionListLoading.collectAsState()
+            val uiState by viewModel.uiState.collectAsState()
 
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // Search text field with global icon at right
                 TextField(
-                    value = searchText,
+                    value = uiState.searchText,
                     onValueChange = viewModel::onSearchTextChanged,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -88,7 +82,7 @@ fun MainScreen() {
                         .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
                         .fillMaxWidth()
                         .height(16.dp)
-                        .alpha(if (isRegionListLoading) 1f else 0f)
+                        .alpha(if (uiState.isRegionListLoading) 1f else 0f)
                         .padding(bottom = 12.dp),
                     color = MaterialTheme.colorScheme.secondary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -101,7 +95,7 @@ fun MainScreen() {
                         .weight(1f)
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
-                    items(regions) { region ->
+                    items(uiState.matchingRegions) { region ->
                         RegionSearchResultItem(
                             region = region,
                             clickCallback = {
@@ -114,11 +108,12 @@ fun MainScreen() {
 
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
-                AnimatedVisibility(visible = isDataPanelExpanded) {
+                AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
                     RegionDataPanel(
-                        title = reportDataTitle, reportData = reportData,
+                        title = uiState.reportDataTitle,
+                        reportData = uiState.reportData,
                         clickCallback = { viewModel.collapseDataPanel() },
-                        isLoading = isDataPanelLoading
+                        isLoading = uiState.isDataPanelLoading
                     )
                 }
             }
