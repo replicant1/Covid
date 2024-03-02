@@ -33,7 +33,7 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun regionsLoadingProgressBarHiddenAtStartup() = runTest(UnconfinedTestDispatcher()) {
-        Assert.assertFalse(viewModel.isRegionListLoading.value)
+        Assert.assertFalse(viewModel.uiState.value.isRegionListLoading)
     }
 
     @Test
@@ -52,12 +52,12 @@ class MainViewModelTest {
     @Test
     fun regionsLoadAtStartup() = runTest(UnconfinedTestDispatcher()) {
         viewModel.loadRegionsFromRepository()
-        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.matchingRegions.value.size)
-        Assert.assertFalse(viewModel.isRegionListLoading.value)
+        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.uiState.value.matchingRegions.size)
+        Assert.assertFalse(viewModel.uiState.value.isRegionListLoading)
 
         // Check sorting of regions by name
-        Assert.assertEquals("Afghanistan", viewModel.matchingRegions.value.first().name)
-        Assert.assertEquals("Vietnam", viewModel.matchingRegions.value.last().name)
+        Assert.assertEquals("Afghanistan", viewModel.uiState.value.matchingRegions.first().name)
+        Assert.assertEquals("Vietnam", viewModel.uiState.value.matchingRegions.last().name)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -69,37 +69,37 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun dataPanelIsHiddenAtStartup() = runTest(UnconfinedTestDispatcher()) {
-        Assert.assertFalse(viewModel.isDataPanelExpanded.value)
+        Assert.assertFalse(viewModel.uiState.value.isDataPanelExpanded)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun collapseDataPanel_IsCaptured() = runTest(UnconfinedTestDispatcher()) {
         viewModel.collapseDataPanel()
-        Assert.assertFalse(viewModel.isDataPanelExpanded.value)
+        Assert.assertFalse(viewModel.uiState.value.isDataPanelExpanded)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun loadReportForRegion_ReportDataAppearsInDataPanel() = runTest(UnconfinedTestDispatcher()) {
         viewModel.loadReportDataForRegion("China", "CHN")
-        Assert.assertTrue(viewModel.isDataPanelExpanded.value)
-        Assert.assertFalse(viewModel.isDataPanelLoading.value)
-        Assert.assertEquals("China", viewModel.reportDataTitle.value)
-        Assert.assertEquals(FakeCovidRepository.DEFAULT_REPORT_DATA, viewModel.reportData.value)
+        Assert.assertTrue(viewModel.uiState.value.isDataPanelExpanded)
+        Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
+        Assert.assertEquals("China", viewModel.uiState.value.reportDataTitle)
+        Assert.assertEquals(FakeCovidRepository.DEFAULT_REPORT_DATA, viewModel.uiState.value.reportData)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun loadReportForGlobal_GlobalDataAppearsInDataPanel() = runTest(UnconfinedTestDispatcher()) {
         viewModel.loadReportDataForGlobal()
-        Assert.assertTrue(viewModel.isDataPanelExpanded.value)
-        Assert.assertFalse(viewModel.isDataPanelLoading.value)
+        Assert.assertTrue(viewModel.uiState.value.isDataPanelExpanded)
+        Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
         Assert.assertEquals(
             FakeCovidRepository.GLOBAL_DATA_SET_TITLE,
-            viewModel.reportDataTitle.value
+            viewModel.uiState.value.reportDataTitle
         )
-        Assert.assertEquals(FakeCovidRepository.GLOBAL_REPORT_DATA, viewModel.reportData.value)
+        Assert.assertEquals(FakeCovidRepository.GLOBAL_REPORT_DATA, viewModel.uiState.value.reportData)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,8 +107,8 @@ class MainViewModelTest {
     fun emptySearchTextMatchesAllRegions() = runTest(UnconfinedTestDispatcher()) {
         viewModel.loadRegionsFromRepository()
         viewModel.onSearchTextChanged("")
-        Assert.assertEquals("", viewModel.searchText.value)
-        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.matchingRegions.value.size)
+        Assert.assertEquals("", viewModel.uiState.value.searchText)
+        Assert.assertEquals(FakeCovidRepository.REGIONS.size, viewModel.uiState.value.matchingRegions.size)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -116,7 +116,7 @@ class MainViewModelTest {
     fun searchTextBrazilMatchesOneRegion() = runTest(UnconfinedTestDispatcher()) {
         viewModel.loadRegionsFromRepository()
         viewModel.onSearchTextChanged("Brazil")
-        Assert.assertEquals(1, viewModel.matchingRegions.value.size)
-        Assert.assertEquals("Brazil", viewModel.matchingRegions.value[0].name)
+        Assert.assertEquals(1, viewModel.uiState.value.matchingRegions.size)
+        Assert.assertEquals("Brazil", viewModel.uiState.value.matchingRegions[0].name)
     }
 }
