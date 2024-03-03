@@ -8,6 +8,7 @@ import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.core.UIText
+import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
 import com.rodbailey.covid.usecase.SearchRegionListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -21,8 +22,11 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val repo: ICovidRepository,
-                                        val searchRegionListUseCase : SearchRegionListUseCase) : ViewModel() {
+class MainViewModel @Inject constructor(
+    val repo: ICovidRepository,
+    val searchRegionListUseCase: SearchRegionListUseCase,
+    val initialiseRegionListUseCase: InitialiseRegionListUseCase
+) : ViewModel() {
 
     data class UIState(
         val isDataPanelExpanded: Boolean = false,
@@ -102,7 +106,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository,
                     it.copy(isRegionListLoading = true)
                 }
                 allRegions.clear()
-                allRegions.addAll(repo.getRegions())
+                allRegions.addAll(initialiseRegionListUseCase())
                 updateMatchingRegionsPerSearchText()
             } catch (ex: Exception) {
                 Timber.e(ex, "Exception while loading counter list $ex")
@@ -123,7 +127,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository,
      */
     fun onSearchTextChanged(text: String) {
         _uiState.update {
-            it.copy(searchText = text,)
+            it.copy(searchText = text)
         }
         updateMatchingRegionsPerSearchText()
     }
