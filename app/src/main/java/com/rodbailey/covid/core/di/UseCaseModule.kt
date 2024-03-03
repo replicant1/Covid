@@ -1,6 +1,8 @@
 package com.rodbailey.covid.core.di
 
 import com.rodbailey.covid.data.repo.ICovidRepository
+import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
+import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
 import com.rodbailey.covid.usecase.SearchRegionListUseCase
 import dagger.Module
@@ -20,5 +22,15 @@ object UseCaseModule {
     @Provides
     fun provideInitialiseRegionListUseCase(repository: ICovidRepository) : InitialiseRegionListUseCase {
         return InitialiseRegionListUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetDataForRegionUseCase(repository: ICovidRepository) : GetDataForRegionUseCase {
+        return GetDataForRegionUseCase(repository)
+    }
+
+    @Provides
+    fun provideGetDataForGlobalUseCase(repository: ICovidRepository) : GetDataForGlobalUseCase {
+        return GetDataForGlobalUseCase(repository)
     }
 }

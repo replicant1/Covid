@@ -8,6 +8,8 @@ import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.core.UIText
+import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
+import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
 import com.rodbailey.covid.usecase.SearchRegionListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +27,9 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     val repo: ICovidRepository,
     val searchRegionListUseCase: SearchRegionListUseCase,
-    val initialiseRegionListUseCase: InitialiseRegionListUseCase
+    val initialiseRegionListUseCase: InitialiseRegionListUseCase,
+    val getDataForRegionUseCase: GetDataForRegionUseCase,
+    val getDataForGlobalUseCase: GetDataForGlobalUseCase
 ) : ViewModel() {
 
     data class UIState(
@@ -73,7 +77,12 @@ class MainViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(isDataPanelExpanded = true, isDataPanelLoading = true)
                 }
-                val loadedReportData = repo.getReport(regionIso3Code)
+                val loadedReportData =
+                    if (regionIso3Code == null) {
+                        getDataForGlobalUseCase()
+                    } else {
+                        getDataForRegionUseCase(regionIso3Code)
+                    }
                 _uiState.update {
                     it.copy(reportDataTitle = regionName, reportData = loadedReportData)
                 }
