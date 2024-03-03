@@ -2,9 +2,7 @@ package com.rodbailey.covid.presentation.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
-import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.core.UIText
@@ -25,7 +23,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    val repo: ICovidRepository,
     val searchRegionListUseCase: SearchRegionListUseCase,
     val initialiseRegionListUseCase: InitialiseRegionListUseCase,
     val getDataForRegionUseCase: GetDataForRegionUseCase,

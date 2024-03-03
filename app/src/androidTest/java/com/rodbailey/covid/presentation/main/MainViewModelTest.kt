@@ -4,6 +4,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rodbailey.covid.core.di.CoroutinesTestRule
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.data.repo.FakeCovidRepository
+import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
+import com.rodbailey.covid.usecase.GetDataForRegionUseCase
+import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
+import com.rodbailey.covid.usecase.SearchRegionListUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -27,7 +31,11 @@ class MainViewModelTest {
     @Before
     fun setup() {
         fakeCovidRepository = FakeCovidRepository()
-        viewModel = MainViewModel(fakeCovidRepository)
+        viewModel = MainViewModel(
+            SearchRegionListUseCase(fakeCovidRepository),
+            InitialiseRegionListUseCase(fakeCovidRepository),
+            GetDataForRegionUseCase(fakeCovidRepository),
+            GetDataForGlobalUseCase(fakeCovidRepository))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
