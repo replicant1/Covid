@@ -2,11 +2,13 @@ package com.rodbailey.covid.presentation.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
 import com.rodbailey.covid.data.repo.ICovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.core.UIText
+import com.rodbailey.covid.usecase.SearchRegionListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +21,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel() {
+class MainViewModel @Inject constructor(val repo: ICovidRepository,
+                                        val searchRegionListUseCase : SearchRegionListUseCase) : ViewModel() {
 
     data class UIState(
         val isDataPanelExpanded: Boolean = false,
@@ -35,7 +38,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
     private val errorChannel = Channel<UIText>()
     val errorFlow = errorChannel.receiveAsFlow()
 
-    // Raw region lists as loaded from network and sorted.
+    // Raw region lists as loaded from network and sorted (single source of truth)
     private val allRegions = mutableListOf<Region>()
 
     // Communicates state changes to corresponding view
@@ -120,7 +123,7 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
      */
     fun onSearchTextChanged(text: String) {
         _uiState.update {
-            it.copy(searchText = text)
+            it.copy(searchText = text,)
         }
         updateMatchingRegionsPerSearchText()
     }
@@ -129,15 +132,10 @@ class MainViewModel @Inject constructor(val repo: ICovidRepository) : ViewModel(
      * Recalculate the regions list in light of the new search text
      */
     private fun updateMatchingRegionsPerSearchText() {
-        val text = _uiState.value.searchText
-        _uiState.update {
-            it.copy(matchingRegions = if (text.isBlank()) {
-                allRegions
-            } else {
-                allRegions.filter {
-                    it.matchesSearchQuery(text)
-                }
-            })
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(matchingRegions = searchRegionListUseCase(_uiState.value.searchText))
+            }
         }
     }
 }
