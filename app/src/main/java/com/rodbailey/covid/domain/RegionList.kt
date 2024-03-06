@@ -1,4 +1,4 @@
-package com.rodbailey.covid.dom
+package com.rodbailey.covid.domain
 
 import com.google.gson.annotations.SerializedName
 

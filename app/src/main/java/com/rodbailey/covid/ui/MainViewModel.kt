@@ -2,11 +2,13 @@ package com.rodbailey.covid.ui
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.repo.CovidRepository
+import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
+import com.rodbailey.covid.usecase.GetDataForRegionUseCase
+import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -94,7 +96,11 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
             try {
                 _isDataPanelExpanded.value = true
                 _isDataPanelLoading.value = true
-                _reportData.value = repo.getReport(regionIso3Code)
+                _reportData.value = if (regionIso3Code == null) {
+                    GetDataForGlobalUseCase(repo)()
+                } else {
+                    GetDataForRegionUseCase(repo)(regionIso3Code)
+                }
                 _reportDataTitle.value = regionName
                 println("*** Loaded region data for $regionName OK")
             } catch (ex: Exception) {
@@ -113,7 +119,7 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true
-                _regions.value = repo.getRegions()
+                _regions.value = InitialiseRegionListUseCase(repo)()
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
