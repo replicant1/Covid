@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.rodbailey.covid.db.AppDatabase
 import com.rodbailey.covid.db.RegionEntity
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.net.CovidAPIClient
 
 /**

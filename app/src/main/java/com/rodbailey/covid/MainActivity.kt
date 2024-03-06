@@ -43,8 +43,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.rodbailey.covid.dom.Region
-import com.rodbailey.covid.dom.ReportData
+import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.ui.MainViewModel
 import com.rodbailey.covid.ui.theme.CovidTheme
 

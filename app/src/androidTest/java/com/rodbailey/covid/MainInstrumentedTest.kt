@@ -48,7 +48,7 @@ class MainInstrumentedTest {
     @Test
     fun can_scroll_to_zimbabwe() {
         waitForCountryListToLoad()
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(218)
+        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(217)
         rule.onNodeWithText("Zimbabwe").assertIsDisplayed()
     }
 

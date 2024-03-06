@@ -1,7 +1,7 @@
 package com.rodbailey.covid.net
 
-import com.rodbailey.covid.dom.RegionList
-import com.rodbailey.covid.dom.Report
+import com.rodbailey.covid.domain.RegionList
+import com.rodbailey.covid.domain.Report
 import retrofit2.http.GET
 import retrofit2.http.Query
 

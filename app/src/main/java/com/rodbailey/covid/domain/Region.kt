@@ -1,7 +1,5 @@
-package com.rodbailey.covid.dom
+package com.rodbailey.covid.domain
 
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.toUpperCase
 import com.google.gson.annotations.SerializedName
 
 /**
