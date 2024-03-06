@@ -1,4 +1,4 @@
-package com.rodbailey.covid
+package com.rodbailey.covid.presentation.core
 
 import android.os.Bundle
 import android.widget.Toast
@@ -45,8 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.ui.MainViewModel
-import com.rodbailey.covid.ui.theme.CovidTheme
+import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.theme.CovidTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()

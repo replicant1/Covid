@@ -1,12 +1,12 @@
-package com.rodbailey.covid.repo
+package com.rodbailey.covid.data.repo
 
 import android.content.Context
 import androidx.room.Room
-import com.rodbailey.covid.db.AppDatabase
-import com.rodbailey.covid.db.RegionEntity
+import com.rodbailey.covid.data.db.AppDatabase
+import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.net.CovidAPIClient
+import com.rodbailey.covid.data.net.CovidAPIClient
 
 /**
  * Accesses covid data from some source - perhaps network, perhaps local database

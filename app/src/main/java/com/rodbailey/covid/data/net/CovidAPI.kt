@@ -1,4 +1,4 @@
-package com.rodbailey.covid.net
+package com.rodbailey.covid.data.net
 
 import com.rodbailey.covid.domain.RegionList
 import com.rodbailey.covid.domain.Report

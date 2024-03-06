@@ -1,11 +1,11 @@
-package com.rodbailey.covid.ui
+package com.rodbailey.covid.presentation
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.repo.CovidRepository
+import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
 import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase

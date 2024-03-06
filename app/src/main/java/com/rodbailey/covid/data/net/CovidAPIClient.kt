@@ -1,4 +1,4 @@
-package com.rodbailey.covid.net
+package com.rodbailey.covid.data.net
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

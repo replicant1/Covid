@@ -1,7 +1,7 @@
 package com.rodbailey.covid.usecase
 
 import com.rodbailey.covid.domain.Region
-import com.rodbailey.covid.repo.CovidRepository
+import com.rodbailey.covid.data.repo.CovidRepository
 
 class InitialiseRegionListUseCase(private val repository : CovidRepository) {
 
