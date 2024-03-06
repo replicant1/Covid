@@ -2,13 +2,16 @@ package com.rodbailey.covid.presentation
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
 import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,8 +20,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MainViewModel(app:Application) : AndroidViewModel(app) {
+@HiltViewModel
+class MainViewModel @Inject constructor(covidAPI: CovidAPI) : ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -70,9 +75,11 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-    private val repo = CovidRepository(getApplication<Application>().applicationContext)
+//    private val repo = CovidRepository(getApplication<Application>().applicationContext)
 
     init {
+        println("**** Into MVM.init ****")
+        println("**** covidAPI = $covidAPI ****")
         loadRegionsFromNetwork()
     }
 
@@ -96,11 +103,11 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
             try {
                 _isDataPanelExpanded.value = true
                 _isDataPanelLoading.value = true
-                _reportData.value = if (regionIso3Code == null) {
-                    GetDataForGlobalUseCase(repo)()
-                } else {
-                    GetDataForRegionUseCase(repo)(regionIso3Code)
-                }
+//                _reportData.value = if (regionIso3Code == null) {
+//                    GetDataForGlobalUseCase(repo)()
+//                } else {
+//                    GetDataForRegionUseCase(repo)(regionIso3Code)
+//                }
                 _reportDataTitle.value = regionName
                 println("*** Loaded region data for $regionName OK")
             } catch (ex: Exception) {
@@ -119,7 +126,7 @@ class MainViewModel(app:Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true
-                _regions.value = InitialiseRegionListUseCase(repo)()
+//                _regions.value = InitialiseRegionListUseCase(repo)()
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
