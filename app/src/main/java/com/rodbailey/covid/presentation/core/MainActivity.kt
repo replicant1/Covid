@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     }
                     
                     val searchText by viewModel.searchText.collectAsState()
-                    val regions by viewModel.regions.collectAsState()
+                    val regions by viewModel.matchingRegions.collectAsState()
                     val reportData by viewModel.reportData.collectAsState()
                     val reportDataTitle by viewModel.reportDataTitle.collectAsState()
                     val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()

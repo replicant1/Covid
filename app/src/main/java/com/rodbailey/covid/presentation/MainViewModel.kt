@@ -1,16 +1,9 @@
 package com.rodbailey.covid.presentation
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.data.repo.CovidRepository
-import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
-import com.rodbailey.covid.usecase.GetDataForRegionUseCase
-import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -49,30 +42,11 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     val isRegionListLoading = _isRegionListLoading.asStateFlow()
 
     // Currently matching regions
-    private val _regions = MutableStateFlow(
-        emptyList<Region>()
-    )
-    val regions = searchText
-        .combine(_regions) { text: String, regions: List<Region> ->
-            if (text.isBlank()) {
-                regions
-            } else {
-                regions.filter {
-                    it.matchesSearchQuery(text)
-                }
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = _regions.value,
-        )
+    private val _matchingRegions = MutableStateFlow(emptyList<Region>())
+    val matchingRegions = _matchingRegions.asStateFlow()
 
-    private val _reportData = MutableStateFlow(
-        ReportData(
-            confirmed = 10, deaths = 20, recovered = 30, active = 40, fatalityRate = 1.2F
-        )
-    )
+
+    private val _reportData = MutableStateFlow(ReportData())
     val reportData = _reportData.asStateFlow()
 
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
@@ -130,7 +104,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true
-                _regions.value = mainUseCases.initialiseRegionListUseCase()
+                _matchingRegions.value = mainUseCases.initialiseRegionListUseCase()
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
@@ -142,5 +116,17 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
 
     fun onSearchTextChanged(text: String) {
         _searchText.value = text
+        updateMatchingRegionsPerSearchText()
+    }
+
+    /**
+     * Recalculate the regions list in light of the new search text
+     */
+    private fun updateMatchingRegionsPerSearchText() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                _matchingRegions.value = mainUseCases.searchRegionListUseCase(_searchText.value)
+            }
+        }
     }
 }
