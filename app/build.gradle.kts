@@ -93,4 +93,7 @@ dependencies {
 
     // Enables " = viewModel()" access to view model in compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    // Constraint layout for compose (used by data panel)
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 }

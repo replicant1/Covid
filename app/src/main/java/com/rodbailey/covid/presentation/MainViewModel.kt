@@ -4,13 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,6 +32,11 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         val matchingRegions: List<Region> = emptyList()
     )
 
+    // Error text from network failures. Use a Channel to prevent event duplication on
+    // configuration change.
+    private val errorChannel = Channel<UIText>()
+    val errorFlow = errorChannel.receiveAsFlow()
+
     // Communicates UI state changes to corresponding view
     private val _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
@@ -37,11 +45,11 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
 
-    init {
-        println("**** Into MVM.init ****")
-        println("**** mainUseCases = $mainUseCases ****")
-        loadRegionList()
-    }
+//    init {
+//        println("**** Into MVM.init ****")
+//        println("**** mainUseCases = $mainUseCases ****")
+//        loadRegionList()
+//    }
 
     private fun showErrorMessage(message: String) {
         viewModelScope.launch {
@@ -94,7 +102,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         }
     }
 
-    private fun loadRegionList() {
+    fun loadRegionList() {
         viewModelScope.launch {
             try {
                 _uiState.update {
@@ -109,7 +117,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
             } finally {
                 _uiState.update {
                     it.copy(
-                        isRegionListLoading =  false
+                        isRegionListLoading = false
                     )
                 }
             }

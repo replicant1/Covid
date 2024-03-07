@@ -60,9 +60,7 @@ class CovidRepository(
         return if (numRegionsSaved == 0) {
             println("Regions NOT in db, so loading from network then saving to db")
             // Get regions from the network and store in the database. Return the network equiv.
-            val allRegions: List<Region> = covidAPI.getRegions().regions
-            saveRegionsToDb(allRegions)
-            allRegions.sortedBy { it.name }
+            loadRegionsFromAPI()
         } else {
             println("Regions ARE in db, returning from db")
             // Get regions from db and convert to network equiv.
@@ -77,7 +75,14 @@ class CovidRepository(
 
 
     private suspend fun loadRegionsFromDb(): List<Region> {
-        return regionEntityListToRegionList(regionDao.getAllRegions())
+        val unsortedegions = regionDao.getAllRegions()
+        return regionEntityListToRegionList(unsortedegions).sortedBy { it.name }
+    }
+
+    private suspend fun loadRegionsFromAPI(): List<Region> {
+        val unsortedRegions = covidAPI.getRegions()
+        saveRegionsToDb(unsortedRegions.regions)
+        return unsortedRegions.regions.sortedBy { it.name }
     }
 
     /**

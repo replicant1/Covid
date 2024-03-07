@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Covid</string>
+    <string name="failed_to_load_data_for">Failed to load data for \"%1$s\".</string>
+    <string name="failed_to_load_country_list">Failed to load country list.</string>
+    <string name="region_global">Global</string>
+    <string name="region_icon_content_description">Icon</string>
+    <string name="data_field_confirmed">Confirmed:</string>
+    <string name="data_field_deaths">Deaths:</string>
+    <string name="data_field_active">Active:</string>
+    <string name="data_field_fatality_rate">Fatality Rate:</string>
+    <string name="search_field_hint">Search country</string>
 </resources>
