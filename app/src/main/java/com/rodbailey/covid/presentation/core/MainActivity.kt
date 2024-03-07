@@ -48,6 +48,7 @@ import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.theme.CovidTheme
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -63,26 +64,21 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val context = LocalContext.current
-                    
+                    val viewModel : MainViewModel = viewModel()
+                    val uiState by viewModel.uiState.collectAsState()
+
+
                     LaunchedEffect(Unit) {
                         viewModel.errorMessage.collect { message ->
                             Toast.makeText(context, message, Toast.LENGTH_LONG ).show()
                         }
                     }
                     
-                    val searchText by viewModel.searchText.collectAsState()
-                    val regions by viewModel.matchingRegions.collectAsState()
-                    val reportData by viewModel.reportData.collectAsState()
-                    val reportDataTitle by viewModel.reportDataTitle.collectAsState()
-                    val isDataPanelExpanded by viewModel.isDataPanelExpanded.collectAsState()
-                    val isDataPanelLoading by viewModel.isDataPanelLoading.collectAsState()
-                    val isRegionListLoading by viewModel.isRegionListLoading.collectAsState()
-
                     Column(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         TextField(
-                            value = searchText,
+                            value = uiState.searchText,
                             onValueChange = viewModel::onSearchTextChanged,
                             modifier = Modifier.fillMaxWidth().testTag("tag.text.search"),
                             trailingIcon = {
@@ -98,7 +94,7 @@ class MainActivity : ComponentActivity() {
                                 .testTag("tag.progress.search")
                                 .fillMaxWidth()
                                 .height(16.dp)
-                                .alpha(if (isRegionListLoading) 1f else 0f)
+                                .alpha(if (uiState.isRegionListLoading) 1f else 0f)
                                 .padding(bottom = 12.dp),
                             color = MaterialTheme.colorScheme.secondary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -110,7 +106,7 @@ class MainActivity : ComponentActivity() {
                                 .weight(1f)
                                 .testTag("tag.lazy.column.search")
                         ) {
-                            items(regions) { region ->
+                            items(uiState.matchingRegions) { region ->
                                 RegionSearchResultItem(
                                     region = region,
                                     clickCallback = { viewModel.
@@ -119,11 +115,12 @@ class MainActivity : ComponentActivity() {
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         // Data panel shows covid stats for current country or global.
-                        AnimatedVisibility(visible = isDataPanelExpanded) {
+                        AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
                             RegionDataPanel(
-                                title = reportDataTitle, reportData = reportData,
+                                title = uiState.reportDataTitle,
+                                reportData = uiState.reportData,
                                 clickCallback = { viewModel.collapseDataPanel() },
-                                isLoading = isDataPanelLoading
+                                isLoading = uiState.isDataPanelLoading
                             )
                         }
                     }

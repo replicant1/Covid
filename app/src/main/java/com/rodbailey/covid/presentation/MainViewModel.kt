@@ -9,11 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -21,41 +19,28 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
-    // Text contents of search field
-    private val _searchText = MutableStateFlow("")
-    val searchText = _searchText.asStateFlow()
+    data class UIState(
+        val isDataPanelExpanded: Boolean = false,
+        val isDataPanelLoading: Boolean = false,
+        val isRegionListLoading: Boolean = false,
+        val reportDataTitle: String = "",
+        val reportData: ReportData = ReportData(),
+        val searchText: String = "",
+        val matchingRegions: List<Region> = emptyList()
+    )
+
+    // Communicates UI state changes to corresponding view
+    private val _uiState = MutableStateFlow(UIState())
+    val uiState = _uiState.asStateFlow()
 
     // Error text from network ops
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
 
-    // True if regional data panel is showing
-    private val _isDataPanelExpanded = MutableStateFlow(false)
-    val isDataPanelExpanded = _isDataPanelExpanded.asStateFlow()
-
-    // True if loading progress indicator is showing on regional data panel
-    private val _isDataPanelLoading = MutableStateFlow(true)
-    val isDataPanelLoading = _isDataPanelLoading.asStateFlow()
-
-    // True if master list of countries is being loaded
-    private val _isRegionListLoading = MutableStateFlow(true)
-    val isRegionListLoading = _isRegionListLoading.asStateFlow()
-
-    // Currently matching regions
-    private val _matchingRegions = MutableStateFlow(emptyList<Region>())
-    val matchingRegions = _matchingRegions.asStateFlow()
-
-
-    private val _reportData = MutableStateFlow(ReportData())
-    val reportData = _reportData.asStateFlow()
-
-    private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
-    val reportDataTitle = _reportDataTitle.asStateFlow()
-
     init {
         println("**** Into MVM.init ****")
         println("**** mainUseCases = $mainUseCases ****")
-        loadRegionsFromNetwork()
+        loadRegionList()
     }
 
     private fun showErrorMessage(message: String) {
@@ -65,20 +50,27 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     }
 
     fun collapseDataPanel() {
-        _isDataPanelExpanded.value = false
+        _uiState.update {
+            it.copy(isDataPanelExpanded = false)
+        }
+    }
+
+    private fun expandDataPanelLoading() {
+        _uiState.update {
+            it.copy(isDataPanelExpanded = true, isDataPanelLoading = true)
+        }
     }
 
     fun loadReportDataForGlobal() {
-        println("*** Loading report data for global ***")
         loadReportDataForRegion("Global", null)
     }
 
     fun loadReportDataForRegion(regionName: String, regionIso3Code: String?) {
         viewModelScope.launch {
             try {
-                _isDataPanelExpanded.value = true
-                _isDataPanelLoading.value = true
-                _reportData.value = if (regionIso3Code == null) {
+                expandDataPanelLoading()
+
+                val reportData = if (regionIso3Code == null) {
                     withContext(Dispatchers.IO) {
                         mainUseCases.getDataForGlobalUseCase()
                     }
@@ -87,35 +79,47 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                         mainUseCases.getDataForRegionUseCase(regionIso3Code)
                     }
                 }
-                _reportDataTitle.value = regionName
-                println("*** Loaded region data for $regionName OK")
+
+                _uiState.update {
+                    it.copy(reportData = reportData, reportDataTitle = regionName)
+                }
             } catch (ex: Exception) {
-                println("***** Exception while getting data for region ${regionName}: $ex")
                 showErrorMessage("Failed to load data for \"${regionName}\".")
-                _isDataPanelExpanded.value = false
+                collapseDataPanel()
             } finally {
-                _isDataPanelLoading.value = false
+                _uiState.update {
+                    it.copy(isDataPanelLoading = false)
+                }
             }
         }
     }
 
-
-    private fun loadRegionsFromNetwork() {
+    private fun loadRegionList() {
         viewModelScope.launch {
             try {
-                _isRegionListLoading.value = true
-                _matchingRegions.value = mainUseCases.initialiseRegionListUseCase()
+                _uiState.update {
+                    it.copy(
+                        isRegionListLoading = true,
+                        matchingRegions = mainUseCases.initialiseRegionListUseCase()
+                    )
+                }
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")
             } finally {
-                _isRegionListLoading.value = false
+                _uiState.update {
+                    it.copy(
+                        isRegionListLoading =  false
+                    )
+                }
             }
         }
     }
 
     fun onSearchTextChanged(text: String) {
-        _searchText.value = text
+        _uiState.update {
+            it.copy(searchText = text)
+        }
         updateMatchingRegionsPerSearchText()
     }
 
@@ -125,7 +129,9 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private fun updateMatchingRegionsPerSearchText() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                _matchingRegions.value = mainUseCases.searchRegionListUseCase(_searchText.value)
+                _uiState.update {
+                    it.copy(matchingRegions = mainUseCases.searchRegionListUseCase(_uiState.value.searchText))
+                }
             }
         }
     }

@@ -90,4 +90,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-android-compiler:2.48.1")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.48.1")
+
+    // Enables " = viewModel()" access to view model in compose
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 }
