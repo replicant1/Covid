@@ -6,8 +6,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "regions")
 data class RegionEntity (
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+
+    @ColumnInfo(name = "iso3code")
     val iso3code : String,
+
     @ColumnInfo(name = "name")
     val name : String
+
 )

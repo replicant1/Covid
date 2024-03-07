@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.rodbailey.covid.data.db.AppDatabase
 import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionStatsDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,8 +29,8 @@ object DatabaseModule {
         return db.regionDao()
     }
 
-//    @Provides
-//    fun provideRegStatsDao(db: AppDatabase): RegionStatsDao {
-//        return db.regionStatsDao()
-//    }
+    @Provides
+    fun provideRegStatsDao(db: AppDatabase): RegionStatsDao {
+        return db.regionStatsDao()
+    }
 }

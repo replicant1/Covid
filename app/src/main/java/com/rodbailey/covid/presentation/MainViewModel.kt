@@ -11,7 +11,9 @@ import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
 import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
+import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,10 +22,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(covidAPI: CovidAPI) : ViewModel() {
+class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
     // Text contents of search field
     private val _searchText = MutableStateFlow("")
@@ -75,11 +78,9 @@ class MainViewModel @Inject constructor(covidAPI: CovidAPI) : ViewModel() {
     private val _reportDataTitle = MutableStateFlow<String>("Initial Title")
     val reportDataTitle = _reportDataTitle.asStateFlow()
 
-//    private val repo = CovidRepository(getApplication<Application>().applicationContext)
-
     init {
         println("**** Into MVM.init ****")
-        println("**** covidAPI = $covidAPI ****")
+        println("**** mainUseCases = $mainUseCases ****")
         loadRegionsFromNetwork()
     }
 
@@ -103,19 +104,22 @@ class MainViewModel @Inject constructor(covidAPI: CovidAPI) : ViewModel() {
             try {
                 _isDataPanelExpanded.value = true
                 _isDataPanelLoading.value = true
-//                _reportData.value = if (regionIso3Code == null) {
-//                    GetDataForGlobalUseCase(repo)()
-//                } else {
-//                    GetDataForRegionUseCase(repo)(regionIso3Code)
-//                }
+                _reportData.value = if (regionIso3Code == null) {
+                    withContext(Dispatchers.IO) {
+                        mainUseCases.getDataForGlobalUseCase()
+                    }
+                } else {
+                    withContext(Dispatchers.IO) {
+                        mainUseCases.getDataForRegionUseCase(regionIso3Code)
+                    }
+                }
                 _reportDataTitle.value = regionName
                 println("*** Loaded region data for $regionName OK")
             } catch (ex: Exception) {
-                println("Exception while getting data for region ${regionName}")
+                println("***** Exception while getting data for region ${regionName}: $ex")
                 showErrorMessage("Failed to load data for \"${regionName}\".")
                 _isDataPanelExpanded.value = false
             } finally {
-                println("*** Finished loading for rebion $regionName")
                 _isDataPanelLoading.value = false
             }
         }
@@ -126,7 +130,7 @@ class MainViewModel @Inject constructor(covidAPI: CovidAPI) : ViewModel() {
         viewModelScope.launch {
             try {
                 _isRegionListLoading.value = true
-//                _regions.value = InitialiseRegionListUseCase(repo)()
+                _regions.value = mainUseCases.initialiseRegionListUseCase()
             } catch (ex: Exception) {
                 println("Exception while loading counter list $ex")
                 showErrorMessage("Failed to load country list.")

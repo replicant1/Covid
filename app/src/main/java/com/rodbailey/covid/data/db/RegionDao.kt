@@ -17,4 +17,10 @@ interface RegionDao {
 
     @Query("delete from regions")
     suspend fun deleteAllRegions()
+
+    @Query("select * from regions where iso3code = :iso3code")
+    fun getRegionsByIso3Code(iso3code: String): List<RegionEntity>
+
+    @Query("select * from regions where name like '%' || :search || '%' order by name asc")
+    fun getRegionsByName(search : String) : List<RegionEntity>
 }
