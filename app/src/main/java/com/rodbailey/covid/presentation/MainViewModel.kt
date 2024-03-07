@@ -2,6 +2,7 @@ package com.rodbailey.covid.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.core.UIText
@@ -9,14 +10,13 @@ import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,19 +41,9 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private val _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
-    // Error text from network ops
-    private val _errorMessage = MutableSharedFlow<String>()
-    val errorMessage = _errorMessage.asSharedFlow()
-
-//    init {
-//        println("**** Into MVM.init ****")
-//        println("**** mainUseCases = $mainUseCases ****")
-//        loadRegionList()
-//    }
-
-    private fun showErrorMessage(message: String) {
+    private fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
-            _errorMessage.emit(message)
+            errorChannel.send(message)
         }
     }
 
@@ -92,7 +82,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     it.copy(reportData = reportData, reportDataTitle = regionName)
                 }
             } catch (ex: Exception) {
-                showErrorMessage("Failed to load data for \"${regionName}\".")
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_data_for, regionName))
                 collapseDataPanel()
             } finally {
                 _uiState.update {
@@ -112,8 +102,8 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     )
                 }
             } catch (ex: Exception) {
-                println("Exception while loading counter list $ex")
-                showErrorMessage("Failed to load country list.")
+                Timber.i("Exception while loading counter list $ex")
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
             } finally {
                 _uiState.update {
                     it.copy(

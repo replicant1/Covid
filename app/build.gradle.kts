@@ -40,6 +40,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -47,6 +48,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
         }
     }
 }
@@ -96,4 +99,7 @@ dependencies {
 
     // Constraint layout for compose (used by data panel)
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
+    // Timber
+    implementation("com.jakewharton.timber:timber:4.7.1")
 }
