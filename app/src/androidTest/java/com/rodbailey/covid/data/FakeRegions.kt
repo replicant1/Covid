@@ -398,6 +398,13 @@ object FakeRegions {
         )
     )
 
+    fun regionByIso3Code(iso3Code:String) : Region {
+        return REGIONS.filter { it.key.iso3Code == iso3Code }.keys.first()
+    }
+
+    fun reportDataByIso3Code(iso3Code: String) : ReportData {
+        return REGIONS.filter { it.key.iso3Code == iso3Code }.values.first()
+    }
     val FIRST_REGION_BY_NAME = REGIONS.keys.sortedBy { it.name }.first()
     val LAST_REGION_BY_NAME = REGIONS.keys.sortedBy { it.name }.last()
     val NUM_REGIONS = REGIONS.size

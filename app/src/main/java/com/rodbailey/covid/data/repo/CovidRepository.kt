@@ -76,8 +76,8 @@ class CovidRepository(
 
 
     private suspend fun loadRegionsFromDb(): List<Region> {
-        val unsortedegions = regionDao.getAllRegions()
-        return regionEntityListToRegionList(unsortedegions).sortedBy { it.name }
+        val unsortedRegions = regionDao.getAllRegions()
+        return regionEntityListToRegionList(unsortedRegions).sortedBy { it.name }
     }
 
     private suspend fun loadRegionsFromAPI(): List<Region> {

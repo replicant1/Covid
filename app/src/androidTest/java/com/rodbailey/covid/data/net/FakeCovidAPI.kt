@@ -9,7 +9,10 @@ class FakeCovidAPI : CovidAPI {
 
     private var allMethodsThrowException = false
 
+    private var aMethodWasCalledFlag = false
+
     override suspend fun getRegions(): RegionList {
+        aMethodWasCalledFlag = true
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -17,6 +20,7 @@ class FakeCovidAPI : CovidAPI {
     }
 
     override suspend fun getReport(iso3Code: String?): Report {
+        aMethodWasCalledFlag = true
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -32,5 +36,13 @@ class FakeCovidAPI : CovidAPI {
 
     fun setAllMethodThrowException(value : Boolean) {
         allMethodsThrowException = value
+    }
+
+    fun wasCalled() : Boolean {
+        return aMethodWasCalledFlag
+    }
+
+    fun clearWasCalled() {
+        aMethodWasCalledFlag = false
     }
 }
