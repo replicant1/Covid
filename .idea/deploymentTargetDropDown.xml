@@ -2,22 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="MainUITest">
-        <State />
-      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="click_global_icon_shows_global_stats_in_data_panel()">
+      <entry key="empty_search_text_matches_all_regions()">
         <State />
       </entry>
-      <entry key="first_country_list_load_is_from_network()">
+      <entry key="exception_from_api_results_in_error_message()">
         <State />
       </entry>
-      <entry key="first_region_stats_load_is_from_network()">
+      <entry key="load_report_for_global_gives_global_data_in_data_panel()">
         <State />
       </entry>
-      <entry key="second_country_list_load_is_from_database()">
+      <entry key="searchTextBrazilMatchesOneRegion()">
+        <State />
+      </entry>
+      <entry key="search_text_of_xxx_matches_no_regions()">
         <State />
       </entry>
     </value>

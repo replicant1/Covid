@@ -34,7 +34,7 @@ class FakeCovidAPI : CovidAPI {
         }
     }
 
-    fun setAllMethodThrowException(value : Boolean) {
+    fun setAllMethodsThrowException(value : Boolean) {
         allMethodsThrowException = value
     }
 

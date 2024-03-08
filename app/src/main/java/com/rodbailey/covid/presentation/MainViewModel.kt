@@ -16,15 +16,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
-
-    init {
-        Timber.d("**** Creating MainViewModel based on MainUseCases of $mainUseCases")
-    }
 
     data class UIState(
         val isDataPanelExpanded: Boolean = false,
@@ -45,7 +42,8 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private val _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
-    private fun showErrorMessage(message: UIText) {
+    @VisibleForTesting
+     fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
             errorChannel.send(message)
         }
@@ -106,7 +104,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     )
                 }
             } catch (ex: Exception) {
-                Timber.i("Exception while loading counter list $ex")
+                Timber.e(ex, "Exception while loading country list.")
                 showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
             } finally {
                 _uiState.update {
