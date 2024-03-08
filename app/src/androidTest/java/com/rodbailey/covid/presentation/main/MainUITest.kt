@@ -11,7 +11,9 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.data.repo.FakeCovidRepository
+import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.presentation.core.MainActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -39,101 +41,91 @@ class MainUITest {
     var hiltRule = HiltAndroidRule(this)
 
     @Test
-    fun search_field_is_displayed() {
+    fun search_field_is_displayed_on_startup() {
         rule.onNodeWithTag("tag.text.search").assertIsDisplayed()
     }
 
     @Test
-    fun search_progress_indicator_is_displayed() {
+    fun search_progress_indicator_is_displayed_on_startup() {
         rule.onNodeWithTag("tag.progress.search").assertIsDisplayed()
     }
 
     @Test
-    fun first_country_is_displayed(): Unit = runBlocking {
-        waitForCountryListToLoad()
-
+    fun first_country_alphabetically_is_displayed_on_startup(): Unit = runBlocking {
         val firstRegion = FakeCovidRepository().getRegions().first()
         rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
     }
 
     @Test
-    fun can_scroll_to_zimbabwe() {
-        waitForCountryListToLoad()
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(217)
-        rule.onNodeWithText("Zimbabwe").assertIsDisplayed()
+    fun can_scroll_to_last_country_alphabetically_in_country_list() {
+        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithText(FakeRegions.LAST_REGION_BY_NAME.name).assertIsDisplayed()
     }
 
     @Test
-    fun search_for_fg_matches_only_afghanistan() {
-        waitForCountryListToLoad()
+    fun search_for_fgh_matches_only_afghanistan() {
         rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
 
-        // There should be a way to test that "Afghanistan" is the only child node
+        // There should be an easy way to test that "Afghanistan" is the only displayed child node
         // of the lazy column that is displayed. Apparently not.
         // https://issuetracker.google.com/issues/187188981
-        rule.onNodeWithText("Afghanistan").assertIsDisplayed() // created and visible
-        rule.onNodeWithText("Fiji").assertDoesNotExist() // not created (fragile!)
-        rule.onNodeWithText("Albania").assertIsNotDisplayed() // created but invisible (fragile!)
+        rule.onNodeWithText("Afghanistan").assertIsDisplayed()
+        rule.onNodeWithText("Algeria").assertIsNotDisplayed()
+        rule.onNodeWithText("Australia").assertIsNotDisplayed()
     }
 
     @Test
-    fun text_clearance_restores_search_results() {
-        waitForCountryListToLoad()
+    fun clear_text_after_search_for_fgh_restores_full_country_list() {
         rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
         rule.onNodeWithTag("tag.text.search").performTextClearance()
 
         rule.onNodeWithText("Afghanistan").assertIsDisplayed()
-        rule.onNodeWithText("Albania").assertIsDisplayed()
         rule.onNodeWithText("Algeria").assertIsDisplayed()
+        rule.onNodeWithText("Australia").assertIsDisplayed()
     }
 
     @Test
-    fun click_global_icon_shows_global_stats() {
-        waitForCountryListToLoad()
-
+    fun click_global_icon_shows_global_stats_in_data_panel() {
         rule.onNodeWithTag("tag.icon.global").performClick()
 
-        waitForCountryStatsToLoad()
-
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title")
-            .assertTextEquals("Global")
-        rule.onNodeWithText("676544789", useUnmergedTree = true)
-            .assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText("6881737", useUnmergedTree = true).assertIsDisplayed() // deaths
-        rule.onNodeWithText("669663052", useUnmergedTree = true).assertIsDisplayed() // active cases
-        rule.onNodeWithText("0.0102", useUnmergedTree = true).assertIsDisplayed() // fatality rate
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals(FakeRegions.GLOBAL_REGION.name)
+        val globalStats = FakeRegions.GLOBAL_REGION_STATS
+        rule.onNodeWithText(globalStats.confirmed.toString(), useUnmergedTree = true).assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(globalStats.deaths.toString(), useUnmergedTree = true).assertIsDisplayed() // deaths
+        rule.onNodeWithText(globalStats.active.toString(), useUnmergedTree = true).assertIsDisplayed() // active cases
+        rule.onNodeWithText(globalStats.fatalityRate.toString(), useUnmergedTree = true).assertIsDisplayed() // fatality rate
     }
 
     @Test
-    fun click_albania_shows_albania_stats() {
-        waitForCountryListToLoad()
+    fun click_australia_shows_australia_stats_in_data_panel() {
+        rule.onNodeWithText("Australia").performClick()
 
-        rule.onNodeWithText("Albania").performClick()
-
-        waitForCountryStatsToLoad()
+        val ozStats = FakeRegions.REGIONS.filterKeys { region: Region ->
+            region.iso3Code == "AUS"
+        }.values.elementAt(0)
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = "334457")
-            .assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText(useUnmergedTree = true, text = "3598").assertIsDisplayed() // deaths
-        rule.onNodeWithText(useUnmergedTree = true, text = "330859") // active cases
-        rule.onNodeWithText(useUnmergedTree = true, text = "0.0108") // fatality rate
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.confirmed.toString()).assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.deaths.toString()).assertIsDisplayed() // deaths
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.active.toString()) // active cases
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.fatalityRate.toString()) // fatality rate
     }
 
-    /**
-     * This is a stop-gap measure only. Detecting "idle" on a Jetpack Compose interface seems
-     * to be problematic at the moment. Should be able to use "idle" or wait for progress
-     * bar to disappear.
-     */
-    private fun waitForCountryListToLoad() {
-        Thread.sleep(5000)
+    @Test
+    fun scroll_to_last_region_and_click_shows_region_stats_in_data_panel(): Unit = runBlocking {
+        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+
+        val lastRegion = FakeCovidRepository().getRegions().last()
+        rule.onNodeWithText(lastRegion.name).performClick()
+
+        val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
+
+        rule.onNodeWithTag("tag.card").assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
     }
 
-    /**
-     * @see #waitForCountryListToLoad
-     */
-    private fun waitForCountryStatsToLoad() {
-        Thread.sleep(5000)
-    }
 }

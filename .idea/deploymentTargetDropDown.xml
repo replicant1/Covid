@@ -8,16 +8,16 @@
       <entry key="app">
         <State />
       </entry>
-      <entry key="can_scroll_to_zimbabwe()">
+      <entry key="click_global_icon_shows_global_stats_in_data_panel()">
         <State />
       </entry>
-      <entry key="first_country_is_displayed()">
+      <entry key="first_country_alphabetically_is_displayed_on_startup()">
         <State />
       </entry>
-      <entry key="first_country_list_load_is_from_network()">
+      <entry key="scroll_to_last_region_and_click_shows_region_stats_in_data_panel()">
         <State />
       </entry>
-      <entry key="search_field_is_displayed()">
+      <entry key="search_progress_indicator_is_displayed_on_startup()">
         <State />
       </entry>
     </value>
