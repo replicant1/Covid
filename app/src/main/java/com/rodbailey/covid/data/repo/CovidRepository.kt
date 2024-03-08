@@ -9,6 +9,7 @@ import com.rodbailey.covid.domain.TransformUtils.regionEntityListToRegionList
 import com.rodbailey.covid.domain.TransformUtils.regionListToRegionEntityList
 import com.rodbailey.covid.domain.TransformUtils.regionStatsEntityToReportData
 import com.rodbailey.covid.domain.TransformUtils.reportDataToRegionStatsEntity
+import timber.log.Timber
 
 /**
  * Accesses covid data from some source - perhaps network, perhaps local database
@@ -54,7 +55,7 @@ class CovidRepository(
      * @throws Exception if the slightest thing goes wrong
      */
     override suspend fun getRegions(): List<Region> {
-        println("Into repository.getRegions. About to check if regions are in db")
+        Timber.d("**** Into real repository.getRegions. About to check if regions are in db")
         val numRegionsSaved = regionDao.getRegionCount()
 
         return if (numRegionsSaved == 0) {

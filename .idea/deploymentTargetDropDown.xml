@@ -2,16 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="RegionDbTest">
-        <State />
-      </entry>
-      <entry key="RegionStatsDbTest">
-        <State />
-      </entry>
-      <entry key="RepositoryTest">
+      <entry key="MainUITest">
         <State />
       </entry>
       <entry key="app">
+        <State />
+      </entry>
+      <entry key="can_scroll_to_zimbabwe()">
+        <State />
+      </entry>
+      <entry key="first_country_is_displayed()">
+        <State />
+      </entry>
+      <entry key="first_country_list_load_is_from_network()">
+        <State />
+      </entry>
+      <entry key="search_field_is_displayed()">
         <State />
       </entry>
     </value>

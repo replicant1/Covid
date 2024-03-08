@@ -22,6 +22,10 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
+    init {
+        Timber.d("**** Creating MainViewModel based on MainUseCases of $mainUseCases")
+    }
+
     data class UIState(
         val isDataPanelExpanded: Boolean = false,
         val isDataPanelLoading: Boolean = false,

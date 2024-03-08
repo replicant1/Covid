@@ -13,17 +13,30 @@ import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.RegionList
 import com.rodbailey.covid.domain.Report
 import com.rodbailey.covid.domain.ReportData
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import timber.log.Timber
+import javax.inject.Inject
 
 @RunWith(AndroidJUnit4::class)
 @SmallTest
+@HiltAndroidTest
 class RepositoryTest {
+
+    @get:Rule
+    var hiltRule = HiltAndroidRule(this)
+
+    @Inject
+    lateinit var injectedRepo : ICovidRepository
+
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
     private lateinit var regionStatsDao: RegionStatsDao
@@ -101,6 +114,8 @@ class RepositoryTest {
 
     @Test
     fun first_country_list_load_is_from_network() = runBlocking {
+        Timber.d("**** About to access injectedRepo")
+        Timber.d("**** Inject repo = $injectedRepo")
         val repoRegions = repo.getRegions()
         // All regions returned by FakeCovidAPI
         Assert.assertEquals(2, repoRegions.size)

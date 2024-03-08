@@ -11,7 +11,11 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.presentation.core.MainActivity
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -25,10 +29,14 @@ import org.junit.runner.RunWith
  * See [waitForCountryListToLoad] for example.
  */
 @RunWith(AndroidJUnit4::class)
+@HiltAndroidTest
 class MainUITest {
 
     @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
+
+    @get:Rule
+    var hiltRule = HiltAndroidRule(this)
 
     @Test
     fun search_field_is_displayed() {
@@ -41,9 +49,11 @@ class MainUITest {
     }
 
     @Test
-    fun argentina_is_displayed() {
+    fun first_country_is_displayed(): Unit = runBlocking {
         waitForCountryListToLoad()
-        rule.onNodeWithText("Argentina").assertIsDisplayed()
+
+        val firstRegion = FakeCovidRepository().getRegions().first()
+        rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
     }
 
     @Test
@@ -82,12 +92,14 @@ class MainUITest {
         waitForCountryListToLoad()
 
         rule.onNodeWithTag("tag.icon.global").performClick()
-        
+
         waitForCountryStatsToLoad()
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals("Global")
-        rule.onNodeWithText("676544789", useUnmergedTree = true).assertIsDisplayed() // confirmed cases
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title")
+            .assertTextEquals("Global")
+        rule.onNodeWithText("676544789", useUnmergedTree = true)
+            .assertIsDisplayed() // confirmed cases
         rule.onNodeWithText("6881737", useUnmergedTree = true).assertIsDisplayed() // deaths
         rule.onNodeWithText("669663052", useUnmergedTree = true).assertIsDisplayed() // active cases
         rule.onNodeWithText("0.0102", useUnmergedTree = true).assertIsDisplayed() // fatality rate
@@ -102,8 +114,9 @@ class MainUITest {
         waitForCountryStatsToLoad()
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = "334457").assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText(useUnmergedTree = true, text="3598").assertIsDisplayed() // deaths
+        rule.onNodeWithText(useUnmergedTree = true, text = "334457")
+            .assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(useUnmergedTree = true, text = "3598").assertIsDisplayed() // deaths
         rule.onNodeWithText(useUnmergedTree = true, text = "330859") // active cases
         rule.onNodeWithText(useUnmergedTree = true, text = "0.0108") // fatality rate
     }

@@ -10,6 +10,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -22,6 +23,7 @@ object UseCaseModule {
 
     @Provides
     fun provideInitialiseRegionListUseCase(repository: ICovidRepository): InitialiseRegionListUseCase {
+        Timber.d("**** Into UseCaseModule providing an InitialiseRegionListUseCase with repository of $repository")
         return InitialiseRegionListUseCase(repository)
     }
 
@@ -37,11 +39,13 @@ object UseCaseModule {
 
     @Provides
     fun provideMainUseCases(repository: ICovidRepository): MainUseCases {
-        return MainUseCases(
+        val result = MainUseCases(
             SearchRegionListUseCase(repository),
             InitialiseRegionListUseCase(repository),
             GetDataForRegionUseCase(repository),
             GetDataForGlobalUseCase(repository)
         )
+        Timber.d("**** Into real UseCaseModule providing  MainUseCases $result based on repository of $repository")
+        return result
     }
 }
