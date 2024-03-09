@@ -11,8 +11,4 @@ data class Region(
 
     @SerializedName("name")
     val name:String) {
-
-    fun matchesSearchQuery(query : String) : Boolean {
-        return name.contains(query, ignoreCase = true)
-    }
 }

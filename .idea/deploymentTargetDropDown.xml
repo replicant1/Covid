@@ -2,22 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="Tests in 'com'">
+        <State />
+      </entry>
+      <entry key="UITextTest">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="empty_search_text_matches_all_regions()">
+      <entry key="insert_regions_with_same_iso_code_and_retrieve_by_iso_code()">
         <State />
       </entry>
-      <entry key="exception_from_api_results_in_error_message()">
-        <State />
-      </entry>
-      <entry key="load_report_for_global_gives_global_data_in_data_panel()">
-        <State />
-      </entry>
-      <entry key="searchTextBrazilMatchesOneRegion()">
-        <State />
-      </entry>
-      <entry key="search_text_of_xxx_matches_no_regions()">
+      <entry key="search_for_already_cached_region_by_partial_name_two_results()">
         <State />
       </entry>
     </value>

@@ -128,4 +128,19 @@ class MainUITest {
         rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
     }
 
+    @Test
+    fun tapping_on_data_panel_when_showing_hides_the_data_panel() {
+        // Open data panel by clicking global icon
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
+
+        // Confirm that data panel is expanded
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+
+        // Tap the data card
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).performClick()
+
+        // COnfirm that data panel is now hidden
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
+    }
+
 }

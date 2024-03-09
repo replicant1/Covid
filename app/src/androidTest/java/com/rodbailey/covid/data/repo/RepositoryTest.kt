@@ -137,13 +137,25 @@ class RepositoryTest {
     }
 
     @Test
-    fun search_for_already_cached_region_by_partial_name() = runBlocking {
+    fun search_for_already_cached_region_by_partial_name_single_result() = runBlocking {
         val repoRegions = repo.getRegions()
         Assert.assertEquals(FakeRegions.REGIONS.size, repoRegions.size)
 
         val matchingDbRegions = regionDao.getRegionsByName("Viet")
         Assert.assertEquals(1, matchingDbRegions.size)
         Assert.assertEquals("Vietnam", matchingDbRegions[0].name)
+    }
+
+    @Test
+    fun search_for_already_cached_region_by_partial_name_two_results() = runBlocking {
+        val repoRegions = repo.getRegions()
+        Assert.assertEquals(FakeRegions.REGIONS.size, repoRegions.size)
+
+        val result = regionDao.getRegionsByName("au")
+        Assert.assertEquals(2, result.size)
+        Assert.assertTrue(
+            (result[0].name == "Austria" && result[1].name == "Australia")
+                    || (result[0].name == "Australia" && result[1].name == "Austria"))
     }
 
     private fun containsRegion(allRegions: List<Region>, target : Region): Boolean {

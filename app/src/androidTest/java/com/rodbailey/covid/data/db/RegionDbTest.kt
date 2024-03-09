@@ -19,10 +19,6 @@ class RegionDbTest {
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
 
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    @get: Rule
-//    val coroutinesTestRule = CoroutinesTestRule()
-
     @Before
     fun setup() {
         db = Room.inMemoryDatabaseBuilder(
@@ -166,6 +162,21 @@ class RegionDbTest {
 
         val result = regionDao.getRegionsByName("HT")
         Assert.assertEquals(0, result.size)
+    }
+
+    @Test
+    fun insert_regions_with_same_iso_code_and_retrieve_by_iso_code() = runBlocking {
+        val region1 = RegionEntity(iso3code = "ABC", name = "Alice")
+        val region2 = RegionEntity(iso3code = "ABC", name = "Bob")
+
+        regionDao.insert(listOf(region1, region2))
+
+        val result = regionDao.getRegionsByIso3Code("ABC")
+        Assert.assertEquals(2, result.size)
+        Assert.assertTrue(
+            (result[0].name == "Alice" && result[1].name == "Bob") ||
+                    (result[0].name == "Bob" && result[1].name == "Alice")
+        )
     }
 
 }
