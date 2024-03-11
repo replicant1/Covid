@@ -15,6 +15,7 @@ import javax.inject.Singleton
 object FakeRepositoryModule {
 
     @Provides
+    @Singleton
     fun provideFakeCovidRepository() : ICovidRepository {
         // Dispense the *fake* repository we use for testing, not the real one
         return FakeCovidRepository()

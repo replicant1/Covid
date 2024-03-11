@@ -2,22 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="MainViewModelTest">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="deleteAll_RowCountIsZero()">
+      <entry key="exception_from_api_when_loading_country_list_results_in_error_message()">
         <State />
       </entry>
-      <entry key="insertTwoStatsWithDifferentIsoCodes_retrieveOneByIsoCode()">
+      <entry key="exception_from_api_when_loading_stats_results_in_error_message()">
         <State />
       </entry>
-      <entry key="insert_two_stats_Unique_primary_keys()">
+      <entry key="load_report_for_region_results_in_report_data_in_data_panel()">
         <State />
       </entry>
-      <entry key="insert_two_stats_with_different_iso_codes_retrieve_one_by_iso_code()">
-        <State />
-      </entry>
-      <entry key="retrieve_bad_iso3Code_is_empty()">
+      <entry key="show_error_message()">
         <State />
       </entry>
     </value>

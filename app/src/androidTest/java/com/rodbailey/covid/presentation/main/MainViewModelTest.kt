@@ -2,6 +2,8 @@ package com.rodbailey.covid.presentation.main
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import androidx.test.platform.app.InstrumentationRegistry
+import app.cash.turbine.test
 import com.rodbailey.covid.core.di.CoroutinesTestRule
 import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.data.net.CovidAPI
@@ -14,7 +16,6 @@ import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
@@ -31,6 +32,8 @@ import javax.inject.Inject
 @SmallTest
 @HiltAndroidTest
 class MainViewModelTest {
+
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
@@ -106,14 +109,14 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun load_report_for_region_results_in_report_data_in_data_panel() = runBlocking {
-        viewModel.loadReportDataForRegion("China", "CHN")
+        viewModel.loadReportDataForRegion(UIText.DynamicString("China"), "CHN")
 
         // Wait for data to load from [FakeCovidAPI]
         timePasses()
 
         Assert.assertTrue(viewModel.uiState.value.isDataPanelExpanded)
         Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
-        Assert.assertEquals("China", viewModel.uiState.value.reportDataTitle)
+        Assert.assertEquals(UIText.DynamicString("China"), viewModel.uiState.value.reportDataTitle)
         Assert.assertEquals(
             FakeRegions.reportDataByIso3Code("CHN"),
             viewModel.uiState.value.reportData
@@ -131,7 +134,7 @@ class MainViewModelTest {
         Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
         Assert.assertEquals(
             FakeRegions.GLOBAL_REGION.name,
-            viewModel.uiState.value.reportDataTitle
+            viewModel.uiState.value.reportDataTitle.asString(context)
         )
         Assert.assertEquals(
             FakeRegions.GLOBAL_REGION_STATS,
@@ -177,11 +180,14 @@ class MainViewModelTest {
 
     @Test
     fun exception_from_api_when_loading_country_list_results_in_error_message() = runBlocking {
-        (fakeCovidAPI as FakeCovidAPI).setAllMethodsThrowException(true)
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
         viewModel.loadRegionList()
-        (fakeCovidAPI as FakeCovidAPI).setAllMethodsThrowException(false)
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
 
-//        viewModel.errorFlow.test { val result = awaitItem() } // Use turbine later
+        viewModel.errorFlow.test {
+            val result = awaitItem()
+            Assert.assertTrue(result.asString(context).contains("Fail"))
+        }
     }
 
     @Test
@@ -190,7 +196,10 @@ class MainViewModelTest {
         viewModel.loadReportDataForGlobal()
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
 
-        // viewModel.errorFlow.test { val result = awaitItem() } // Use turbine later
+         viewModel.errorFlow.test {
+             val result = awaitItem()
+             Assert.assertTrue(result.asString(context).contains("Fail"))
+         }
     }
 
     private fun timePasses() {
