@@ -2,19 +2,13 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="Tests in 'com'">
-        <State />
-      </entry>
-      <entry key="UITextTest">
-        <State />
-      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="insert_regions_with_same_iso_code_and_retrieve_by_iso_code()">
+      <entry key="exception_on_api_access_raises_toast()">
         <State />
       </entry>
-      <entry key="search_for_already_cached_region_by_partial_name_two_results()">
+      <entry key="first_country_list_load_is_from_network()">
         <State />
       </entry>
     </value>

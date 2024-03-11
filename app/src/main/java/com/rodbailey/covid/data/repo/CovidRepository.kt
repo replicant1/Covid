@@ -1,24 +1,33 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.data.db.RegionStatsDao
 import com.rodbailey.covid.data.net.CovidAPI
+import com.rodbailey.covid.data.net.CovidAPIHelper
 import com.rodbailey.covid.domain.Region
+import com.rodbailey.covid.domain.RegionList
+import com.rodbailey.covid.domain.Report
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.TransformUtils.regionEntityListToRegionList
 import com.rodbailey.covid.domain.TransformUtils.regionListToRegionEntityList
 import com.rodbailey.covid.domain.TransformUtils.regionStatsEntityToReportData
 import com.rodbailey.covid.domain.TransformUtils.reportDataToRegionStatsEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.single
 import timber.log.Timber
 
 /**
  * Accesses covid data from some source - perhaps network, perhaps local database
- * ... clients do not know. Only network is currently supported.
+ * ... clients do not know. Once retrieved from network, data is cached in local database.
  */
 class CovidRepository(
     private val regionDao: RegionDao,
     private val regionStatsDao: RegionStatsDao,
-    private val covidAPI: CovidAPI
+    private val covidAPIHelper: CovidAPIHelper
 ) : ICovidRepository {
 
     companion object {
@@ -30,23 +39,25 @@ class CovidRepository(
      * @return Covid stats for the region with the given ISO-3 code
      * @throws Exception if the slightest thing goes wrong
      */
-    override suspend fun getReport(isoCode: String?): ReportData {
-        println("getReport for iso = $isoCode begins")
+    override suspend fun getReport(isoCode: String?): Flow<ReportData> {
         val safeIsoCode = isoCode ?: GLOBAL_ISO3_CODE
-        val dbStatsCount = regionStatsDao.getRegionStatsCount(safeIsoCode)
+        val dbStatsCount = regionStatsDao.getRegionStatsCount(safeIsoCode).first() // or .single()?
 
-        println("Num matching records in db = $dbStatsCount")
+        Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
 
         return if (dbStatsCount == 0) {
             println("Saving stats for iso code $safeIsoCode to db")
-            val apiReport = covidAPI.getReport(isoCode)
-            saveRegionStatsToDb(safeIsoCode, apiReport.data)
-            apiReport.data
+            covidAPIHelper.getReport(isoCode).map { apiReport : Report ->
+                saveRegionStatsToDb(safeIsoCode, apiReport.data)
+                apiReport.data
+            }
         } else {
-            val dbStats = regionStatsDao.getRegionStats(safeIsoCode)
-            val uiStats = regionStatsEntityToReportData(dbStats[0])
-            println("Returning stats for $safeIsoCode from database")
-            uiStats
+            flow {
+                val dbStats = regionStatsDao.getRegionStats(safeIsoCode).first()
+                val uiStats = regionStatsEntityToReportData(dbStats[0])
+                Timber.d("Returning stats for $safeIsoCode from database")
+                emit(uiStats)
+            }
         }
     }
 
@@ -54,36 +65,33 @@ class CovidRepository(
      * @return All known regions in ascending order by name
      * @throws Exception if the slightest thing goes wrong
      */
-    override suspend fun getRegions(): List<Region> {
-        Timber.d("**** Into real repository.getRegions. About to check if regions are in db")
-        val numRegionsSaved = regionDao.getRegionCount()
-
-        return if (numRegionsSaved == 0) {
-            println("Regions NOT in db, so loading from network then saving to db")
-            // Get regions from the network and store in the database. Return the network equiv.
+    override suspend fun getRegions(): Flow<List<Region>> {
+        val dbRegionCount = regionDao.getRegionCount().first()
+        return if (dbRegionCount == 0) {
             loadRegionsFromAPI()
         } else {
-            println("Regions ARE in db, returning from db")
-            // Get regions from db and convert to network equiv.
             loadRegionsFromDb()
         }
     }
 
-    override suspend fun getRegionsByName(searchText: String): List<Region> {
-        val entities = regionDao.getRegionsByName(searchText)
-        return regionEntityListToRegionList(entities)
+    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
+        return regionDao.getRegionsByName(searchText).map { entities : List<RegionEntity> ->
+            regionEntityListToRegionList(entities)
+        }
     }
 
+    private fun loadRegionsFromDb(): Flow<List<Region>> {
+        return regionDao.getAllRegions().map { unsortedRegions : List<RegionEntity> ->
+            regionEntityListToRegionList(unsortedRegions).sortedBy { region: Region -> region.name }
+        }
 
-    private suspend fun loadRegionsFromDb(): List<Region> {
-        val unsortedRegions = regionDao.getAllRegions()
-        return regionEntityListToRegionList(unsortedRegions).sortedBy { it.name }
     }
 
-    private suspend fun loadRegionsFromAPI(): List<Region> {
-        val unsortedRegions = covidAPI.getRegions()
-        saveRegionsToDb(unsortedRegions.regions)
-        return unsortedRegions.regions.sortedBy { it.name }
+    private suspend fun loadRegionsFromAPI(): Flow<List<Region>> {
+        return covidAPIHelper.getRegions().map { unsortedRegions : RegionList ->
+            saveRegionsToDb(unsortedRegions.regions)
+            unsortedRegions.regions.sortedBy { region : Region -> region.name }
+        }
     }
 
     /**

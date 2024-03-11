@@ -81,7 +81,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                 }
 
                 _uiState.update {
-                    it.copy(reportData = reportData, reportDataTitle = regionName)
+                    it.copy(/*reportData = reportData, */ reportDataTitle = regionName)
                 }
             } catch (ex: Exception) {
                 showErrorMessage(UIText.StringResource(R.string.failed_to_load_data_for, regionName))
@@ -100,7 +100,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                 _uiState.update {
                     it.copy(
                         isRegionListLoading = true,
-                        matchingRegions = mainUseCases.initialiseRegionListUseCase()
+                        //matchingRegions = mainUseCases.initialiseRegionListUseCase()
                     )
                 }
             } catch (ex: Exception) {
@@ -129,9 +129,9 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private fun updateMatchingRegionsPerSearchText() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                _uiState.update {
-                    it.copy(matchingRegions = mainUseCases.searchRegionListUseCase(_uiState.value.searchText))
-                }
+//                _uiState.update {
+//                    //it.copy(matchingRegions = mainUseCases.searchRegionListUseCase(_uiState.value.searchText))
+//                }
             }
         }
     }
