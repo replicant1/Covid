@@ -2,6 +2,8 @@ package com.rodbailey.covid.core.di
 
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.net.CovidAPIClient
+import com.rodbailey.covid.data.net.CovidAPIHelper
+import com.rodbailey.covid.data.net.CovidAPIHelperImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,8 +18,8 @@ object NetworkModule {
         return CovidAPIClient().getAPIClient()
     }
 
-//    @Provides
-//    fun provideCovidAPIHelper(covidAPI: CovidAPI) : CovidAPIHelper {
-//        return CovidAPIHelperImpl(covidAPI)
-//    }
+    @Provides
+    fun provideCovidAPIHelper(covidAPI: CovidAPI) : CovidAPIHelper {
+        return CovidAPIHelperImpl(covidAPI)
+    }
 }

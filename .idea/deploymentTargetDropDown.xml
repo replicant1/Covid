@@ -2,13 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="RepositoryTest">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="exception_on_api_access_raises_toast()">
+      <entry key="first_country_list_load_is_from_network()">
         <State />
       </entry>
-      <entry key="first_country_list_load_is_from_network()">
+      <entry key="first_load_global_stats_is_from_network()">
+        <State />
+      </entry>
+      <entry key="search_for_already_cached_region_by_partial_name_gives_single_result()">
+        <State />
+      </entry>
+      <entry key="search_for_already_cached_region_by_partial_name_two_results()">
         <State />
       </entry>
     </value>
