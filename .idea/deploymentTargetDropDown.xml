@@ -2,22 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="MainViewModelTest">
+      <entry key="MainUITest">
         <State />
       </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="exception_from_api_when_loading_country_list_results_in_error_message()">
+      <entry key="click_australia_shows_australia_stats_in_data_panel()">
         <State />
       </entry>
-      <entry key="exception_from_api_when_loading_stats_results_in_error_message()">
+      <entry key="scroll_to_last_region_and_click_shows_region_stats_in_data_panel()">
         <State />
       </entry>
-      <entry key="load_report_for_region_results_in_report_data_in_data_panel()">
-        <State />
-      </entry>
-      <entry key="show_error_message()">
+      <entry key="tapping_on_data_panel_when_showing_hides_the_data_panel()">
         <State />
       </entry>
     </value>

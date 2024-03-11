@@ -17,6 +17,7 @@ import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.presentation.core.MainActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Rule
@@ -42,29 +43,29 @@ class MainUITest {
 
     @Test
     fun search_field_is_displayed_on_startup() {
-        rule.onNodeWithTag("tag.text.search").assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
     fun search_progress_indicator_is_displayed_on_startup() {
-        rule.onNodeWithTag("tag.progress.search").assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
     fun first_country_alphabetically_is_displayed_on_startup(): Unit = runBlocking {
-//        val firstRegion = FakeCovidRepository().getRegions().first()
-//        rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
+        val firstRegion = FakeCovidRepository().getRegions().first().first()
+        rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
     }
 
     @Test
     fun can_scroll_to_last_country_alphabetically_in_country_list() {
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
         rule.onNodeWithText(FakeRegions.LAST_REGION_BY_NAME.name).assertIsDisplayed()
     }
 
     @Test
     fun search_for_fgh_matches_only_afghanistan() {
-        rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextInput("fgh")
 
         // There should be an easy way to test that "Afghanistan" is the only displayed child node
         // of the lazy column that is displayed. Apparently not.
@@ -76,8 +77,8 @@ class MainUITest {
 
     @Test
     fun clear_text_after_search_for_fgh_restores_full_country_list() {
-        rule.onNodeWithTag("tag.text.search").performTextInput("fgh")
-        rule.onNodeWithTag("tag.text.search").performTextClearance()
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextInput("fgh")
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextClearance()
 
         rule.onNodeWithText("Afghanistan").assertIsDisplayed()
         rule.onNodeWithText("Algeria").assertIsDisplayed()
@@ -86,10 +87,10 @@ class MainUITest {
 
     @Test
     fun click_global_icon_shows_global_stats_in_data_panel() {
-        rule.onNodeWithTag("tag.icon.global").performClick()
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
 
-        rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = "tag.card.title").assertTextEquals(FakeRegions.GLOBAL_REGION.name)
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag).assertTextEquals(FakeRegions.GLOBAL_REGION.name)
         val globalStats = FakeRegions.GLOBAL_REGION_STATS
         rule.onNodeWithText(globalStats.confirmed.toString(), useUnmergedTree = true).assertIsDisplayed() // confirmed cases
         rule.onNodeWithText(globalStats.deaths.toString(), useUnmergedTree = true).assertIsDisplayed() // deaths
@@ -114,18 +115,18 @@ class MainUITest {
 
     @Test
     fun scroll_to_last_region_and_click_shows_region_stats_in_data_panel(): Unit = runBlocking {
-        rule.onNodeWithTag("tag.lazy.column.search").performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
 
-//        val lastRegion = FakeCovidRepository().getRegions().last()
-//        rule.onNodeWithText(lastRegion.name).performClick()
-//
-//        val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
+        val lastRegion = FakeCovidRepository().getRegions().first().last()
+        rule.onNodeWithText(lastRegion.name).performClick()
 
-//        rule.onNodeWithTag("tag.card").assertIsDisplayed()
-//        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
-//        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
-//        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
-//        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
+        val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
+
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
+        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
     }
 
     @Test

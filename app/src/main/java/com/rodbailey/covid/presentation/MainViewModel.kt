@@ -55,12 +55,6 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         }
     }
 
-    private fun expandDataPanelLoading() {
-        _uiState.update {
-            it.copy(isDataPanelExpanded = true, isDataPanelLoading = true)
-        }
-    }
-
     fun loadReportDataForGlobal() {
         loadReportDataForRegion(UIText.StringResource(R.string.region_global), null)
     }
