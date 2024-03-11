@@ -2,22 +2,22 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="RepositoryTest">
-        <State />
-      </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="first_country_list_load_is_from_network()">
+      <entry key="deleteAll_RowCountIsZero()">
         <State />
       </entry>
-      <entry key="first_load_global_stats_is_from_network()">
+      <entry key="insertTwoStatsWithDifferentIsoCodes_retrieveOneByIsoCode()">
         <State />
       </entry>
-      <entry key="search_for_already_cached_region_by_partial_name_gives_single_result()">
+      <entry key="insert_two_stats_Unique_primary_keys()">
         <State />
       </entry>
-      <entry key="search_for_already_cached_region_by_partial_name_two_results()">
+      <entry key="insert_two_stats_with_different_iso_codes_retrieve_one_by_iso_code()">
+        <State />
+      </entry>
+      <entry key="retrieve_bad_iso3Code_is_empty()">
         <State />
       </entry>
     </value>
