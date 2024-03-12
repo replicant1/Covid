@@ -89,7 +89,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
-                    UIText.StringResource(
+                    UIText.CompoundStringResource(
                         R.string.failed_to_load_data_for,
                         regionName
                     )
