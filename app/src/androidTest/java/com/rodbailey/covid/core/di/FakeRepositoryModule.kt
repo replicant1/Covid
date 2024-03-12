@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
+import javax.inject.Singleton
 
 @TestInstallIn(
     components = [SingletonComponent::class],
@@ -14,6 +15,7 @@ import dagger.hilt.testing.TestInstallIn
 object FakeRepositoryModule {
 
     @Provides
+    @Singleton
     fun provideFakeCovidRepository() : ICovidRepository {
         // Dispense the *fake* repository we use for testing, not the real one
         return FakeCovidRepository()

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
 import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
@@ -100,7 +101,7 @@ fun MainScreen() {
                         RegionSearchResultItem(
                             region = region,
                             clickCallback = {
-                                viewModel.loadReportDataForRegion(region.name, region.iso3Code)
+                                viewModel.loadReportDataForRegion(UIText.DynamicString(region.name), region.iso3Code)
                             })
                     }
                 }
@@ -111,7 +112,7 @@ fun MainScreen() {
                 // Clicking on the data panel collapses it.
                 AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
                     RegionDataPanel(
-                        title = uiState.reportDataTitle,
+                        title = uiState.reportDataTitle.asString(),
                         reportData = uiState.reportData,
                         clickCallback = { viewModel.collapseDataPanel() },
                         isLoading = uiState.isDataPanelLoading

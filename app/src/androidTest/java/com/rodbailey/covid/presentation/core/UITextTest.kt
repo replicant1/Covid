@@ -22,4 +22,13 @@ class UITextTest {
         val result = stringResource.asString(context)
         Assert.assertEquals("Global", result)
     }
+
+    @Test
+    fun compound_string_resource_as_string() {
+        val stringResource = UIText.StringResource(R.string.region_global)
+        val compoundStringResource = UIText.CompoundStringResource(
+            R.string.failed_to_load_data_for, stringResource)
+        val result = compoundStringResource.asString(context)
+        Assert.assertEquals("Failed to load data for \"Global\".", result)
+    }
 }

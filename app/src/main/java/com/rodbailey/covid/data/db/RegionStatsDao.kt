@@ -11,17 +11,15 @@ interface RegionStatsDao {
     suspend fun insert(regionStatsEntity: RegionStatsEntity)
 
     @Query("select * from stats where iso3code = :iso3code")
-    fun getRegionStats(iso3code: String): List<RegionStatsEntity>
+    fun getRegionStats(iso3code: String): Flow<List<RegionStatsEntity>>
 
     @Query("select count(*) from stats where iso3code = :iso3code")
-    fun getRegionStatsCount(iso3code: String) : Int
+    fun getRegionStatsCount(iso3code: String) : Flow<Int>
 
     @Query("delete from stats")
     fun deleteAllRegionStats()
 
     @Query("select count(*) from stats")
-    fun getRegionStatsCount(): Int
+    fun getRegionStatsCount(): Flow<Int>
 
-    @Query("select * from stats")
-    suspend fun getAllRegionStats(): List<RegionStatsEntity>
 }

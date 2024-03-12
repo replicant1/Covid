@@ -2,19 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="Tests in 'com'">
-        <State />
-      </entry>
-      <entry key="UITextTest">
+      <entry key="MainUITest">
         <State />
       </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="insert_regions_with_same_iso_code_and_retrieve_by_iso_code()">
+      <entry key="compound_string_resource_as_string()">
         <State />
       </entry>
-      <entry key="search_for_already_cached_region_by_partial_name_two_results()">
+      <entry key="scroll_to_last_region_and_click_shows_region_stats_in_data_panel()">
+        <State />
+      </entry>
+      <entry key="tapping_on_data_panel_when_showing_hides_the_data_panel()">
         <State />
       </entry>
     </value>

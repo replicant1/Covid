@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
+import app.cash.turbine.test
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -17,10 +18,6 @@ class RegionStatsDbTest {
 
     private lateinit var db: AppDatabase
     private lateinit var statsDao: RegionStatsDao
-
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    @get: Rule
-//    val coroutinesTestRule = CoroutinesTestRule()
 
     @Before
     fun setup() {
@@ -37,7 +34,7 @@ class RegionStatsDbTest {
     }
 
     @Test
-    fun insertStats_retrievedStatsAreSame() = runBlocking {
+    fun insert_stats_retrieved_stats_are_same() = runBlocking {
         val statsIn = RegionStatsEntity(
             iso3code = "AUS",
             confirmed = 1234L,
@@ -48,20 +45,24 @@ class RegionStatsDbTest {
         )
         statsDao.insert(statsIn)
 
-        val statsOut = statsDao.getRegionStats("AUS")
-        Assert.assertNotNull(statsOut)
-        Assert.assertFalse(statsOut.isEmpty())
-        Assert.assertEquals("AUS", statsOut[0].iso3code)
-        Assert.assertEquals(1234L, statsOut[0].confirmed)
-        Assert.assertEquals(101L, statsOut[0].deaths)
-        Assert.assertEquals(2345L, statsOut[0].recovered)
-        Assert.assertEquals(999L, statsOut[0].active)
+        statsDao.getRegionStats("AUS").test {
+            val statsOut = awaitItem()
+            Assert.assertNotNull(statsOut)
+            Assert.assertFalse(statsOut.isEmpty())
+            Assert.assertEquals("AUS", statsOut[0].iso3code)
+            Assert.assertEquals(1234L, statsOut[0].confirmed)
+            Assert.assertEquals(101L, statsOut[0].deaths)
+            Assert.assertEquals(2345L, statsOut[0].recovered)
+            Assert.assertEquals(999L, statsOut[0].active)
+        }
     }
 
     @Test
-    fun retrieveBadIso3Code_IsEmpty() = runBlocking {
-        val result = statsDao.getRegionStats("UAS")
-        Assert.assertTrue(result.isEmpty())
+    fun retrieve_bad_iso3Code_is_empty() = runBlocking {
+        statsDao.getRegionStats("UAS").test {
+            val result = awaitItem()
+            Assert.assertTrue(result.isEmpty())
+        }
     }
 
     @Test
@@ -77,12 +78,14 @@ class RegionStatsDbTest {
         statsDao.insert(ausStats)
         statsDao.deleteAllRegionStats()
 
-        val rowCount = statsDao.getRegionStatsCount()
-        Assert.assertEquals(0, rowCount)
+        statsDao.getRegionStatsCount().test {
+            val rowCount = awaitItem()
+            Assert.assertEquals(0, rowCount)
+        }
     }
 
     @Test
-    fun insertTwoStats_UniquePrimaryKeys() = runBlocking {
+    fun insert_two_stats_unique_primary_keys() = runBlocking {
         val stats1 = RegionStatsEntity(
             iso3code = "AAA", confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L,
             fatalityRate = 0.5F
@@ -94,12 +97,14 @@ class RegionStatsDbTest {
         statsDao.insert(stats1)
         statsDao.insert(stats2)
 
-        val results = statsDao.getRegionStats("AAA")
-        Assert.assertNotEquals(results[0].id, results[1].id)
+        statsDao.getRegionStats("AAA").test {
+            val results = awaitItem()
+            Assert.assertNotEquals(results[0].id, results[1].id)
+        }
     }
 
     @Test
-    fun insertTwoStatsWithDifferentIsoCodes_retrieveOneByIsoCode() = runBlocking {
+    fun insert_two_stats_with_different_iso_codes_retrieve_one_by_iso_code() = runBlocking {
         val stats1 = RegionStatsEntity(
             iso3code = "ABC", confirmed = 10L, deaths = 20L, recovered = 30L, active = 40L,
             fatalityRate = 0.5F
@@ -111,21 +116,26 @@ class RegionStatsDbTest {
         statsDao.insert(stats1)
         statsDao.insert(stats2)
 
-        val results = statsDao.getRegionStats("ABC")
-        Assert.assertTrue(results.isNotEmpty())
-        Assert.assertEquals("ABC", results[0].iso3code)
-        Assert.assertEquals(10L, results[0].confirmed)
-        Assert.assertEquals(20L, results[0].deaths)
-        Assert.assertEquals(30L, results[0].recovered)
-        Assert.assertEquals(40L, results[0].active)
-        Assert.assertEquals(0.5F, results[0].fatalityRate)
+        statsDao.getRegionStats("ABC").test {
+            val results = awaitItem()
+            Assert.assertTrue(results.isNotEmpty())
+            Assert.assertEquals("ABC", results[0].iso3code)
+            Assert.assertEquals(10L, results[0].confirmed)
+            Assert.assertEquals(20L, results[0].deaths)
+            Assert.assertEquals(30L, results[0].recovered)
+            Assert.assertEquals(40L, results[0].active)
+            Assert.assertEquals(0.5F, results[0].fatalityRate)
+        }
 
-        val results2 = statsDao.getRegionStatsCount("ABC")
-        Assert.assertEquals(1, results2)
+        statsDao.getRegionStatsCount("ABC").test {
+            val results2 = awaitItem()
+            Assert.assertEquals(1, results2)
 
-        val results3 = statsDao.getRegionStatsCount()
-        Assert.assertEquals(2, results3)
+        }
+
+        statsDao.getRegionStatsCount().test {
+            val results3 = awaitItem()
+            Assert.assertEquals(2, results3)
+        }
     }
-
-
 }
