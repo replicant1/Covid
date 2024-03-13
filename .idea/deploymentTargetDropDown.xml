@@ -2,19 +2,19 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="MainUITest">
+      <entry key="RegionDbTest">
+        <State />
+      </entry>
+      <entry key="RepositoryTest">
+        <State />
+      </entry>
+      <entry key="Tests in 'com'">
         <State />
       </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="compound_string_resource_as_string()">
-        <State />
-      </entry>
-      <entry key="scroll_to_last_region_and_click_shows_region_stats_in_data_panel()">
-        <State />
-      </entry>
-      <entry key="tapping_on_data_panel_when_showing_hides_the_data_panel()">
+      <entry key="second_country_list_load_is_from_database()">
         <State />
       </entry>
     </value>

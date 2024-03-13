@@ -4,7 +4,6 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import app.cash.turbine.test
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -45,43 +44,20 @@ class RegionStatsDbTest {
         )
         statsDao.insert(statsIn)
 
-        statsDao.getRegionStats("AUS").test {
-            val statsOut = awaitItem()
-            Assert.assertNotNull(statsOut)
-            Assert.assertFalse(statsOut.isEmpty())
-            Assert.assertEquals("AUS", statsOut[0].iso3code)
-            Assert.assertEquals(1234L, statsOut[0].confirmed)
-            Assert.assertEquals(101L, statsOut[0].deaths)
-            Assert.assertEquals(2345L, statsOut[0].recovered)
-            Assert.assertEquals(999L, statsOut[0].active)
-        }
+        val statsOut = statsDao.getRegionStats("AUS")
+        Assert.assertNotNull(statsOut)
+        Assert.assertFalse(statsOut.isEmpty())
+        Assert.assertEquals("AUS", statsOut[0].iso3code)
+        Assert.assertEquals(1234L, statsOut[0].confirmed)
+        Assert.assertEquals(101L, statsOut[0].deaths)
+        Assert.assertEquals(2345L, statsOut[0].recovered)
+        Assert.assertEquals(999L, statsOut[0].active)
     }
 
     @Test
     fun retrieve_bad_iso3Code_is_empty() = runBlocking {
-        statsDao.getRegionStats("UAS").test {
-            val result = awaitItem()
-            Assert.assertTrue(result.isEmpty())
-        }
-    }
-
-    @Test
-    fun deleteAll_RowCountIsZero() = runBlocking {
-        val ausStats = RegionStatsEntity(
-            iso3code = "AUS",
-            confirmed = 10L,
-            deaths = 20L,
-            recovered = 30L,
-            active = 40L,
-            fatalityRate = 0.5F
-        )
-        statsDao.insert(ausStats)
-        statsDao.deleteAllRegionStats()
-
-        statsDao.getRegionStatsCount().test {
-            val rowCount = awaitItem()
-            Assert.assertEquals(0, rowCount)
-        }
+        val result = statsDao.getRegionStats("UAS")
+        Assert.assertTrue(result.isEmpty())
     }
 
     @Test
@@ -97,10 +73,8 @@ class RegionStatsDbTest {
         statsDao.insert(stats1)
         statsDao.insert(stats2)
 
-        statsDao.getRegionStats("AAA").test {
-            val results = awaitItem()
-            Assert.assertNotEquals(results[0].id, results[1].id)
-        }
+        val results = statsDao.getRegionStats("AAA")
+        Assert.assertNotEquals(results[0].id, results[1].id)
     }
 
     @Test
@@ -116,26 +90,20 @@ class RegionStatsDbTest {
         statsDao.insert(stats1)
         statsDao.insert(stats2)
 
-        statsDao.getRegionStats("ABC").test {
-            val results = awaitItem()
-            Assert.assertTrue(results.isNotEmpty())
-            Assert.assertEquals("ABC", results[0].iso3code)
-            Assert.assertEquals(10L, results[0].confirmed)
-            Assert.assertEquals(20L, results[0].deaths)
-            Assert.assertEquals(30L, results[0].recovered)
-            Assert.assertEquals(40L, results[0].active)
-            Assert.assertEquals(0.5F, results[0].fatalityRate)
-        }
+        val results = statsDao.getRegionStats("ABC")
+        Assert.assertTrue(results.isNotEmpty())
+        Assert.assertEquals("ABC", results[0].iso3code)
+        Assert.assertEquals(10L, results[0].confirmed)
+        Assert.assertEquals(20L, results[0].deaths)
+        Assert.assertEquals(30L, results[0].recovered)
+        Assert.assertEquals(40L, results[0].active)
+        Assert.assertEquals(0.5F, results[0].fatalityRate)
 
-        statsDao.getRegionStatsCount("ABC").test {
-            val results2 = awaitItem()
-            Assert.assertEquals(1, results2)
+        val results2 = statsDao.getRegionStatsCount("ABC")
+        Assert.assertEquals(1, results2)
 
-        }
+        val results3 = statsDao.getRegionStatsCount()
+        Assert.assertEquals(2, results3)
 
-        statsDao.getRegionStatsCount().test {
-            val results3 = awaitItem()
-            Assert.assertEquals(2, results3)
-        }
     }
 }

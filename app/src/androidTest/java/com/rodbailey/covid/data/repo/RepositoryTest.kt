@@ -81,22 +81,20 @@ class RepositoryTest {
 
         // Regions returned by FakeCovidAPI should also be cached in the database
         // as a side-effect of having been retrieved from the network
-        regionDao.getAllRegions().test {
-            val cachedRegions = awaitItem()
-            Assert.assertEquals(FakeRegions.REGIONS.size, cachedRegions.size)
-            Assert.assertTrue(
-                containsRegionEntity(
-                    cachedRegions,
-                    FakeRegions.regionByIso3Code("AUS")
-                )
+        val cachedRegions = regionDao.getAllRegions()
+        Assert.assertEquals(FakeRegions.REGIONS.size, cachedRegions.size)
+        Assert.assertTrue(
+            containsRegionEntity(
+                cachedRegions,
+                FakeRegions.regionByIso3Code("AUS")
             )
-            Assert.assertTrue(
-                containsRegionEntity(
-                    cachedRegions,
-                    FakeRegions.regionByIso3Code("NLD")
-                )
+        )
+        Assert.assertTrue(
+            containsRegionEntity(
+                cachedRegions,
+                FakeRegions.regionByIso3Code("NLD")
             )
-        }
+        )
 
         // Regions should have been fetched from the network
         Assert.assertTrue((fakeAPI as FakeCovidAPI).wasCalled())
@@ -118,6 +116,7 @@ class RepositoryTest {
             awaitComplete()
         }
 
+        // Clear the "was called" flag for the API
         (fakeAPI as FakeCovidAPI).clearWasCalled()
 
         repo.getRegions().test {
@@ -126,6 +125,8 @@ class RepositoryTest {
 
             // API was NOT called, because country list came from database
             Assert.assertFalse((fakeAPI as FakeCovidAPI).wasCalled())
+
+            awaitComplete()
         }
     }
 
@@ -146,32 +147,30 @@ class RepositoryTest {
         (fakeAPI as FakeCovidAPI).clearWasCalled()
 
         // The data just retrieved should also be cached in the database, meaning the API was not called
-        regionStatsDao.getRegionStats("AUS").test {
-            val cachedStats = awaitItem()
-            // API wasn't called as data is now cached in the db
-            Assert.assertFalse((fakeAPI as FakeCovidAPI).wasCalled())
-            Assert.assertEquals(1, cachedStats.size)
-            Assert.assertEquals(
-                FakeRegions.reportDataByIso3Code("AUS").active,
-                cachedStats[0].active
-            )
-            Assert.assertEquals(
-                FakeRegions.reportDataByIso3Code("AUS").deaths,
-                cachedStats[0].deaths
-            )
-            Assert.assertEquals(
-                FakeRegions.reportDataByIso3Code("AUS").fatalityRate,
-                cachedStats[0].fatalityRate
-            )
-            Assert.assertEquals(
-                FakeRegions.reportDataByIso3Code("AUS").confirmed,
-                cachedStats[0].confirmed
-            )
-            Assert.assertEquals(
-                FakeRegions.reportDataByIso3Code("AUS").recovered,
-                cachedStats[0].recovered
-            )
-        }
+        val cachedStats = regionStatsDao.getRegionStats("AUS")
+        // API wasn't called as data is now cached in the db
+        Assert.assertFalse((fakeAPI as FakeCovidAPI).wasCalled())
+        Assert.assertEquals(1, cachedStats.size)
+        Assert.assertEquals(
+            FakeRegions.reportDataByIso3Code("AUS").active,
+            cachedStats[0].active
+        )
+        Assert.assertEquals(
+            FakeRegions.reportDataByIso3Code("AUS").deaths,
+            cachedStats[0].deaths
+        )
+        Assert.assertEquals(
+            FakeRegions.reportDataByIso3Code("AUS").fatalityRate,
+            cachedStats[0].fatalityRate
+        )
+        Assert.assertEquals(
+            FakeRegions.reportDataByIso3Code("AUS").confirmed,
+            cachedStats[0].confirmed
+        )
+        Assert.assertEquals(
+            FakeRegions.reportDataByIso3Code("AUS").recovered,
+            cachedStats[0].recovered
+        )
     }
 
     @Test
@@ -185,18 +184,16 @@ class RepositoryTest {
         }
 
         // Check database for global stats
-        regionStatsDao.getRegionStats(FakeRegions.GLOBAL_REGION.iso3Code).test {
-            val dbStats = awaitItem()
-            Assert.assertEquals(1, dbStats.size)
-            Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.active, dbStats[0].active)
-            Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.confirmed, dbStats[0].confirmed)
-            Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.deaths, dbStats[0].deaths)
-            Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.recovered, dbStats[0].recovered)
-            Assert.assertEquals(
-                FakeRegions.GLOBAL_REGION_STATS.fatalityRate,
-                dbStats[0].fatalityRate
-            )
-        }
+        val dbStats = regionStatsDao.getRegionStats(FakeRegions.GLOBAL_REGION.iso3Code)
+        Assert.assertEquals(1, dbStats.size)
+        Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.active, dbStats[0].active)
+        Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.confirmed, dbStats[0].confirmed)
+        Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.deaths, dbStats[0].deaths)
+        Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.recovered, dbStats[0].recovered)
+        Assert.assertEquals(
+            FakeRegions.GLOBAL_REGION_STATS.fatalityRate,
+            dbStats[0].fatalityRate
+        )
     }
 
     @Test
@@ -208,29 +205,26 @@ class RepositoryTest {
             awaitComplete()
         }
 
-        regionDao.getRegionsByName("Viet").test {
-            val matchingDbRegions = awaitItem()
-            Assert.assertEquals(1, matchingDbRegions.size)
-            Assert.assertEquals("Vietnam", matchingDbRegions[0].name)
-        }
+        val matchingDbRegions = regionDao.getRegionsByName("Viet")
+        Assert.assertEquals(1, matchingDbRegions.size)
+        Assert.assertEquals("Vietnam", matchingDbRegions[0].name)
     }
 
     @Test
     fun search_for_already_cached_region_by_partial_name_two_results() = runBlocking {
-        repo.getRegions().test {
-            val repoRegions = awaitItem()
-            Assert.assertEquals(FakeRegions.REGIONS.size, repoRegions.size)
-            awaitComplete()
+         repo.getRegions().test {
+             val repoRegions = awaitItem()
+             Assert.assertEquals(FakeRegions.REGIONS.size, repoRegions.size)
+
+             awaitComplete()
         }
 
-        regionDao.getRegionsByName("au").test {
-            val result = awaitItem()
-            Assert.assertEquals(2, result.size)
-            Assert.assertTrue(
-                (result[0].name == "Austria" && result[1].name == "Australia")
-                        || (result[0].name == "Australia" && result[1].name == "Austria")
-            )
-        }
+        val result = regionDao.getRegionsByName("au")
+        Assert.assertEquals(2, result.size)
+        Assert.assertTrue(
+            (result[0].name == "Austria" && result[1].name == "Australia")
+                    || (result[0].name == "Australia" && result[1].name == "Austria")
+        )
     }
 
     private fun containsRegion(allRegions: List<Region>, target: Region): Boolean {

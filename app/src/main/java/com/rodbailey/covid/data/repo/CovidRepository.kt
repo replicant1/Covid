@@ -41,20 +41,21 @@ class CovidRepository(
      */
     override suspend fun getReport(isoCode: String?): Flow<ReportData> {
         val safeIsoCode = isoCode ?: GLOBAL_ISO3_CODE
-        val dbStatsCount = regionStatsDao.getRegionStatsCount(safeIsoCode).first() // or .single()?
+        val dbStatsCount =
+            regionStatsDao.getRegionStatsCount(safeIsoCode)//.first() // or .single()?
 
         Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
 
         return if (dbStatsCount == 0) {
             println("Saving stats for iso code $safeIsoCode to db")
-            covidAPIHelper.getReport(isoCode).map { apiReport : Report ->
+            covidAPIHelper.getReport(isoCode).map { apiReport: Report ->
                 saveRegionStatsToDb(safeIsoCode, apiReport.data)
                 apiReport.data
             }
         } else {
             flow {
                 val dbStats = regionStatsDao.getRegionStats(safeIsoCode).first()
-                val uiStats = regionStatsEntityToReportData(dbStats[0])
+                val uiStats = regionStatsEntityToReportData(dbStats)
                 Timber.d("Returning stats for $safeIsoCode from database")
                 emit(uiStats)
             }
@@ -66,31 +67,28 @@ class CovidRepository(
      * @throws Exception if the slightest thing goes wrong
      */
     override suspend fun getRegions(): Flow<List<Region>> {
-        val dbRegionCount = regionDao.getRegionCount().first()
+        val dbRegionCount = regionDao.getRegionCount()
         return if (dbRegionCount == 0) {
             loadRegionsFromAPI()
         } else {
-            loadRegionsFromDb()
+            flow { emit(loadRegionsFromDb()) }
         }
     }
 
     override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
-        return regionDao.getRegionsByName(searchText).map { entities : List<RegionEntity> ->
-            regionEntityListToRegionList(entities)
+        return flow {
+            emit(regionEntityListToRegionList(regionDao.getRegionsByName(searchText).sortedBy {it.name}))
         }
     }
 
-    private fun loadRegionsFromDb(): Flow<List<Region>> {
-        return regionDao.getAllRegions().map { unsortedRegions : List<RegionEntity> ->
-            regionEntityListToRegionList(unsortedRegions).sortedBy { region: Region -> region.name }
-        }
-
+    private suspend fun loadRegionsFromDb(): List<Region> {
+        return regionEntityListToRegionList(regionDao.getAllRegions().sortedBy { it.name })
     }
 
     private suspend fun loadRegionsFromAPI(): Flow<List<Region>> {
-        return covidAPIHelper.getRegions().map { unsortedRegions : RegionList ->
+        return covidAPIHelper.getRegions().map { unsortedRegions: RegionList ->
             saveRegionsToDb(unsortedRegions.regions)
-            unsortedRegions.regions.sortedBy { region : Region -> region.name }
+            unsortedRegions.regions.sortedBy { region: Region -> region.name }
         }
     }
 

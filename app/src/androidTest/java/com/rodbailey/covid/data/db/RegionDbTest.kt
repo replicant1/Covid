@@ -4,13 +4,12 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import app.cash.turbine.test
-import org.junit.After
-import org.junit.Before
-import org.junit.runner.RunWith
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 @SmallTest
@@ -38,12 +37,10 @@ class RegionDbTest {
         val region = RegionEntity(iso3code = "AUS", name = "Australia")
         regionDao.insert(listOf(region))
 
-        regionDao.getAllRegions().test {
-            val result = awaitItem()
-            Assert.assertEquals(1, result.size)
-            Assert.assertEquals("AUS", result[0].iso3code)
-            Assert.assertEquals("Australia", result[0].name)
-        }
+        val result = regionDao.getAllRegions()
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("AUS", result[0].iso3code)
+        Assert.assertEquals("Australia", result[0].name)
     }
 
     @Test
@@ -54,31 +51,14 @@ class RegionDbTest {
 
         regionDao.insert(regionList)
 
-        regionDao.getRegionCount().test {
-            val result = awaitItem()
-            Assert.assertEquals(2, result)
-        }
-    }
-
-    @Test
-    fun insert_region_and_delete_it_gives_region_count_of_zero() = runTest {
-        val region = RegionEntity(iso3code = "AUS", name = "Australia")
-
-        regionDao.insert(listOf(region))
-        regionDao.deleteAllRegions()
-
-        regionDao.getRegionCount().test {
-            val result = awaitItem()
-            Assert.assertEquals(0, result)
-        }
+        val result = regionDao.getRegionCount()
+        Assert.assertEquals(2, result)
     }
 
     @Test
     fun get_non_existent_region_is_empty() = runTest {
-        regionDao.getRegionsByIso3Code("XXX").test {
-            val results = awaitItem()
-            Assert.assertTrue(results.isEmpty())
-        }
+        val results = regionDao.getRegionsByIso3Code("XXX")
+        Assert.assertTrue(results.isEmpty())
     }
 
     @Test
@@ -88,25 +68,9 @@ class RegionDbTest {
 
         regionDao.insert(listOf(region1, region2))
 
-        regionDao.getAllRegions().test {
-            val allRegions = awaitItem()
-            Assert.assertEquals(2, allRegions.size)
-            Assert.assertNotEquals(allRegions[0].id, allRegions[1].id)
-        }
-    }
-
-    @Test
-    fun insert_then_delete_all_regions_gives_zero_region_count() = runTest {
-        val region1 = RegionEntity(iso3code = "AAA", name = "Alabama")
-        val region2 = RegionEntity(iso3code = "BBB", name = "Bahamas")
-
-        regionDao.insert(listOf(region1, region2))
-        regionDao.deleteAllRegions()
-
-        regionDao.getRegionCount().test {
-            val count = awaitItem()
-            Assert.assertEquals(0, count)
-        }
+        val allRegions = regionDao.getAllRegions()
+        Assert.assertEquals(2, allRegions.size)
+        Assert.assertNotEquals(allRegions[0].id, allRegions[1].id)
     }
 
     @Test
@@ -117,12 +81,10 @@ class RegionDbTest {
 
         regionDao.insert(listOf(alabama, bahamas, canada))
 
-        regionDao.getRegionsByName("Alabama").test {
-            val result = awaitItem()
-            Assert.assertEquals(1, result.size)
-            Assert.assertEquals("AAA", result[0].iso3code)
-            Assert.assertEquals("Alabama", result[0].name)
-        }
+        val result = regionDao.getRegionsByName("Alabama")
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("AAA", result[0].iso3code)
+        Assert.assertEquals("Alabama", result[0].name)
     }
 
     @Test
@@ -133,12 +95,10 @@ class RegionDbTest {
 
         regionDao.insert(listOf(alabama, bahamas, canada))
 
-        regionDao.getRegionsByName("CANADA").test {
-            val result = awaitItem()
-            Assert.assertEquals(1, result.size)
-            Assert.assertEquals("CAN", result[0].iso3code)
-            Assert.assertEquals("Canada", result[0].name)
-        }
+        val result = regionDao.getRegionsByName("CANADA")
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("CAN", result[0].iso3code)
+        Assert.assertEquals("Canada", result[0].name)
     }
 
     @Test
@@ -149,12 +109,10 @@ class RegionDbTest {
 
         regionDao.insert(listOf(alabama, bahamas, canada))
 
-        regionDao.getRegionsByName("Bah").test {
-            val result = awaitItem()
-            Assert.assertEquals(1, result.size)
-            Assert.assertEquals("BBB", result[0].iso3code)
-            Assert.assertEquals("Bahamas", result[0].name)
-        }
+        val result = regionDao.getRegionsByName("Bah")
+        Assert.assertEquals(1, result.size)
+        Assert.assertEquals("BBB", result[0].iso3code)
+        Assert.assertEquals("Bahamas", result[0].name)
     }
 
     @Test
@@ -166,10 +124,8 @@ class RegionDbTest {
         regionDao.insert(listOf(alabama, bahamas, canada))
 
         // "ba" should match Alabama and Bahamas
-        regionDao.getRegionsByName("ba").test {
-            val result = awaitItem()
-            Assert.assertEquals(2, result.size)
-        }
+        val result = regionDao.getRegionsByName("ba")
+        Assert.assertEquals(2, result.size)
     }
 
     @Test
@@ -180,10 +136,8 @@ class RegionDbTest {
 
         regionDao.insert(listOf(alabama, bahamas, canada))
 
-        regionDao.getRegionsByName("HT").test {
-            val result = awaitItem()
-            Assert.assertEquals(0, result.size)
-        }
+        val result = regionDao.getRegionsByName("HT")
+        Assert.assertEquals(0, result.size)
     }
 
     @Test
@@ -193,14 +147,12 @@ class RegionDbTest {
 
         regionDao.insert(listOf(region1, region2))
 
-        regionDao.getRegionsByIso3Code("ABC").test {
-            val result = awaitItem()
-            Assert.assertEquals(2, result.size)
-            Assert.assertTrue(
-                (result[0].name == "Alice" && result[1].name == "Bob") ||
-                        (result[0].name == "Bob" && result[1].name == "Alice")
-            )
-        }
+        val result = regionDao.getRegionsByIso3Code("ABC")
+        Assert.assertEquals(2, result.size)
+        Assert.assertTrue(
+            (result[0].name == "Alice" && result[1].name == "Bob") ||
+                    (result[0].name == "Bob" && result[1].name == "Alice")
+        )
     }
 
 }
