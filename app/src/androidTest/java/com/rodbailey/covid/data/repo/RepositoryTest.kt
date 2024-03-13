@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 import javax.inject.Inject
 
 /**
- * These tests run with the REAL [CovidRepository] (under test), the [FakeCovidAPI] and an
+ * These tests run with the REAL [DefaultCovidRepository] (under test), the [FakeCovidAPI] and an
  * in-memory Room Database that is empty at the beginning of each test.
  */
 @RunWith(AndroidJUnit4::class)
@@ -47,7 +47,7 @@ class RepositoryTest {
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
     private lateinit var regionStatsDao: RegionStatsDao
-    private lateinit var repo: CovidRepository
+    private lateinit var repo: DefaultCovidRepository
 
     @Before
     fun setup() {
@@ -59,7 +59,7 @@ class RepositoryTest {
         ).allowMainThreadQueries().build()
         regionDao = db.regionDao()
         regionStatsDao = db.regionStatsDao()
-        repo = CovidRepository(regionDao, regionStatsDao, covidAPIHelper)
+        repo = DefaultCovidRepository(regionDao, regionStatsDao, covidAPIHelper)
     }
 
     @After

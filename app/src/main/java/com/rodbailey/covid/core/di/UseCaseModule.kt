@@ -1,6 +1,6 @@
 package com.rodbailey.covid.core.di
 
-import com.rodbailey.covid.data.repo.ICovidRepository
+import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.usecase.GetDataForGlobalUseCase
 import com.rodbailey.covid.usecase.GetDataForRegionUseCase
 import com.rodbailey.covid.usecase.InitialiseRegionListUseCase
@@ -16,7 +16,7 @@ import dagger.hilt.components.SingletonComponent
 object UseCaseModule {
 
     @Provides
-    fun provideMainUseCases(repository: ICovidRepository): MainUseCases {
+    fun provideMainUseCases(repository: CovidRepository): MainUseCases {
         return MainUseCases(
             SearchRegionListUseCase(repository),
             InitialiseRegionListUseCase(repository),

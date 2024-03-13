@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 
-class FakeCovidRepository() : ICovidRepository {
+class FakeCovidRepository() : CovidRepository {
 
     companion object {
         val REGIONS = listOf(
@@ -89,7 +89,7 @@ class FakeCovidRepository() : ICovidRepository {
     private var allMethodsThrowException = false
 
     /**
-     * @see [ICovidRepository.getRegions]
+     * @see [CovidRepository.getRegions]
      */
     override suspend fun getRegions(): Flow<List<Region>> {
         if (allMethodsThrowException) {
@@ -99,7 +99,7 @@ class FakeCovidRepository() : ICovidRepository {
     }
 
     /**
-     * @see [ICovidRepository.getReport]
+     * @see [CovidRepository.getReport]
      */
     override suspend fun getReport(isoCode: String?): Flow<ReportData> {
         if (allMethodsThrowException) {

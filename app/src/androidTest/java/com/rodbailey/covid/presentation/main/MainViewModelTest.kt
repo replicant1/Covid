@@ -9,7 +9,7 @@ import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.net.FakeCovidAPI
 import com.rodbailey.covid.data.repo.FakeCovidRepository
-import com.rodbailey.covid.data.repo.ICovidRepository
+import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
@@ -43,7 +43,7 @@ class MainViewModelTest {
     var coroutinesTestRule = CoroutinesTestRule()
 
     @Inject
-    lateinit var fakeCovidRepository: ICovidRepository
+    lateinit var fakeCovidRepository: CovidRepository
 
     @Inject
     lateinit var fakeCovidAPI: CovidAPI
