@@ -11,8 +11,9 @@ import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.data.db.RegionStatsDao
 import com.rodbailey.covid.data.net.CovidAPI
-import com.rodbailey.covid.data.net.CovidAPIHelper
+import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.data.net.FakeCovidAPI
+import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.domain.Region
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -42,7 +43,10 @@ class RepositoryTest {
     lateinit var fakeAPI: CovidAPI
 
     @Inject
-    lateinit var covidAPIHelper: CovidAPIHelper
+    lateinit var remoteDataSource: RemoteDataSource
+
+    @Inject
+    lateinit var localDataSource: LocalDataSource
 
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
@@ -59,7 +63,7 @@ class RepositoryTest {
         ).allowMainThreadQueries().build()
         regionDao = db.regionDao()
         regionStatsDao = db.regionStatsDao()
-        repo = DefaultCovidRepository(regionDao, regionStatsDao, covidAPIHelper)
+        repo = DefaultCovidRepository(localDataSource, remoteDataSource)
     }
 
     @After

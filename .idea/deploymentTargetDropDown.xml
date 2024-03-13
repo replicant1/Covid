@@ -2,7 +2,10 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="RegionDbTest">
+      <entry key="MainUITest">
+        <State />
+      </entry>
+      <entry key="MainViewModelTest">
         <State />
       </entry>
       <entry key="RepositoryTest">
@@ -12,9 +15,6 @@
         <State />
       </entry>
       <entry key="app">
-        <State />
-      </entry>
-      <entry key="second_country_list_load_is_from_database()">
         <State />
       </entry>
     </value>
