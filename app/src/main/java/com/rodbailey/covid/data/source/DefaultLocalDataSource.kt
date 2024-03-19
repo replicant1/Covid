@@ -46,7 +46,7 @@ class DefaultLocalDataSource(
         regionStatsDao.insert(TransformUtils.reportDataToRegionStatsEntity(iso3code, reportData))
     }
 
-    override suspend fun loadReportData(iso3code: String): Flow<List<ReportData>> {
+    override suspend fun loadReportDataByIso3Code(iso3code: String): Flow<List<ReportData>> {
         return flow {
             emit(regionStatsEntityListToReportDataList(regionStatsDao.getRegionStats(iso3code)))
         }

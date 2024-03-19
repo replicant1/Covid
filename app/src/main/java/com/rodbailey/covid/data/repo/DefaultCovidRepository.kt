@@ -30,7 +30,7 @@ class DefaultCovidRepository(
                 it.data
             }
         } else {
-            localDataSource.loadReportData(nullSafeIsoCode).map {
+            localDataSource.loadReportDataByIso3Code(nullSafeIsoCode).map {
                 it[0]
             }
         }
