@@ -11,9 +11,6 @@
       <entry key="load_report_data_with_bad_iso_code_throws_exception()">
         <State />
       </entry>
-      <entry key="load_report_data_with_good_iso_code()">
-        <State />
-      </entry>
       <entry key="load_report_data_with_null_iso_code_returns_global_report_data()">
         <State />
       </entry>
