@@ -33,5 +33,4 @@ interface LocalDataSource {
 
     suspend fun loadReportDataCount(iso3code: String) : Flow<Int>
 
-    suspend fun loadReportDataCount() : Flow<Int>
 }

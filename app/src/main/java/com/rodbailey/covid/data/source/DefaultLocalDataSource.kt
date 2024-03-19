@@ -57,10 +57,4 @@ class DefaultLocalDataSource(
             emit(regionStatsDao.getRegionStatsCount(iso3code))
         }
     }
-
-    override suspend fun loadReportDataCount(): Flow<Int> {
-        return flow {
-            emit(regionStatsDao.getRegionStatsCount())
-        }
-    }
 }
