@@ -11,8 +11,10 @@ import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.data.db.RegionStatsDao
 import com.rodbailey.covid.data.net.CovidAPI
-import com.rodbailey.covid.data.net.CovidAPIHelper
+import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.data.net.FakeCovidAPI
+import com.rodbailey.covid.data.source.DefaultLocalDataSource
+import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.domain.Region
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -24,6 +26,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -42,7 +45,12 @@ class RepositoryTest {
     lateinit var fakeAPI: CovidAPI
 
     @Inject
-    lateinit var covidAPIHelper: CovidAPIHelper
+    lateinit var remoteDataSource: RemoteDataSource
+
+    // Don't inject the LocalDataSource because the regionDao and regionStatsDao below
+    // will NOT be supplied to DefaultLocalDataSource's constructor. Instead, the *real*
+    // regionDao and regionStatsDao will be supplied.
+    lateinit var localDataSource: LocalDataSource
 
     private lateinit var db: AppDatabase
     private lateinit var regionDao: RegionDao
@@ -59,7 +67,8 @@ class RepositoryTest {
         ).allowMainThreadQueries().build()
         regionDao = db.regionDao()
         regionStatsDao = db.regionStatsDao()
-        repo = DefaultCovidRepository(regionDao, regionStatsDao, covidAPIHelper)
+        localDataSource = DefaultLocalDataSource(regionDao, regionStatsDao)
+        repo = DefaultCovidRepository(localDataSource, remoteDataSource)
     }
 
     @After

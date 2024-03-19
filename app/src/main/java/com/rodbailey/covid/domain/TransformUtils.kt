@@ -31,11 +31,7 @@ object TransformUtils {
     }
 
     fun regionListToRegionEntityList(regionList: List<Region>): List<RegionEntity> {
-        val result = mutableListOf<RegionEntity>()
-        for (region in regionList) {
-            result.add(regionToRegionEntity(region))
-        }
-        return result
+        return regionList.map { regionToRegionEntity(it) }
     }
 
     fun regionEntityToRegion(regionEntity: RegionEntity): Region {
@@ -43,10 +39,10 @@ object TransformUtils {
     }
 
     fun regionEntityListToRegionList(regionEntityList : List<RegionEntity>) : List<Region> {
-        val result= mutableListOf<Region>()
-        for (regionEntity in regionEntityList) {
-            result.add(regionEntityToRegion(regionEntity))
-        }
-        return result
+        return regionEntityList.map { regionEntityToRegion(it) }
+    }
+
+    fun regionStatsEntityListToReportDataList(regionStatsEntityList: List<RegionStatsEntity>): List<ReportData> {
+        return regionStatsEntityList.map { regionStatsEntityToReportData(it ) }
     }
 }

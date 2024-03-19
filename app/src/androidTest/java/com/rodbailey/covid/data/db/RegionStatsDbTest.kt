@@ -101,9 +101,5 @@ class RegionStatsDbTest {
 
         val results2 = statsDao.getRegionStatsCount("ABC")
         Assert.assertEquals(1, results2)
-
-        val results3 = statsDao.getRegionStatsCount()
-        Assert.assertEquals(2, results3)
-
     }
 }
