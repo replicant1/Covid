@@ -22,7 +22,7 @@ It has been built with `Android Studio Hedgehog | 2023.1.1 Patch 2`
 
 The app has a layered architecture. The UI layer uses the MVVM pattern with the UI in `Compose` and the `ViewModel` class from the Android Architecture Components. The data layer exposes a `Repository` that fetches data either from the network or the local database.
 
-![Architecture](/doc/app_architecture.jpg)
+![Architecture](/doc/app_architecture.png)
 
 # UI Design
 
