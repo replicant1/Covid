@@ -58,13 +58,4 @@ The Jacoco coverage report says the instrumented tests give a coverage of 71%, b
 
 ![Coverage](/doc/coverage.png)
 
-# Addendum
-
-If time permitted, the following would be nice to do: 
-
-- Extend local data caching to covid stats for individual countries
-- Use a surrogate key for regions instead of the ISO 3 character code. The data has two entries for `TWN`. At the moment I silently ignore one.
-- Add units of measurements for the stats to the UI
-- Better UI for accessing Global stats. Current method = icon at right of search field.
-- Improve tests
 
