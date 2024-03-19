@@ -25,7 +25,7 @@ class DefaultCovidRepository(
         Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
 
         return if (dbStatsCount == 0) {
-            remoteDataSource.getReport(isoCode).map {
+            remoteDataSource.loadReportDataByIso3Code(isoCode).map {
                 localDataSource.saveReportData(nullSafeIsoCode, it.data)
                 it.data
             }
@@ -40,7 +40,7 @@ class DefaultCovidRepository(
         val dbRegionCount = localDataSource.loadRegionCount().first()
 
         return if (dbRegionCount == 0) {
-            remoteDataSource.getRegions().map {
+            remoteDataSource.loadRegions().map {
                 localDataSource.saveRegions(it.regions)
                 it.regions
             }
