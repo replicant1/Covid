@@ -26,21 +26,22 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     open class SecondUIState {
         object Noop : SecondUIState()
         object RegionListLoading : SecondUIState()
+        class RegionListSearching(val searchText: String, val matchingRegions: List<Region>) : SecondUIState()
 
         object DataPanelLoading : SecondUIState()
         class DataPanelLoaded(val reportDataTitle : UIText, val reportData: ReportData) : SecondUIState()
         object DataPanelClosed : SecondUIState()
     }
 
-    data class UIState(
+//    data class UIState(
 //        val isDataPanelExpanded: Boolean = false,
 //        val isDataPanelLoading: Boolean = false,
 //        val isRegionListLoading: Boolean = false,
 //        val reportDataTitle: UIText = UIText.DynamicString(""),
 //        val reportData: ReportData = ReportData(),
-        val searchText: String = "",
-        val matchingRegions: List<Region> = emptyList()
-    )
+//        val searchText: String = "",
+//        val matchingRegions: List<Region> = emptyList()
+//    )
 
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
@@ -48,8 +49,8 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     val errorFlow = errorChannel.receiveAsFlow()
 
     // Communicates UI state changes to corresponding view
-    private val _uiState = MutableStateFlow(UIState())
-    val uiState = _uiState.asStateFlow()
+//    private val _uiState = MutableStateFlow(UIState())
+//    val uiState = _uiState.asStateFlow()
 
     private val _secondUIState = MutableStateFlow(SecondUIState())
     val secondUIState = _secondUIState.asStateFlow()
@@ -147,11 +148,14 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
             }
         }
     }
+    
+    var searchText = ""
 
     fun onSearchTextChanged(text: String) {
-        _uiState.update {
-            it.copy(searchText = text)
-        }
+//        _uiState.update {
+//            it.copy(searchText = text)
+//        }
+        searchText = text
         updateMatchingRegionsPerSearchText()
     }
 
@@ -160,11 +164,12 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
      */
     private fun updateMatchingRegionsPerSearchText() {
         viewModelScope.launch {
-            mainUseCases.searchRegionListUseCase(_uiState.value.searchText)
+            mainUseCases.searchRegionListUseCase(searchText)
                 .collect { matches ->
-                    _uiState.update {
-                        it.copy(matchingRegions = matches)
-                    }
+//                    _uiState.update {
+//                        it.copy(matchingRegions = matches)
+//                    }
+                    _secondUIState.value = SecondUIState.RegionListSearching(searchText, matches)
                 }
         }
     }

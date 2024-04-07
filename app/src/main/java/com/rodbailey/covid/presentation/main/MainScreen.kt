@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.SecondUIState.DataPanelClosed
@@ -63,7 +64,7 @@ fun MainScreen() {
                 }
             }
 
-            val uiState by viewModel.uiState.collectAsState()
+            //val uiState by viewModel.uiState.collectAsState()
 
             val secondUIState by viewModel.secondUIState.collectAsState()
 
@@ -71,8 +72,12 @@ fun MainScreen() {
                 modifier = Modifier.fillMaxSize()
             ) {
                 // Search text field with global icon at right
+                var contents = ""
+                if (secondUIState is MainViewModel.SecondUIState.RegionListSearching) {
+                    contents = (secondUIState as MainViewModel.SecondUIState.RegionListSearching).searchText
+                }
                 TextField(
-                    value = uiState.searchText,
+                    value = contents,
                     onValueChange = viewModel::onSearchTextChanged,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -104,7 +109,11 @@ fun MainScreen() {
                         .weight(1f)
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
-                    items(uiState.matchingRegions) { region ->
+                    var matchingRegions = emptyList<Region>()
+                    if (secondUIState is MainViewModel.SecondUIState.RegionListSearching) {
+                        matchingRegions = (secondUIState as MainViewModel.SecondUIState.RegionListSearching).matchingRegions
+                    }
+                    items(matchingRegions) { region ->
                         RegionSearchResultItem(
                             region = region,
                             clickCallback = {
