@@ -27,7 +27,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.MainViewModel.SecondUIState.DataPanelClosed
+import com.rodbailey.covid.presentation.MainViewModel.SecondUIState.DataPanelLoaded
+import com.rodbailey.covid.presentation.MainViewModel.SecondUIState.DataPanelLoading
+import com.rodbailey.covid.presentation.MainViewModel.SecondUIState.RegionListLoading
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
@@ -60,6 +65,8 @@ fun MainScreen() {
 
             val uiState by viewModel.uiState.collectAsState()
 
+            val secondUIState by viewModel.secondUIState.collectAsState()
+
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -84,7 +91,7 @@ fun MainScreen() {
                         .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
                         .fillMaxWidth()
                         .height(16.dp)
-                        .alpha(if (uiState.isRegionListLoading) 1f else 0f)
+                        .alpha(if (secondUIState is RegionListLoading) 1f else 0f)
                         .padding(bottom = 12.dp),
                     color = MaterialTheme.colorScheme.secondary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -110,13 +117,26 @@ fun MainScreen() {
 
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
-                AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
-                    RegionDataPanel(
-                        title = uiState.reportDataTitle.asString(),
-                        reportData = uiState.reportData,
-                        clickCallback = { viewModel.collapseDataPanel() },
-                        isLoading = uiState.isDataPanelLoading
-                    )
+                if (secondUIState is DataPanelLoading) {
+                    AnimatedVisibility(visible = true) {
+                        RegionDataPanel(
+                            title = "",
+                            reportData = ReportData(),
+                            clickCallback = { viewModel.collapseDataPanel() },
+                            isLoading = true
+                        )
+                    }
+                } else if (secondUIState is DataPanelLoaded) {
+                    AnimatedVisibility(visible = true) {
+                        RegionDataPanel(
+                            title = (secondUIState as DataPanelLoaded).reportDataTitle.asString(),
+                            reportData = (secondUIState as DataPanelLoaded).reportData,
+                            clickCallback = { viewModel.collapseDataPanel() },
+                            isLoading = false
+                        )
+                    }
+                } else if (secondUIState is DataPanelClosed) {
+                    // Do nothing
                 }
             }
         }
