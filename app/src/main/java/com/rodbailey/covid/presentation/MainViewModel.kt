@@ -23,15 +23,22 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
-    data class UIState(
-        val isDataPanelExpanded: Boolean = false,
-        val isDataPanelLoading: Boolean = false,
-        val isRegionListLoading: Boolean = false,
+    class DataPanelOpenWithData(
         val reportDataTitle: UIText = UIText.DynamicString(""),
         val reportData: ReportData = ReportData(),
-        val searchText: String = "",
+    ) : UIState()
+
+    class DataPanelOpenWithLoading() : UIState()
+
+    class DataPanelClosed() : UIState()
+
+    open class UIState {
+//        val isDataPanelExpanded: Boolean = false
+//        val isDataPanelLoading: Boolean = false
+        val isRegionListLoading: Boolean = false
+        val searchText: String = ""
         val matchingRegions: List<Region> = emptyList()
-    )
+    }
 
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
