@@ -23,21 +23,43 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
-    class DataPanelOpenWithData(
+    data class DataPanelOpenWithData(
         val reportDataTitle: UIText = UIText.DynamicString(""),
         val reportData: ReportData = ReportData(),
-    ) : UIState()
+        val copyMe: UIState
+    ) : UIState(copyMe) {
+        override fun clone(): DataPanelOpenWithData {
+            return DataPanelOpenWithData(reportDataTitle, reportData, this)
+        }
+    }
 
-    class DataPanelOpenWithLoading() : UIState()
+    data class DataPanelOpenWithLoading(val copyMe: UIState) : UIState(copyMe) {
+        override fun clone(): DataPanelOpenWithLoading {
+            return DataPanelOpenWithLoading(this)
+        }
+    }
 
-    class DataPanelClosed() : UIState()
+    data class DataPanelClosed(val copyMe: UIState) : UIState(copyMe) {
+        override fun clone(): DataPanelClosed {
+            return DataPanelClosed(this)
+        }
+    }
 
-    open class UIState {
-//        val isDataPanelExpanded: Boolean = false
-//        val isDataPanelLoading: Boolean = false
-        val isRegionListLoading: Boolean = false
-        val searchText: String = ""
-        val matchingRegions: List<Region> = emptyList()
+    open class UIState(
+        var isRegionListLoading: Boolean = false,
+        var searchText: String = "",
+        var matchingRegions: List<Region> = emptyList()
+    ) {
+        constructor(other: UIState) :
+                this(
+                    other.isRegionListLoading,
+                    other.searchText,
+                    other.matchingRegions
+                )
+
+        open fun clone(): UIState {
+            return UIState(this)
+        }
     }
 
     // Error text from network failures. Use a Channel to prevent event duplication on
@@ -58,7 +80,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
 
     fun collapseDataPanel() {
         _uiState.update {
-            it.copy(isDataPanelExpanded = false)
+            DataPanelClosed(it)
         }
     }
 
@@ -75,22 +97,12 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     mainUseCases.getDataForRegionUseCase(regionIso3Code)
                 }.onStart {
                     _uiState.update {
-                        it.copy(
-                            isDataPanelExpanded = true,
-                            isDataPanelLoading = true
-                        )
-                    }
-                }.onCompletion {
-                    _uiState.update {
-                        it.copy(isDataPanelLoading = false)
+                        DataPanelOpenWithLoading(it)
                     }
                 }.collect { reportData: ReportData ->
                     Timber.i("Collected report data for $regionName = $reportData")
                     _uiState.update {
-                        it.copy(
-                            reportDataTitle = regionName,
-                            reportData = reportData
-                        )
+                        DataPanelOpenWithData(regionName, reportData, it)
                     }
                 }
             } catch (th: Throwable) {
@@ -102,7 +114,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     )
                 )
                 _uiState.update {
-                    it.copy(isDataPanelExpanded = false)
+                    DataPanelClosed(it)
                 }
             }
         }
@@ -115,18 +127,24 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                 mainUseCases.initialiseRegionListUseCase()
                     .onStart {
                         _uiState.update {
-                            it.copy(isRegionListLoading = true)
+                            it.clone().apply {
+                                isRegionListLoading = true
+                            }
                         }
                     }
                     .onCompletion {
                         _uiState.update {
-                            it.copy(isRegionListLoading = false)
+                            it.clone().apply {
+                                isRegionListLoading = false
+                            }
                         }
                     }
                     .collect {
                         updateMatchingRegionsPerSearchText()
                         _uiState.update {
-                            it.copy(isRegionListLoading = false)
+                            it.clone().apply {
+                                isRegionListLoading = false
+                            }
                         }
                     }
             } catch (th: Throwable) {
@@ -138,7 +156,9 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
 
     fun onSearchTextChanged(text: String) {
         _uiState.update {
-            it.copy(searchText = text)
+            it.clone().apply {
+                searchText = text
+            }
         }
         updateMatchingRegionsPerSearchText()
     }
@@ -151,7 +171,9 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
             mainUseCases.searchRegionListUseCase(_uiState.value.searchText)
                 .collect { matches ->
                     _uiState.update {
-                        it.copy(matchingRegions = matches)
+                        it.clone().apply {
+                            matchingRegions = matches
+                        }
                     }
                 }
         }

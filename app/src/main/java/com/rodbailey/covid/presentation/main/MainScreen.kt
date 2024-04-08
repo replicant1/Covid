@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
@@ -110,13 +111,29 @@ fun MainScreen() {
 
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
-                AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
-                    RegionDataPanel(
-                        title = uiState.reportDataTitle.asString(),
-                        reportData = uiState.reportData,
-                        clickCallback = { viewModel.collapseDataPanel() },
-                        isLoading = uiState.isDataPanelLoading
-                    )
+                val bob = uiState
+                when (bob) {
+                    is MainViewModel.DataPanelOpenWithData -> {
+                        AnimatedVisibility(visible = true) {
+                            RegionDataPanel(
+                                title = bob.reportDataTitle.asString(),
+                                reportData = bob.reportData,
+                                clickCallback = { viewModel.collapseDataPanel() },
+                                isLoading = false
+                            )
+                        }
+                    }
+
+                    is MainViewModel.DataPanelOpenWithLoading -> {
+                        AnimatedVisibility(visible = true) {
+                            RegionDataPanel(
+                                title = "",
+                                reportData = ReportData(),
+                                clickCallback = { viewModel.collapseDataPanel() },
+                                isLoading = true
+                            )
+                        }
+                    }
                 }
             }
         }
