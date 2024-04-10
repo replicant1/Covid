@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,15 +26,32 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
 
+    /**
+     * Putting the data common to all screens states in a data class lets us take advantage
+     * of the "copy" function that Kotlin auto-generates for data classes, when it comes time
+     * to move from one screen state to the next. The time-varying part of state is relegated to
+     * the [DataPanelUIState].
+     */
     data class UIState(
-        val isDataPanelExpanded: Boolean = false,
-        val isDataPanelLoading: Boolean = false,
         val isRegionListLoading: Boolean = false,
-        val reportDataTitle: UIText = UIText.DynamicString(""),
-        val reportData: ReportData = ReportData(),
         val searchText: String = "",
-        val matchingRegions: List<Region> = emptyList()
+        val matchingRegions: List<Region> = emptyList(),
+        val dataPanelUIState: DataPanelUIState = DataPanelClosed
     )
+
+    /**
+     * Inheritance hierarchy here covers the mutually exclusive states of the Data Panel UI and
+     * ensures we don't carry unnecessary data (reportDataTitle, reportData) for states to which
+     * the data does not apply to.
+     */
+    sealed interface DataPanelUIState {
+        data object DataPanelClosed : DataPanelUIState
+        data object DataPanelOpenWithLoading : DataPanelUIState
+        data class DataPanelOpenWithData(
+            val reportDataTitle: UIText,
+            val reportData: ReportData
+        ) : DataPanelUIState
+    }
 
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
@@ -51,7 +71,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
 
     fun collapseDataPanel() {
         _uiState.update {
-            it.copy(isDataPanelExpanded = false)
+            it.copy(dataPanelUIState = DataPanelClosed)
         }
     }
 
@@ -68,22 +88,12 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     mainUseCases.getDataForRegionUseCase(regionIso3Code)
                 }.onStart {
                     _uiState.update {
-                        it.copy(
-                            isDataPanelExpanded = true,
-                            isDataPanelLoading = true
-                        )
-                    }
-                }.onCompletion {
-                    _uiState.update {
-                        it.copy(isDataPanelLoading = false)
+                        it.copy(dataPanelUIState = DataPanelOpenWithLoading)
                     }
                 }.collect { reportData: ReportData ->
                     Timber.i("Collected report data for $regionName = $reportData")
                     _uiState.update {
-                        it.copy(
-                            reportDataTitle = regionName,
-                            reportData = reportData
-                        )
+                        it.copy(dataPanelUIState = DataPanelOpenWithData(regionName, reportData))
                     }
                 }
             } catch (th: Throwable) {
@@ -95,7 +105,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                     )
                 )
                 _uiState.update {
-                    it.copy(isDataPanelExpanded = false)
+                    it.copy(dataPanelUIState = DataPanelClosed)
                 }
             }
         }
