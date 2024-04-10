@@ -2,16 +2,16 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="MainViewModelTest">
+        <State />
+      </entry>
       <entry key="Tests in 'com'">
         <State />
       </entry>
       <entry key="app">
         <State />
       </entry>
-      <entry key="load_report_data_with_bad_iso_code_throws_exception()">
-        <State />
-      </entry>
-      <entry key="load_report_data_with_null_iso_code_returns_global_report_data()">
+      <entry key="collapse_data_panel()">
         <State />
       </entry>
     </value>

@@ -27,7 +27,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
@@ -110,12 +114,12 @@ fun MainScreen() {
 
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
-                AnimatedVisibility(visible = uiState.isDataPanelExpanded) {
+                AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
                     RegionDataPanel(
-                        title = uiState.reportDataTitle.asString(),
-                        reportData = uiState.reportData,
+                        title = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportDataTitle?.asString() ?: "",
+                        reportData = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportData ?: ReportData(),
                         clickCallback = { viewModel.collapseDataPanel() },
-                        isLoading = uiState.isDataPanelLoading
+                        isLoading = uiState.dataPanelUIState is DataPanelOpenWithLoading
                     )
                 }
             }
