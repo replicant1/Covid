@@ -11,12 +11,16 @@ import com.rodbailey.covid.data.net.FakeCovidAPI
 import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -96,14 +100,14 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun data_panel_is_hidden_at_startup() = runBlocking {
-        Assert.assertFalse(viewModel.uiState.value.isDataPanelExpanded)
+        Assert.assertTrue(viewModel.uiState.value.dataPanelUIState is DataPanelClosed)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun collapse_data_panel() = runBlocking {
         viewModel.collapseDataPanel()
-        Assert.assertFalse(viewModel.uiState.value.isDataPanelExpanded)
+        Assert.assertTrue(viewModel.uiState.value.dataPanelUIState is DataPanelClosed)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -114,12 +118,17 @@ class MainViewModelTest {
         // Wait for data to load from [FakeCovidAPI]
         timePasses()
 
-        Assert.assertTrue(viewModel.uiState.value.isDataPanelExpanded)
-        Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
-        Assert.assertEquals(UIText.DynamicString("China"), viewModel.uiState.value.reportDataTitle)
+        Assert.assertTrue(
+            viewModel.uiState.value.dataPanelUIState is DataPanelOpenWithLoading
+                    || viewModel.uiState.value.dataPanelUIState is DataPanelOpenWithData
+        )
+        Assert.assertEquals(
+            UIText.DynamicString("China"),
+            (viewModel.uiState.value.dataPanelUIState as DataPanelOpenWithData).reportDataTitle
+        )
         Assert.assertEquals(
             FakeRegions.reportDataByIso3Code("CHN"),
-            viewModel.uiState.value.reportData
+            (viewModel.uiState.value.dataPanelUIState as DataPanelOpenWithData).reportData
         )
     }
 
@@ -130,15 +139,14 @@ class MainViewModelTest {
 
         timePasses()
 
-        Assert.assertTrue(viewModel.uiState.value.isDataPanelExpanded)
-        Assert.assertFalse(viewModel.uiState.value.isDataPanelLoading)
+        Assert.assertTrue(viewModel.uiState.value.dataPanelUIState is DataPanelOpenWithData)
         Assert.assertEquals(
             FakeRegions.GLOBAL_REGION.name,
-            viewModel.uiState.value.reportDataTitle.asString(context)
+            (viewModel.uiState.value.dataPanelUIState as DataPanelOpenWithData).reportDataTitle.asString(context)
         )
         Assert.assertEquals(
             FakeRegions.GLOBAL_REGION_STATS,
-            viewModel.uiState.value.reportData
+            (viewModel.uiState.value.dataPanelUIState as DataPanelOpenWithData).reportData
         )
     }
 
@@ -196,10 +204,10 @@ class MainViewModelTest {
         viewModel.loadReportDataForGlobal()
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
 
-         viewModel.errorFlow.test {
-             val result = awaitItem()
-             Assert.assertTrue(result.asString(context).contains("Fail"))
-         }
+        viewModel.errorFlow.test {
+            val result = awaitItem()
+            Assert.assertTrue(result.asString(context).contains("Fail"))
+        }
     }
 
     private fun timePasses() {
