@@ -73,6 +73,10 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         data class ShowErrorMessage(val message: UIText) : MainIntent
     }
 
+    init {
+        loadRegionList()
+    }
+
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
     private val errorChannel = Channel<UIText>()
