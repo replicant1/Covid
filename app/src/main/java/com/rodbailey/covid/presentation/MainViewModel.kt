@@ -8,6 +8,11 @@ import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadRegionList
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,6 +58,25 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         ) : DataPanelUIState
     }
 
+    /**
+     * The "I" from "MVI" - this is how the view communicates intent to the ViewModel.
+     */
+    sealed interface MainIntent {
+        data object CollapseDataPanel : MainIntent
+        data object LoadReportDataForGlobal : MainIntent
+        data class LoadReportDataForRegion(
+            val regionName: UIText, val regionIso3Code: String?
+        ) : MainIntent
+
+        data object LoadRegionList : MainIntent
+        data class OnSearchTextChanged(val text: String) : MainIntent
+        data class ShowErrorMessage(val message: UIText) : MainIntent
+    }
+
+    init {
+        loadRegionList()
+    }
+
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
     private val errorChannel = Channel<UIText>()
@@ -62,24 +86,37 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     private val _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
-    @VisibleForTesting
-    fun showErrorMessage(message: UIText) {
+    fun processIntent(mainIntent: MainIntent) {
+        when (mainIntent) {
+            is CollapseDataPanel -> collapseDataPanel()
+            is LoadReportDataForGlobal -> loadReportDataForGlobal()
+            is LoadReportDataForRegion -> loadReportDataForRegion(
+                mainIntent.regionName,
+                mainIntent.regionIso3Code
+            )
+            is OnSearchTextChanged -> onSearchTextChanged(mainIntent.text)
+            is LoadRegionList -> loadRegionList()
+            is MainIntent.ShowErrorMessage -> showErrorMessage(mainIntent.message)
+        }
+    }
+
+    private fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
             errorChannel.send(message)
         }
     }
 
-    fun collapseDataPanel() {
+    private fun collapseDataPanel() {
         _uiState.update {
             it.copy(dataPanelUIState = DataPanelClosed)
         }
     }
 
-    fun loadReportDataForGlobal() {
+    private fun loadReportDataForGlobal() {
         loadReportDataForRegion(UIText.StringResource(R.string.region_global), null)
     }
 
-    fun loadReportDataForRegion(regionName: UIText, regionIso3Code: String?) {
+    private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: String?) {
         viewModelScope.launch {
             try {
                 if (regionIso3Code == null) {
@@ -111,8 +148,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         }
     }
 
-    @VisibleForTesting
-    fun loadRegionList() {
+    private fun loadRegionList() {
         viewModelScope.launch {
             try {
                 mainUseCases.initialiseRegionListUseCase()
@@ -139,7 +175,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         }
     }
 
-    fun onSearchTextChanged(text: String) {
+    private fun onSearchTextChanged(text: String) {
         _uiState.update {
             it.copy(searchText = text)
         }
