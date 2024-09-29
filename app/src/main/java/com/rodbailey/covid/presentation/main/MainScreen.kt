@@ -32,6 +32,8 @@ import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
@@ -49,7 +51,7 @@ fun MainScreen() {
             color = MaterialTheme.colorScheme.background
         ) {
             val context = LocalContext.current
-            val viewModel : MainViewModel = viewModel()
+            val viewModel: MainViewModel = viewModel()
 
             // Error toast
             LaunchedEffect(Unit) {
@@ -70,13 +72,15 @@ fun MainScreen() {
                 // Search text field with global icon at right
                 TextField(
                     value = uiState.searchText,
-                    onValueChange = viewModel::onSearchTextChanged,
+                    onValueChange = {
+                        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(it))
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
                     trailingIcon = {
                         GlobalRegionIcon() {
-                            viewModel.loadReportDataForGlobal()
+                            viewModel.processIntent(LoadReportDataForGlobal)
                         }
                     },
                     placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
@@ -105,7 +109,13 @@ fun MainScreen() {
                         RegionSearchResultItem(
                             region = region,
                             clickCallback = {
-                                viewModel.loadReportDataForRegion(UIText.DynamicString(region.name), region.iso3Code)
+                                viewModel.processIntent(
+                                    LoadReportDataForRegion(
+                                        UIText.DynamicString(
+                                            region.name
+                                        ), region.iso3Code
+                                    )
+                                )
                             })
                     }
                 }
@@ -116,9 +126,11 @@ fun MainScreen() {
                 // Clicking on the data panel collapses it.
                 AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
                     RegionDataPanel(
-                        title = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportDataTitle?.asString() ?: "",
-                        reportData = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportData ?: ReportData(),
-                        clickCallback = { viewModel.collapseDataPanel() },
+                        title = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportDataTitle?.asString()
+                            ?: "",
+                        reportData = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportData
+                            ?: ReportData(),
+                        clickCallback = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) },
                         isLoading = uiState.dataPanelUIState is DataPanelOpenWithLoading
                     )
                 }

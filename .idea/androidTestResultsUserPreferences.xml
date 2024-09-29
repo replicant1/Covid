@@ -244,6 +244,7 @@
                 <map>
                   <entry key="Duration" value="90" />
                   <entry key="Google Pixel 6" value="120" />
+                  <entry key="TCL T506T" value="120" />
                   <entry key="Tests" value="360" />
                 </map>
               </option>
@@ -478,6 +479,7 @@
                 <map>
                   <entry key="Duration" value="90" />
                   <entry key="Google Pixel 6" value="120" />
+                  <entry key="TCL T506T" value="120" />
                   <entry key="Tests" value="360" />
                 </map>
               </option>

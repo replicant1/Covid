@@ -14,13 +14,15 @@ import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -73,7 +75,7 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun country_list_content_loads_at_startup() = runBlocking {
-        viewModel.loadRegionList()
+        viewModel.processIntent(MainViewModel.MainIntent.LoadRegionList)
 
         val result = viewModel.uiState.value
 
@@ -94,7 +96,7 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun show_error_message() = runBlocking {
-        viewModel.showErrorMessage(UIText.DynamicString("An error has occurred."))
+        viewModel.processIntent(MainViewModel.MainIntent.ShowErrorMessage(UIText.DynamicString("An error has occurred.")))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -106,14 +108,16 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun collapse_data_panel() = runBlocking {
-        viewModel.collapseDataPanel()
+        viewModel.processIntent(
+            CollapseDataPanel
+        )
         Assert.assertTrue(viewModel.uiState.value.dataPanelUIState is DataPanelClosed)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun load_report_for_region_results_in_report_data_in_data_panel() = runBlocking {
-        viewModel.loadReportDataForRegion(UIText.DynamicString("China"), "CHN")
+        viewModel.processIntent(LoadReportDataForRegion(UIText.DynamicString("China"), "CHN"))
 
         // Wait for data to load from [FakeCovidAPI]
         timePasses()
@@ -135,7 +139,7 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun load_report_for_global_gives_global_data_in_data_panel() = runBlocking {
-        viewModel.loadReportDataForGlobal()
+        viewModel.processIntent(LoadReportDataForGlobal)
 
         timePasses()
 
@@ -153,8 +157,8 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun empty_search_text_matches_all_regions() = runBlocking {
-        viewModel.loadRegionList()
-        viewModel.onSearchTextChanged("")
+        viewModel.processIntent(MainViewModel.MainIntent.LoadRegionList)
+        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(""))
         Assert.assertEquals("", viewModel.uiState.value.searchText)
         Assert.assertEquals(
             FakeRegions.REGIONS.size,
@@ -165,8 +169,8 @@ class MainViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun search_text_of_brazil_matches_exactly_one_region() = runBlocking {
-        viewModel.loadRegionList()
-        viewModel.onSearchTextChanged("Brazil")
+        viewModel.processIntent(MainViewModel.MainIntent.LoadRegionList)
+        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("Brazil"))
 
         timePasses()
 
@@ -177,8 +181,8 @@ class MainViewModelTest {
 
     @Test
     fun search_text_of_xxx_matches_no_regions() = runBlocking {
-        viewModel.loadRegionList()
-        viewModel.onSearchTextChanged("xxx")
+        viewModel.processIntent(MainViewModel.MainIntent.LoadRegionList)
+        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("xxx"))
 
         timePasses()
 
@@ -189,7 +193,7 @@ class MainViewModelTest {
     @Test
     fun exception_from_api_when_loading_country_list_results_in_error_message() = runBlocking {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
-        viewModel.loadRegionList()
+        viewModel.processIntent(MainViewModel.MainIntent.LoadRegionList)
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
 
         viewModel.errorFlow.test {
@@ -201,7 +205,7 @@ class MainViewModelTest {
     @Test
     fun exception_from_api_when_loading_stats_results_in_error_message() = runBlocking {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
-        viewModel.loadReportDataForGlobal()
+        viewModel.processIntent(LoadReportDataForGlobal)
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
 
         viewModel.errorFlow.test {
