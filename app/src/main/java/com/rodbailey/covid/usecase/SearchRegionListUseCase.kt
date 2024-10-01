@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 class SearchRegionListUseCase(private val repository: CovidRepository) {
 
-    suspend operator fun invoke(searchText: String): Flow<List<Region>> {
-        return repository.getRegionsByName(searchText)
+    suspend operator fun invoke(searchText: String) {
+//        return repository.getRegionsByName(searchText)
     }
+
 }

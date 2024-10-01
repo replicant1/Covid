@@ -10,6 +10,7 @@ class DefaultRemoteDataSource(private val covidAPI: CovidAPI) : RemoteDataSource
     init {
         println("**** $this constructed with $covidAPI")
     }
+
     override fun loadRegions() : Flow<RegionList> = flow {
         emit(covidAPI.getRegions())
     }

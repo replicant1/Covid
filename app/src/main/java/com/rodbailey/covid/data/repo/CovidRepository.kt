@@ -26,7 +26,9 @@ interface CovidRepository {
      * @return All known regions in ascending order by name
      * @throws Exception any error in getting the region list
      */
-     suspend fun getRegions(): Flow<List<Region>>
+     //suspend fun getRegions(): Flow<List<Region>>
 
-     suspend fun getRegionsByName(searchText: String) : Flow<List<Region>>
+     fun getRegionsStream(): Flow<List<Region>>
+
+     //suspend fun getRegionsByName(searchText: String) : Flow<List<Region>>
 }

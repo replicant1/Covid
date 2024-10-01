@@ -10,6 +10,7 @@ import com.rodbailey.covid.domain.TransformUtils.regionListToRegionEntityList
 import com.rodbailey.covid.domain.TransformUtils.regionStatsEntityListToReportDataList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 class DefaultLocalDataSource(
     private val regionDao: RegionDao,
@@ -21,24 +22,16 @@ class DefaultLocalDataSource(
     }
 
     override suspend fun loadAllRegions(): Flow<List<Region>> {
-        return flow { emit(regionEntityListToRegionList(regionDao.getAllRegions())) }
-    }
-
-    override suspend fun loadRegionCount(): Flow<Int> {
-        return flow {
-            emit(regionDao.getRegionCount())
+        return regionDao.getAllRegionsStream().map { regionEntityList ->
+            regionEntityList.map { regionEntity ->
+                TransformUtils.regionEntityToRegion(regionEntity)
+            }
         }
     }
 
     override suspend fun loadRegionsByIso3Code(iso3code: String): Flow<List<Region>> {
         return flow {
             emit(regionEntityListToRegionList(regionDao.getRegionsByIso3Code(iso3code)))
-        }
-    }
-
-    override suspend fun loadRegionsByName(searchText: String): Flow<List<Region>> {
-        return flow {
-            emit(regionEntityListToRegionList(regionDao.getRegionsByName(searchText)))
         }
     }
 
@@ -49,12 +42,6 @@ class DefaultLocalDataSource(
     override suspend fun loadReportDataByIso3Code(iso3code: String): Flow<List<ReportData>> {
         return flow {
             emit(regionStatsEntityListToReportDataList(regionStatsDao.getRegionStats(iso3code)))
-        }
-    }
-
-    override suspend fun loadReportDataCount(iso3code: String): Flow<Int> {
-        return flow {
-            emit(regionStatsDao.getRegionStatsCount(iso3code))
         }
     }
 }

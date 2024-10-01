@@ -91,7 +91,7 @@ class FakeCovidRepository() : CovidRepository {
     /**
      * @see [CovidRepository.getRegions]
      */
-    override suspend fun getRegions(): Flow<List<Region>> {
+    override fun getRegionsStream(): Flow<List<Region>> {
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -124,15 +124,15 @@ class FakeCovidRepository() : CovidRepository {
         throw RuntimeException("No region found with ISO code $isoCode")
     }
 
-    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
-        if (allMethodsThrowException) {
-            throw RuntimeException()
-        }
-        val regions = FakeRegions.REGIONS.keys.filter { region ->
-            region.name.contains(searchText, ignoreCase = true)
-        }.sortedBy { it.name }
-        return flow { emit(regions) }
-    }
+//    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
+//        if (allMethodsThrowException) {
+//            throw RuntimeException()
+//        }
+//        val regions = FakeRegions.REGIONS.keys.filter { region ->
+//            region.name.contains(searchText, ignoreCase = true)
+//        }.sortedBy { it.name }
+//        return flow { emit(regions) }
+//    }
 
     fun setAllMethodsThrowException(value: Boolean) {
         allMethodsThrowException = value

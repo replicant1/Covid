@@ -21,16 +21,9 @@ interface LocalDataSource {
 
     suspend fun loadAllRegions() : Flow<List<Region>>
 
-    suspend fun loadRegionCount() : Flow<Int>
-
     suspend fun loadRegionsByIso3Code(iso3code: String) : Flow<List<Region>>
-
-    suspend fun loadRegionsByName(searchText : String) : Flow<List<Region>>
 
     suspend fun saveReportData(iso3code: String, reportData: ReportData)
 
     suspend fun loadReportDataByIso3Code(iso3code : String) : Flow<List<ReportData>>
-
-    suspend fun loadReportDataCount(iso3code: String) : Flow<Int>
-
 }

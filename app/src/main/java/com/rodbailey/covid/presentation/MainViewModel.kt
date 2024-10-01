@@ -3,6 +3,9 @@ package com.rodbailey.covid.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.repo.CovidRepository
+import com.rodbailey.covid.data.repo.DefaultCovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
@@ -17,11 +20,17 @@ import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
@@ -29,7 +38,8 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewModel() {
+class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: CovidRepository) :
+    ViewModel() {
 
     /**
      * Putting the data common to all screens states in a data class lets us take advantage
@@ -77,14 +87,39 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
         loadRegionList()
     }
 
+    private val regions: Flow<List<Region>> = repo.getRegionsStream()
+
     // Error text from network failures. Use a Channel to prevent event duplication on
     // configuration change.
     private val errorChannel = Channel<UIText>()
     val errorFlow = errorChannel.receiveAsFlow()
 
+    private val searchText = MutableStateFlow("")
+    private val isRegionListLoading = MutableStateFlow(false)
+    private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
+
     // Communicates UI state changes to corresponding view
-    private val _uiState = MutableStateFlow(UIState())
-    val uiState = _uiState.asStateFlow()
+    //private val _uiState = MutableStateFlow(UIState())
+    val uiState: StateFlow<UIState> = combine(
+        regions,
+        searchText,
+        isRegionListLoading,
+        dataPanelUIState
+    ) { _regions, _searchText, _isRegionListLoading, _dataPanelUIState ->
+        println("** Received in MainViewModel: _regions = $_regions")
+        UIState(
+            isRegionListLoading = _isRegionListLoading,
+            dataPanelUIState = _dataPanelUIState,
+            matchingRegions = _regions.sortedBy { it.name }.filter { region ->
+                region.name.uppercase().contains(_searchText.uppercase())
+            },
+            searchText = _searchText
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = UIState()
+    )
 
     fun processIntent(mainIntent: MainIntent) {
         when (mainIntent) {
@@ -94,6 +129,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                 mainIntent.regionName,
                 mainIntent.regionIso3Code
             )
+
             is OnSearchTextChanged -> onSearchTextChanged(mainIntent.text)
             is LoadRegionList -> loadRegionList()
             is MainIntent.ShowErrorMessage -> showErrorMessage(mainIntent.message)
@@ -102,14 +138,12 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
 
     private fun showErrorMessage(message: UIText) {
         viewModelScope.launch {
-            errorChannel.send(message)
+            //errorChannel.send(message)
         }
     }
 
     private fun collapseDataPanel() {
-        _uiState.update {
-            it.copy(dataPanelUIState = DataPanelClosed)
-        }
+        dataPanelUIState.value = DataPanelClosed
     }
 
     private fun loadReportDataForGlobal() {
@@ -124,14 +158,10 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                 } else {
                     mainUseCases.getDataForRegionUseCase(regionIso3Code)
                 }.onStart {
-                    _uiState.update {
-                        it.copy(dataPanelUIState = DataPanelOpenWithLoading)
-                    }
+                    dataPanelUIState.value = DataPanelOpenWithLoading
                 }.collect { reportData: ReportData ->
                     Timber.i("Collected report data for $regionName = $reportData")
-                    _uiState.update {
-                        it.copy(dataPanelUIState = DataPanelOpenWithData(regionName, reportData))
-                    }
+                    dataPanelUIState.value = DataPanelOpenWithData(regionName, reportData)
                 }
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
@@ -141,9 +171,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
                         regionName
                     )
                 )
-                _uiState.update {
-                    it.copy(dataPanelUIState = DataPanelClosed)
-                }
+                dataPanelUIState.value = DataPanelClosed
             }
         }
     }
@@ -153,20 +181,15 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
             try {
                 mainUseCases.initialiseRegionListUseCase()
                     .onStart {
-                        _uiState.update {
-                            it.copy(isRegionListLoading = true)
-                        }
+                        println("** Into loadRegionList.onStart")
+                        isRegionListLoading.value = true
                     }
                     .onCompletion {
-                        _uiState.update {
-                            it.copy(isRegionListLoading = false)
-                        }
+                        println("** Into loadRegionList.onCompletion")
+                        isRegionListLoading.value = false
                     }
                     .collect {
-                        updateMatchingRegionsPerSearchText()
-                        _uiState.update {
-                            it.copy(isRegionListLoading = false)
-                        }
+                        println("** Into loadRegionList.collect with num regions = ${it.size}")
                     }
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while loading country list")
@@ -176,23 +199,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases) : ViewMo
     }
 
     private fun onSearchTextChanged(text: String) {
-        _uiState.update {
-            it.copy(searchText = text)
-        }
-        updateMatchingRegionsPerSearchText()
+        searchText.value = text
     }
 
-    /**
-     * Recalculate the regions list in light of the new search text
-     */
-    private fun updateMatchingRegionsPerSearchText() {
-        viewModelScope.launch {
-            mainUseCases.searchRegionListUseCase(_uiState.value.searchText)
-                .collect { matches ->
-                    _uiState.update {
-                        it.copy(matchingRegions = matches)
-                    }
-                }
-        }
-    }
 }

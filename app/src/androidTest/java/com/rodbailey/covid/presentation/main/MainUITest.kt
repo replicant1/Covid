@@ -53,7 +53,7 @@ class MainUITest {
 
     @Test
     fun first_country_alphabetically_is_displayed_on_startup(): Unit = runBlocking {
-        val firstRegion = FakeCovidRepository().getRegions().first().first()
+        val firstRegion = FakeCovidRepository().getRegionsStream().first().first()
         rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
     }
 
@@ -117,7 +117,7 @@ class MainUITest {
     fun scroll_to_last_region_and_click_shows_region_stats_in_data_panel(): Unit = runBlocking {
         rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
 
-        val lastRegion = FakeCovidRepository().getRegions().first().last()
+        val lastRegion = FakeCovidRepository().getRegionsStream().first().last()
         rule.onNodeWithText(lastRegion.name).performClick()
 
         val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)

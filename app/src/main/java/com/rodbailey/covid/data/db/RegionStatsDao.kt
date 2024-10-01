@@ -11,7 +11,4 @@ interface RegionStatsDao {
 
     @Query("select * from stats where iso3code = :iso3code")
     suspend fun getRegionStats(iso3code: String): List<RegionStatsEntity>
-
-    @Query("select count(*) from stats where iso3code = :iso3code")
-    suspend fun getRegionStatsCount(iso3code: String) : Int
 }

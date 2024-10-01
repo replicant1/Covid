@@ -7,6 +7,6 @@ import kotlinx.coroutines.flow.Flow
 class InitialiseRegionListUseCase(private val repository : CovidRepository) {
 
     suspend operator fun invoke() : Flow<List<Region>> {
-        return repository.getRegions()
+        return repository.getRegionsStream()
     }
 }

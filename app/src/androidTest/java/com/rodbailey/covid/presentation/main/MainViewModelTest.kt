@@ -63,7 +63,7 @@ class MainViewModelTest {
     @Before
     fun setup() {
         hiltRule.inject()
-        viewModel = MainViewModel(mainUseCases)
+        viewModel = MainViewModel(mainUseCases, fakeCovidRepository)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

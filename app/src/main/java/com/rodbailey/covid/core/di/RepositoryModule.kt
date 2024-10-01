@@ -1,5 +1,7 @@
 package com.rodbailey.covid.core.di
 
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.data.repo.DefaultCovidRepository
@@ -14,8 +16,8 @@ import dagger.hilt.components.SingletonComponent
 object RepositoryModule {
 
     @Provides
-    fun provideCovidRepository(localDataSource : LocalDataSource, remoteDataSource: RemoteDataSource) : CovidRepository {
+    fun provideCovidRepository(localDataSource : LocalDataSource, remoteDataSource: RemoteDataSource, regionDao: RegionDao, covidAPI: CovidAPI) : CovidRepository {
         // Dispense the *real* repository, not the fake we use for testing
-        return DefaultCovidRepository(localDataSource, remoteDataSource)
+        return DefaultCovidRepository(localDataSource, remoteDataSource, regionDao, covidAPI)
     }
 }

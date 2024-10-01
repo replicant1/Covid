@@ -1,17 +1,25 @@
 package com.rodbailey.covid.data.repo
 
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.TransformUtils
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 
 class DefaultCovidRepository(
     private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource
+    private val remoteDataSource: RemoteDataSource,
+    private val regionDao: RegionDao,
+    private val covidApi: CovidAPI
 ) : CovidRepository {
 
     companion object {
@@ -20,7 +28,7 @@ class DefaultCovidRepository(
 
     override suspend fun getReport(isoCode: String?): Flow<ReportData> {
         val nullSafeIsoCode = isoCode ?: GLOBAL_ISO3_CODE
-        val dbStatsCount = localDataSource.loadReportDataCount(nullSafeIsoCode).first()
+        val dbStatsCount = 0 //localDataSource.loadReportDataCount(nullSafeIsoCode).first()
 
         Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
 
@@ -36,21 +44,24 @@ class DefaultCovidRepository(
         }
     }
 
-    override suspend fun getRegions(): Flow<List<Region>> {
-        val dbRegionCount = localDataSource.loadRegionCount().first()
-
-        return if (dbRegionCount == 0) {
-            remoteDataSource.loadRegions().map {
-                localDataSource.saveRegions(it.regions)
-                it.regions
+    override fun getRegionsStream(): Flow<List<Region>> {
+        //return flowOf(listOf(Region("abc", "Hello")))
+        return regionDao.getAllRegionsStream().map { regions ->
+            println("*** Now we are firing up the hot flow of regions again with count ${regions.size}")
+            TransformUtils.regionEntityListToRegionList(regions)
+        }.onEach { result ->
+            if (result.isEmpty()) {
+                println("*** Here we are in the empty clause")
+                refreshRegions()
             }
-        } else {
-            localDataSource.loadAllRegions()
         }
     }
 
-    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
-        return localDataSource.loadRegionsByName(searchText)
+    private suspend fun refreshRegions() {
+        covidApi.getRegions().also {
+            regionDao.insert(
+                TransformUtils.regionListToRegionEntityList(it.regions)
+            )
+        }
     }
-
 }
