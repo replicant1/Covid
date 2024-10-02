@@ -1,12 +1,13 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.toRegion
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.domain.TransformUtils
+import com.rodbailey.covid.domain.toRegionEntityList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
@@ -50,7 +51,7 @@ class DefaultCovidRepository(
         return regionDao.getAllRegionsStream()
             .map { regions ->
                 regions.map { regionEntity ->
-                    TransformUtils.regionEntityToRegion(regionEntity)
+                    regionEntity.toRegion()
                 }
             }.onEach {
                 if (it.isEmpty()) {
@@ -66,7 +67,7 @@ class DefaultCovidRepository(
         covidApi.getRegions()
             .also {
                 regionDao.insert(
-                    TransformUtils.regionListToRegionEntityList(it.regions)
+                    it.regions.toRegionEntityList()
                 )
             }
     }

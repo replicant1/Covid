@@ -11,7 +11,7 @@ import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.domain.TransformUtils
+import com.rodbailey.covid.domain.toRegionStatsEntity
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
@@ -165,10 +165,7 @@ class MainViewModel @Inject constructor(
                             println("** Retrieving $regionIso3Code from the API")
                             val report = covidAPI.getReport(regionIso3Code)
                             regionStatsDao.insert(
-                                TransformUtils.reportDataToRegionStatsEntity(
-                                    regionIso3Code,
-                                    report.data
-                                )
+                                report.data.toRegionStatsEntity(regionIso3Code)
                             )
                             println("** Inserted $regionIso3Code into database")
                         }
@@ -211,7 +208,7 @@ class MainViewModel @Inject constructor(
         println("Retrieved report = $result")
         println("Inserting into database...")
         regionStatsDao.insert(
-            TransformUtils.reportDataToRegionStatsEntity(regionIso3Code, result.data)
+            result.data.toRegionStatsEntity(regionIso3Code)
         )
         println("Back from inserting into database")
     }

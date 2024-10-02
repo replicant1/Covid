@@ -3,6 +3,7 @@ package com.rodbailey.covid.data.db
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.rodbailey.covid.domain.Region
 
 @Entity(tableName = "regions")
 data class RegionEntity (
@@ -16,3 +17,11 @@ data class RegionEntity (
     val name : String
 
 )
+
+fun RegionEntity.toRegion() =
+    Region(
+        iso3Code = this.iso3code,
+        name = this.name
+    )
+
+fun List<RegionEntity>.toRegionList() = this.map { it.toRegion() }
