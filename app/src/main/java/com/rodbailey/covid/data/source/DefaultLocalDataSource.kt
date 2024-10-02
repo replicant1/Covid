@@ -9,6 +9,7 @@ import com.rodbailey.covid.domain.TransformUtils.regionEntityListToRegionList
 import com.rodbailey.covid.domain.TransformUtils.regionListToRegionEntityList
 import com.rodbailey.covid.domain.TransformUtils.regionStatsEntityListToReportDataList
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
@@ -22,16 +23,17 @@ class DefaultLocalDataSource(
     }
 
     override suspend fun loadAllRegions(): Flow<List<Region>> {
-        return regionDao.getAllRegionsStream().map { regionEntityList ->
-            regionEntityList.map { regionEntity ->
-                TransformUtils.regionEntityToRegion(regionEntity)
-            }
-        }
+//        return regionDao.getAllRegionsStream().map { regionEntityList ->
+//            regionEntityList.map { regionEntity ->
+//                TransformUtils.regionEntityToRegion(regionEntity)
+//            }
+//        }
+        return emptyFlow()
     }
 
     override suspend fun loadRegionsByIso3Code(iso3code: String): Flow<List<Region>> {
         return flow {
-            emit(regionEntityListToRegionList(regionDao.getRegionsByIso3Code(iso3code)))
+//            emit(regionEntityListToRegionList(regionDao.getRegionsByIso3Code(iso3code)))
         }
     }
 

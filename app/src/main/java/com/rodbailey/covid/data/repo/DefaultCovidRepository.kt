@@ -8,11 +8,13 @@ import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.TransformUtils
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onEmpty
 import timber.log.Timber
 
 class DefaultCovidRepository(
@@ -28,7 +30,7 @@ class DefaultCovidRepository(
 
     override suspend fun getReport(isoCode: String?): Flow<ReportData> {
         val nullSafeIsoCode = isoCode ?: GLOBAL_ISO3_CODE
-        val dbStatsCount = 0 //localDataSource.loadReportDataCount(nullSafeIsoCode).first()
+        val dbStatsCount = 0 // localDataSource.loadReportDataCount(nullSafeIsoCode).first()
 
         Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
 
@@ -45,23 +47,27 @@ class DefaultCovidRepository(
     }
 
     override fun getRegionsStream(): Flow<List<Region>> {
-        //return flowOf(listOf(Region("abc", "Hello")))
-        return regionDao.getAllRegionsStream().map { regions ->
-            println("*** Now we are firing up the hot flow of regions again with count ${regions.size}")
-            TransformUtils.regionEntityListToRegionList(regions)
-        }.onEach { result ->
-            if (result.isEmpty()) {
-                println("*** Here we are in the empty clause")
-                refreshRegions()
+        return regionDao.getAllRegionsStream()
+            .map { regions ->
+                regions.map { regionEntity ->
+                    TransformUtils.regionEntityToRegion(regionEntity)
+                }
+            }.onEach {
+                if (it.isEmpty()) {
+                    // The insertion of region data into the table by refreshRegions() will
+                    // trigger a new emission containing the newly retrieved regions into the
+                    // regionDao.getAllRegionsStream() above.
+                    refreshRegions()
+                }
             }
-        }
     }
 
     private suspend fun refreshRegions() {
-        covidApi.getRegions().also {
-            regionDao.insert(
-                TransformUtils.regionListToRegionEntityList(it.regions)
-            )
-        }
+        covidApi.getRegions()
+            .also {
+                regionDao.insert(
+                    TransformUtils.regionListToRegionEntityList(it.regions)
+                )
+            }
     }
 }

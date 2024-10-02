@@ -3,16 +3,13 @@ package com.rodbailey.covid.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
-import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.repo.CovidRepository
-import com.rodbailey.covid.data.repo.DefaultCovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
-import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadRegionList
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
@@ -24,21 +21,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: CovidRepository) :
+class MainViewModel @Inject constructor(
+    private val mainUseCases: MainUseCases,
+    val repo: CovidRepository) :
     ViewModel() {
 
     /**
@@ -69,7 +63,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: Co
     }
 
     /**
-     * The "I" from "MVI" - this is how the view communicates intent to the ViewModel.
+     * How the view communicates intent/actions to this ViewModel.
      */
     sealed interface MainIntent {
         data object CollapseDataPanel : MainIntent
@@ -78,42 +72,34 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: Co
             val regionName: UIText, val regionIso3Code: String?
         ) : MainIntent
 
-        data object LoadRegionList : MainIntent
         data class OnSearchTextChanged(val text: String) : MainIntent
         data class ShowErrorMessage(val message: UIText) : MainIntent
     }
 
-    init {
-        loadRegionList()
-    }
-
-    private val regions: Flow<List<Region>> = repo.getRegionsStream()
-
-    // Error text from network failures. Use a Channel to prevent event duplication on
+    // Error text from network failures etc. Use a Channel to prevent event duplication on
     // configuration change.
     private val errorChannel = Channel<UIText>()
     val errorFlow = errorChannel.receiveAsFlow()
 
+    private val regions: Flow<List<Region>> = repo.getRegionsStream()
     private val searchText = MutableStateFlow("")
     private val isRegionListLoading = MutableStateFlow(false)
     private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
 
-    // Communicates UI state changes to corresponding view
-    //private val _uiState = MutableStateFlow(UIState())
+    // Communicates UI state changes to the view
     val uiState: StateFlow<UIState> = combine(
         regions,
         searchText,
         isRegionListLoading,
         dataPanelUIState
-    ) { _regions, _searchText, _isRegionListLoading, _dataPanelUIState ->
-        println("** Received in MainViewModel: _regions = $_regions")
+    ) { aRegions, aSearchText, aIsRegionListLoading, aDataPanelUIState ->
         UIState(
-            isRegionListLoading = _isRegionListLoading,
-            dataPanelUIState = _dataPanelUIState,
-            matchingRegions = _regions.sortedBy { it.name }.filter { region ->
-                region.name.uppercase().contains(_searchText.uppercase())
+            isRegionListLoading = aIsRegionListLoading,
+            dataPanelUIState = aDataPanelUIState,
+            matchingRegions = aRegions.sortedBy { it.name }.filter { region ->
+                region.name.uppercase().contains(aSearchText.uppercase())
             },
-            searchText = _searchText
+            searchText = aSearchText
         )
     }.stateIn(
         scope = viewModelScope,
@@ -129,9 +115,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: Co
                 mainIntent.regionName,
                 mainIntent.regionIso3Code
             )
-
             is OnSearchTextChanged -> onSearchTextChanged(mainIntent.text)
-            is LoadRegionList -> loadRegionList()
             is MainIntent.ShowErrorMessage -> showErrorMessage(mainIntent.message)
         }
     }
@@ -176,30 +160,7 @@ class MainViewModel @Inject constructor(val mainUseCases: MainUseCases, repo: Co
         }
     }
 
-    private fun loadRegionList() {
-        viewModelScope.launch {
-            try {
-                mainUseCases.initialiseRegionListUseCase()
-                    .onStart {
-                        println("** Into loadRegionList.onStart")
-                        isRegionListLoading.value = true
-                    }
-                    .onCompletion {
-                        println("** Into loadRegionList.onCompletion")
-                        isRegionListLoading.value = false
-                    }
-                    .collect {
-                        println("** Into loadRegionList.collect with num regions = ${it.size}")
-                    }
-            } catch (th: Throwable) {
-                Timber.e(th, "Exception while loading country list")
-                showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
-            }
-        }
-    }
-
     private fun onSearchTextChanged(text: String) {
         searchText.value = text
     }
-
 }

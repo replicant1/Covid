@@ -13,6 +13,7 @@ interface RegionDao {
     @Query("select * from regions")
     fun getAllRegionsStream(): Flow<List<RegionEntity>>
 
-    @Query("select * from regions where iso3code = :iso3code")
-    suspend fun getRegionsByIso3Code(iso3code: String): List<RegionEntity>
+    @Query("select count(*) from regions")
+    suspend fun getRegionCount(): Int
+
 }
