@@ -48,4 +48,6 @@ fun RegionStatsEntity.toReportData() =
         active = this.active,
         fatalityRate = this.fatalityRate
     )
-fun List<RegionStatsEntity>.toReportDataList() = this.map { it.toReportData()}
+
+fun List<RegionStatsEntity>.toReportDataList() = this.map { it.toReportData() }
+fun List<RegionStatsEntity>.toRegionStatsList() = this.map { it.toRegionStats() }

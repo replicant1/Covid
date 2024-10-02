@@ -1,14 +1,20 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionStatsDao
+import com.rodbailey.covid.data.db.RegionStatsEntity
 import com.rodbailey.covid.data.db.toRegion
+import com.rodbailey.covid.data.db.toRegionStats
+import com.rodbailey.covid.data.db.toRegionStatsList
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.source.LocalDataSource
 import com.rodbailey.covid.data.source.RemoteDataSource
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionEntityList
+import com.rodbailey.covid.domain.toRegionStatsEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -22,6 +28,7 @@ class DefaultCovidRepository(
     private val localDataSource: LocalDataSource,
     private val remoteDataSource: RemoteDataSource,
     private val regionDao: RegionDao,
+    private val regionStatsDao: RegionStatsDao,
     private val covidApi: CovidAPI
 ) : CovidRepository {
 
@@ -45,6 +52,23 @@ class DefaultCovidRepository(
                 it[0]
             }
         }
+    }
+
+    override fun getRegionStatsStream(iso3code : String?): Flow<List<RegionStats>> {
+        val nullSafeIsoCode = iso3code ?: GLOBAL_ISO3_CODE
+        return regionStatsDao.getRegionStatsStream(nullSafeIsoCode)
+            .distinctUntilChanged()
+            .map {
+                it.toRegionStatsList()
+            }
+            .onEach {
+                if (it.isEmpty()) {
+                    val report = covidApi.getReport(iso3code)
+                    regionStatsDao.insert(
+                        report.data.toRegionStatsEntity(nullSafeIsoCode)
+                    )
+                }
+            }
     }
 
     override fun getRegionsStream(): Flow<List<Region>> {

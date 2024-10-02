@@ -14,4 +14,6 @@ interface CovidRepository {
 
     fun getRegionsStream(): Flow<List<Region>>
 
+    fun getRegionStatsStream(iso3code: String?): Flow<List<RegionStats>>
+
 }

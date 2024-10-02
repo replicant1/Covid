@@ -8,6 +8,7 @@ import com.rodbailey.covid.data.db.toRegionStats
 import com.rodbailey.covid.data.db.toReportData
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
+import com.rodbailey.covid.data.repo.toReportData
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionStatsEntity
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -148,40 +150,18 @@ class MainViewModel @Inject constructor(
     private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: String?) {
         viewModelScope.launch {
             try {
-                val selectedRegionStatsStream =
-                    regionStatsDao.getRegionStatsStream(regionIso3Code!!)
-
-                selectedRegionStatsStream
-                    .distinctUntilChanged()
-                    .onEach {
-                        if (it.isEmpty()) {
-                            println("** Retrieving $regionIso3Code from the API")
-                            val report = covidAPI.getReport(regionIso3Code)
-                            regionStatsDao.insert(
-                                report.data.toRegionStatsEntity(regionIso3Code)
-                            )
-                            println("** Inserted $regionIso3Code into database")
-                        }
+                repo.getRegionStatsStream(regionIso3Code)
+                    .onStart {
+                        dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
                     }
                     .collectLatest {
                         if (it.isNotEmpty()) {
-                            val regionStats = it.first().toRegionStats()
-                            println("** collect[$regionIso3Code] = $regionStats")
-                            dataPanelUIState.value = DataPanelOpenWithData(
-                                regionName, it.first().toReportData())
+                            val regionStats = it.first()
+                            println("** collect [$regionIso3Code] = $regionStats")
+                            dataPanelUIState.value =
+                                DataPanelOpenWithData(regionName, regionStats.toReportData())
                         }
                     }
-
-//                if (regionIso3Code == null) {
-//                    mainUseCases.getDataForGlobalUseCase()
-//                } else {
-//                    mainUseCases.getDataForRegionUseCase(regionIso3Code)
-//                }.onStart {
-//                    dataPanelUIState.value = DataPanelOpenWithLoading
-//                }.collect { reportData: ReportData ->
-//                    Timber.i("Collected report data for $regionName = $reportData")
-//                    dataPanelUIState.value = DataPanelOpenWithData(regionName, reportData)
-//                }
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
