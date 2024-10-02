@@ -32,7 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val mainUseCases: MainUseCases,
-    val repo: CovidRepository) :
+    val repo: CovidRepository
+) :
     ViewModel() {
 
     /**
@@ -42,9 +43,8 @@ class MainViewModel @Inject constructor(
      * the [DataPanelUIState].
      */
     data class UIState(
-        val isRegionListLoading: Boolean = false,
         val searchText: String = "",
-        val matchingRegions: List<Region> = emptyList(),
+        val matchingRegions: Result<List<Region>> = Result.Loading,
         val dataPanelUIState: DataPanelUIState = DataPanelClosed
     )
 
@@ -81,24 +81,19 @@ class MainViewModel @Inject constructor(
     private val errorChannel = Channel<UIText>()
     val errorFlow = errorChannel.receiveAsFlow()
 
-    private val regions: Flow<List<Region>> = repo.getRegionsStream()
+    private val regions: Flow<Result<List<Region>>> = repo.getRegionsStream().asResult()
     private val searchText = MutableStateFlow("")
-    private val isRegionListLoading = MutableStateFlow(false)
     private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
 
     // Communicates UI state changes to the view
     val uiState: StateFlow<UIState> = combine(
         regions,
         searchText,
-        isRegionListLoading,
         dataPanelUIState
-    ) { aRegions, aSearchText, aIsRegionListLoading, aDataPanelUIState ->
+    ) { aRegions, aSearchText, aDataPanelUIState ->
         UIState(
-            isRegionListLoading = aIsRegionListLoading,
             dataPanelUIState = aDataPanelUIState,
-            matchingRegions = aRegions.sortedBy { it.name }.filter { region ->
-                region.name.uppercase().contains(aSearchText.uppercase())
-            },
+            matchingRegions = matchingRegionsResult(aRegions, aSearchText),
             searchText = aSearchText
         )
     }.stateIn(
@@ -106,6 +101,15 @@ class MainViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(),
         initialValue = UIState()
     )
+
+    private fun matchingRegionsResult(aRegions: Result<List<Region>>, aSearchText: String) =
+        if (aRegions is Result.Success) {
+            Result.Success(aRegions.data.sortedBy { it.name }.filter { region ->
+                region.name.uppercase().contains(aSearchText.uppercase())
+            })
+        } else {
+            aRegions
+        }
 
     fun processIntent(mainIntent: MainIntent) {
         when (mainIntent) {
@@ -115,6 +119,7 @@ class MainViewModel @Inject constructor(
                 mainIntent.regionName,
                 mainIntent.regionIso3Code
             )
+
             is OnSearchTextChanged -> onSearchTextChanged(mainIntent.text)
             is MainIntent.ShowErrorMessage -> showErrorMessage(mainIntent.message)
         }
