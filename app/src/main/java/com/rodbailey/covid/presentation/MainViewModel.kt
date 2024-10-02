@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
 import com.rodbailey.covid.data.db.RegionStatsDao
-import com.rodbailey.covid.data.db.RegionStatsEntity
 import com.rodbailey.covid.data.db.toRegionStats
 import com.rodbailey.covid.data.db.toReportData
 import com.rodbailey.covid.data.net.CovidAPI
@@ -14,26 +13,21 @@ import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionStatsEntity
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
-import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
 import com.rodbailey.covid.presentation.core.UIText
-import com.rodbailey.covid.usecase.MainUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,7 +36,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val mainUseCases: MainUseCases,
     val repo: CovidRepository,
     val regionStatsDao: RegionStatsDao,
     val covidAPI: CovidAPI
