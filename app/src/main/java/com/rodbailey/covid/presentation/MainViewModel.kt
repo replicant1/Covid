@@ -3,9 +3,15 @@ package com.rodbailey.covid.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
+import com.rodbailey.covid.data.db.RegionStatsDao
+import com.rodbailey.covid.data.db.RegionStatsEntity
+import com.rodbailey.covid.data.db.toRegionStats
+import com.rodbailey.covid.data.db.toReportData
+import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.TransformUtils
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
@@ -21,7 +27,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -32,7 +43,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val mainUseCases: MainUseCases,
-    val repo: CovidRepository
+    val repo: CovidRepository,
+    val regionStatsDao: RegionStatsDao,
+    val covidAPI: CovidAPI
 ) :
     ViewModel() {
 
@@ -89,7 +102,7 @@ class MainViewModel @Inject constructor(
     val uiState: StateFlow<UIState> = combine(
         regions,
         searchText,
-        dataPanelUIState
+        dataPanelUIState,
     ) { aRegions, aSearchText, aDataPanelUIState ->
         UIState(
             dataPanelUIState = aDataPanelUIState,
@@ -142,16 +155,43 @@ class MainViewModel @Inject constructor(
     private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: String?) {
         viewModelScope.launch {
             try {
-                if (regionIso3Code == null) {
-                    mainUseCases.getDataForGlobalUseCase()
-                } else {
-                    mainUseCases.getDataForRegionUseCase(regionIso3Code)
-                }.onStart {
-                    dataPanelUIState.value = DataPanelOpenWithLoading
-                }.collect { reportData: ReportData ->
-                    Timber.i("Collected report data for $regionName = $reportData")
-                    dataPanelUIState.value = DataPanelOpenWithData(regionName, reportData)
-                }
+                val selectedRegionStatsStream =
+                    regionStatsDao.getRegionStatsStream(regionIso3Code!!)
+
+                selectedRegionStatsStream
+                    .distinctUntilChanged()
+                    .onEach {
+                        if (it.isEmpty()) {
+                            println("** Retrieving $regionIso3Code from the API")
+                            val report = covidAPI.getReport(regionIso3Code)
+                            regionStatsDao.insert(
+                                TransformUtils.reportDataToRegionStatsEntity(
+                                    regionIso3Code,
+                                    report.data
+                                )
+                            )
+                            println("** Inserted $regionIso3Code into database")
+                        }
+                    }
+                    .collectLatest {
+                        if (it.isNotEmpty()) {
+                            val regionStats = it.first().toRegionStats()
+                            println("** collect[$regionIso3Code] = $regionStats")
+                            dataPanelUIState.value = DataPanelOpenWithData(
+                                regionName, it.first().toReportData())
+                        }
+                    }
+
+//                if (regionIso3Code == null) {
+//                    mainUseCases.getDataForGlobalUseCase()
+//                } else {
+//                    mainUseCases.getDataForRegionUseCase(regionIso3Code)
+//                }.onStart {
+//                    dataPanelUIState.value = DataPanelOpenWithLoading
+//                }.collect { reportData: ReportData ->
+//                    Timber.i("Collected report data for $regionName = $reportData")
+//                    dataPanelUIState.value = DataPanelOpenWithData(regionName, reportData)
+//                }
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
@@ -163,6 +203,17 @@ class MainViewModel @Inject constructor(
                 dataPanelUIState.value = DataPanelClosed
             }
         }
+    }
+
+    private suspend fun refreshDataForRegion(regionIso3Code: String?) {
+        println("Into refreshDataForRegion $regionIso3Code")
+        val result = covidAPI.getReport(regionIso3Code!!)
+        println("Retrieved report = $result")
+        println("Inserting into database...")
+        regionStatsDao.insert(
+            TransformUtils.reportDataToRegionStatsEntity(regionIso3Code, result.data)
+        )
+        println("Back from inserting into database")
     }
 
     private fun onSearchTextChanged(text: String) {
