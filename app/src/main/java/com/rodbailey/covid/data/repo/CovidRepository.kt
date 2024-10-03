@@ -10,8 +10,6 @@ import kotlinx.coroutines.flow.Flow
  */
 interface CovidRepository {
 
-    suspend fun getReport(isoCode: String?): Flow<ReportData>
-
     fun getRegionsStream(): Flow<List<Region>>
 
     fun getRegionStatsStream(iso3code: String?): Flow<List<RegionStats>>

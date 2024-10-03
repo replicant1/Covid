@@ -98,31 +98,35 @@ class FakeCovidRepository() : CovidRepository {
         return flow { emit(FakeRegions.REGIONS.keys.sortedBy { region -> region.name }) }
     }
 
+    override fun getRegionStatsStream(iso3code: String?): Flow<List<RegionStats>> {
+        TODO("Not yet implemented")
+    }
+
     /**
      * @see [CovidRepository.getReport]
      */
-    override suspend fun getReport(isoCode: String?): Flow<ReportData> {
-        if (allMethodsThrowException) {
-            throw RuntimeException()
-        }
-
-        if (isoCode == null) {
-            return flow { emit(FakeRegions.GLOBAL_REGION_STATS) }
-        }
-
-        val result = FakeRegions.REGIONS.keys.filter { it.iso3Code == isoCode }
-        if (result.isEmpty()) {
-            Timber.e("No region found with ISO code $isoCode")
-            throw RuntimeException("No region found with ISO code $isoCode")
-        }
-
-        val matchingData = FakeRegions.REGIONS[result[0]]
-        if (matchingData != null) {
-            return flow { emit(matchingData) }
-        }
-
-        throw RuntimeException("No region found with ISO code $isoCode")
-    }
+//    override suspend fun getReport(isoCode: String?): Flow<ReportData> {
+//        if (allMethodsThrowException) {
+//            throw RuntimeException()
+//        }
+//
+//        if (isoCode == null) {
+//            return flow { emit(FakeRegions.GLOBAL_REGION_STATS) }
+//        }
+//
+//        val result = FakeRegions.REGIONS.keys.filter { it.iso3Code == isoCode }
+//        if (result.isEmpty()) {
+//            Timber.e("No region found with ISO code $isoCode")
+//            throw RuntimeException("No region found with ISO code $isoCode")
+//        }
+//
+//        val matchingData = FakeRegions.REGIONS[result[0]]
+//        if (matchingData != null) {
+//            return flow { emit(matchingData) }
+//        }
+//
+//        throw RuntimeException("No region found with ISO code $isoCode")
+//    }
 
 //    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
 //        if (allMethodsThrowException) {
