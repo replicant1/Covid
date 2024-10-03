@@ -3,15 +3,10 @@ package com.rodbailey.covid.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
-import com.rodbailey.covid.data.db.RegionStatsDao
-import com.rodbailey.covid.data.db.toRegionStats
-import com.rodbailey.covid.data.db.toReportData
-import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.toReportData
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.domain.toRegionStatsEntity
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
@@ -27,8 +22,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -39,8 +32,6 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     val repo: CovidRepository,
-    val regionStatsDao: RegionStatsDao,
-    val covidAPI: CovidAPI
 ) :
     ViewModel() {
 
@@ -173,17 +164,6 @@ class MainViewModel @Inject constructor(
                 dataPanelUIState.value = DataPanelClosed
             }
         }
-    }
-
-    private suspend fun refreshDataForRegion(regionIso3Code: String?) {
-        println("Into refreshDataForRegion $regionIso3Code")
-        val result = covidAPI.getReport(regionIso3Code!!)
-        println("Retrieved report = $result")
-        println("Inserting into database...")
-        regionStatsDao.insert(
-            result.data.toRegionStatsEntity(regionIso3Code)
-        )
-        println("Back from inserting into database")
     }
 
     private fun onSearchTextChanged(text: String) {
