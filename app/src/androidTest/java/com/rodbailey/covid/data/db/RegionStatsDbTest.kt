@@ -55,7 +55,7 @@ class RegionStatsDbTest {
     }
 
     @Test
-    fun retrieve_bad_iso3Code_is_empty() = runBlocking {
+    fun retrieve_bad_iso3Code_is_empty_list() = runBlocking {
         val result = statsDao.getRegionStats("UAS")
         Assert.assertTrue(result.isEmpty())
     }
@@ -98,8 +98,5 @@ class RegionStatsDbTest {
         Assert.assertEquals(30L, results[0].recovered)
         Assert.assertEquals(40L, results[0].active)
         Assert.assertEquals(0.5F, results[0].fatalityRate)
-
-//        val results2 = statsDao.getRegionStatsCount("ABC")
-//        Assert.assertEquals(1, results2)
     }
 }
