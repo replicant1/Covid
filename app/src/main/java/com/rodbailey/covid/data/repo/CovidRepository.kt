@@ -1,7 +1,6 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.domain.Region
-import com.rodbailey.covid.domain.ReportData
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -10,8 +9,14 @@ import kotlinx.coroutines.flow.Flow
  */
 interface CovidRepository {
 
+    /**
+     * @return Hot flow of all known regions in no particular order - never completes
+     */
     fun getRegionsStream(): Flow<List<Region>>
 
-    fun getRegionStatsStream(iso3code: String?): Flow<List<RegionStats>>
+    /**
+     * @return Cold flow of covid stats for the given region - completes after one emission
+     */
+    suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>>
 
 }

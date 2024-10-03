@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rodbailey.covid.R
 import com.rodbailey.covid.data.repo.CovidRepository
+import com.rodbailey.covid.data.repo.GlobalCode
+import com.rodbailey.covid.data.repo.RegionCode
 import com.rodbailey.covid.data.repo.toReportData
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
@@ -68,7 +70,7 @@ class MainViewModel @Inject constructor(
         data object CollapseDataPanel : MainIntent
         data object LoadReportDataForGlobal : MainIntent
         data class LoadReportDataForRegion(
-            val regionName: UIText, val regionIso3Code: String?
+            val regionName: UIText, val regionIso3Code: RegionCode
         ) : MainIntent
 
         data class OnSearchTextChanged(val text: String) : MainIntent
@@ -135,20 +137,17 @@ class MainViewModel @Inject constructor(
     }
 
     private fun loadReportDataForGlobal() {
-        loadReportDataForRegion(UIText.StringResource(R.string.region_global), null)
+        loadReportDataForRegion(UIText.StringResource(R.string.region_global), GlobalCode())
     }
 
-    private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: String?) {
+    private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: RegionCode) {
         viewModelScope.launch {
             try {
+                dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
                 repo.getRegionStatsStream(regionIso3Code)
-                    .onStart {
-                        dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
-                    }
                     .collectLatest {
                         if (it.isNotEmpty()) {
                             val regionStats = it.first()
-                            println("** collect [$regionIso3Code] = $regionStats")
                             dataPanelUIState.value =
                                 DataPanelOpenWithData(regionName, regionStats.toReportData())
                         }

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.toRegionCode
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
@@ -115,7 +116,7 @@ fun MainScreen() {
                                         LoadReportDataForRegion(
                                             UIText.DynamicString(
                                                 region.name
-                                            ), region.iso3Code
+                                            ), region.toRegionCode()
                                         )
                                     )
                                 })

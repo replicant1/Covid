@@ -98,7 +98,7 @@ class FakeCovidRepository() : CovidRepository {
         return flow { emit(FakeRegions.REGIONS.keys.sortedBy { region -> region.name }) }
     }
 
-    override fun getRegionStatsStream(iso3code: String?): Flow<List<RegionStats>> {
+    override suspend fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
         TODO("Not yet implemented")
     }
 

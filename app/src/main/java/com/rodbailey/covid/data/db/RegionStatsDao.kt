@@ -12,7 +12,4 @@ interface RegionStatsDao {
 
     @Query("select * from stats where iso3code = :iso3code")
     suspend fun getRegionStats(iso3code: String): List<RegionStatsEntity>
-
-    @Query("select * from stats where iso3code = :iso3code")
-    fun getRegionStatsStream(iso3code: String): Flow<List<RegionStatsEntity>>
 }

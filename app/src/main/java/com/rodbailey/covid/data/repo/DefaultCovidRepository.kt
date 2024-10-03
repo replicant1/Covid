@@ -3,13 +3,14 @@ package com.rodbailey.covid.data.repo
 import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.db.RegionStatsDao
 import com.rodbailey.covid.data.db.toRegion
+import com.rodbailey.covid.data.db.toRegionStats
 import com.rodbailey.covid.data.db.toRegionStatsList
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.toRegionEntityList
 import com.rodbailey.covid.domain.toRegionStatsEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -19,25 +20,27 @@ class DefaultCovidRepository(
     private val covidApi: CovidAPI
 ) : CovidRepository {
 
-    companion object {
-        const val GLOBAL_ISO3_CODE = "___"
+
+    override suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>> {
+        val dbStats = regionStatsDao.getRegionStats(code.chars)
+        return flowOf(
+            if (dbStats.isEmpty()) {
+                val report = covidApi.getReport(codeToApiQueryParam(code))
+                val entity = report.data.toRegionStatsEntity(code.chars)
+                regionStatsDao.insert(entity)
+                listOf(entity.toRegionStats())
+            } else {
+                dbStats.toRegionStatsList()
+            }
+        )
     }
 
-    override fun getRegionStatsStream(iso3code : String?): Flow<List<RegionStats>> {
-        val nullSafeIsoCode = iso3code ?: GLOBAL_ISO3_CODE
-        return regionStatsDao.getRegionStatsStream(nullSafeIsoCode)
-            .distinctUntilChanged()
-            .map {
-                it.toRegionStatsList()
-            }
-            .onEach {
-                if (it.isEmpty()) {
-                    val report = covidApi.getReport(iso3code)
-                    regionStatsDao.insert(
-                        report.data.toRegionStatsEntity(nullSafeIsoCode)
-                    )
-                }
-            }
+    private fun codeToApiQueryParam(code: RegionCode): String? {
+        return if (code is GlobalCode) {
+            null
+        } else {
+            code.chars
+        }
     }
 
     override fun getRegionsStream(): Flow<List<Region>> {
