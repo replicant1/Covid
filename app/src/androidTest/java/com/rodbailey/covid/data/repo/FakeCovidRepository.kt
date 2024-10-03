@@ -3,9 +3,10 @@ package com.rodbailey.covid.data.repo
 import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.toRegionStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import timber.log.Timber
+import kotlinx.coroutines.flow.flowOf
 
 class FakeCovidRepository() : CovidRepository {
 
@@ -79,7 +80,6 @@ class FakeCovidRepository() : CovidRepository {
             active = 4000L,
             fatalityRate = 0.6F
         )
-        const val GLOBAL_DATA_SET_TITLE = "Global"
     }
 
     /**
@@ -95,48 +95,24 @@ class FakeCovidRepository() : CovidRepository {
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
-        return flow { emit(FakeRegions.REGIONS.keys.sortedBy { region -> region.name }) }
+        return flow {
+            emit(FakeRegions.REGIONS.keys.sortedBy { region -> region.name })
+        }
     }
 
     override suspend fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
-        TODO("Not yet implemented")
+        if (allMethodsThrowException) {
+            throw RuntimeException()
+        }
+
+        val data = when {
+            iso3code.chars == "AUS" -> AUS_REPORT_DATA.toRegionStats(iso3code.chars)
+            iso3code is GlobalCode -> GLOBAL_REPORT_DATA.toRegionStats(GlobalCode().chars)
+            else -> DEFAULT_REPORT_DATA.toRegionStats(iso3code.chars)
+        }
+
+        return flowOf(listOf(data))
     }
-
-    /**
-     * @see [CovidRepository.getReport]
-     */
-//    override suspend fun getReport(isoCode: String?): Flow<ReportData> {
-//        if (allMethodsThrowException) {
-//            throw RuntimeException()
-//        }
-//
-//        if (isoCode == null) {
-//            return flow { emit(FakeRegions.GLOBAL_REGION_STATS) }
-//        }
-//
-//        val result = FakeRegions.REGIONS.keys.filter { it.iso3Code == isoCode }
-//        if (result.isEmpty()) {
-//            Timber.e("No region found with ISO code $isoCode")
-//            throw RuntimeException("No region found with ISO code $isoCode")
-//        }
-//
-//        val matchingData = FakeRegions.REGIONS[result[0]]
-//        if (matchingData != null) {
-//            return flow { emit(matchingData) }
-//        }
-//
-//        throw RuntimeException("No region found with ISO code $isoCode")
-//    }
-
-//    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
-//        if (allMethodsThrowException) {
-//            throw RuntimeException()
-//        }
-//        val regions = FakeRegions.REGIONS.keys.filter { region ->
-//            region.name.contains(searchText, ignoreCase = true)
-//        }.sortedBy { it.name }
-//        return flow { emit(regions) }
-//    }
 
     fun setAllMethodsThrowException(value: Boolean) {
         allMethodsThrowException = value
