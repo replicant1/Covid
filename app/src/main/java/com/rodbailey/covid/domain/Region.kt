@@ -25,3 +25,4 @@ fun Region.toRegionEntity() =
 fun Region.toRegionCode() = RegionCode(this.iso3Code)
 
 fun List<Region>.toRegionEntityList() = this.map { it.toRegionEntity() }
+
