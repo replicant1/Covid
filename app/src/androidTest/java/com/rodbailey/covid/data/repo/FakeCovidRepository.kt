@@ -23,9 +23,11 @@ class FakeCovidRepository() : CovidRepository {
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
-        return flow {
-            emit(FakeRegions.REGIONS.keys.sortedBy { region -> region.name })
-        }
+        // Emulate the flow produced by Room that first emits "empty" before emitting an
+        // updated region list.
+        return flowOf(
+            emptyList(),
+            FakeRegions.REGIONS.keys.toList())
     }
 
     override suspend fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
