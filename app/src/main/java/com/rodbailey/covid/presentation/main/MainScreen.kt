@@ -28,12 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.toRegionCode
 import com.rodbailey.covid.presentation.MainViewModel
-import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
+import com.rodbailey.covid.presentation.Result.*
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
@@ -92,7 +93,7 @@ fun MainScreen() {
                         .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
                         .fillMaxWidth()
                         .height(16.dp)
-                        .alpha(if (uiState.isRegionListLoading) 1f else 0f)
+                        .alpha(if (uiState.matchingRegions is Loading) 1f else 0f)
                         .padding(bottom = 12.dp),
                     color = MaterialTheme.colorScheme.secondary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
@@ -105,18 +106,21 @@ fun MainScreen() {
                         .weight(1f)
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
-                    items(uiState.matchingRegions) { region ->
-                        RegionSearchResultItem(
-                            region = region,
-                            clickCallback = {
-                                viewModel.processIntent(
-                                    LoadReportDataForRegion(
-                                        UIText.DynamicString(
-                                            region.name
-                                        ), region.iso3Code
+                    if (uiState.matchingRegions is Success) {
+                        val successRegions = uiState.matchingRegions as Success
+                        items(successRegions.data) { region ->
+                            RegionSearchResultItem(
+                                region = region,
+                                clickCallback = {
+                                    viewModel.processIntent(
+                                        LoadReportDataForRegion(
+                                            UIText.DynamicString(
+                                                region.name
+                                            ), region.toRegionCode()
+                                        )
                                     )
-                                )
-                            })
+                                })
+                        }
                     }
                 }
 

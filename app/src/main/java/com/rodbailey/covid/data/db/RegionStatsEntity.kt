@@ -3,9 +3,11 @@ package com.rodbailey.covid.data.db
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.rodbailey.covid.data.repo.RegionStats
+import com.rodbailey.covid.domain.ReportData
 
 @Entity(tableName = "stats")
-data class RegionStatsEntity (
+data class RegionStatsEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
 
@@ -27,3 +29,25 @@ data class RegionStatsEntity (
     @ColumnInfo(name = "fatalityRate")
     val fatalityRate: Float
 )
+
+fun RegionStatsEntity.toRegionStats() =
+    RegionStats(
+        iso3Code = this.iso3code,
+        confirmed = this.confirmed,
+        deaths = this.deaths,
+        recovered = this.recovered,
+        active = this.active,
+        fatalityRate = this.fatalityRate
+    )
+
+fun RegionStatsEntity.toReportData() =
+    ReportData(
+        confirmed = this.confirmed,
+        deaths = this.deaths,
+        recovered = this.recovered,
+        active = this.active,
+        fatalityRate = this.fatalityRate
+    )
+
+fun List<RegionStatsEntity>.toReportDataList() = this.map { it.toReportData() }
+fun List<RegionStatsEntity>.toRegionStatsList() = this.map { it.toRegionStats() }

@@ -1,32 +1,22 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.domain.Region
-import com.rodbailey.covid.domain.ReportData
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Provides covid data from some source - perhaps network, perhaps local database
- * - clients do not know, the repository decides where to get the data.
+ * - clients do not know.
  */
 interface CovidRepository {
 
     /**
-     * Get a report of covid statistics for the region identified by the given [isoCode]
-     *
-     * @param isoCode ISO-3 alpha code for region, or null for "Global"
-     * @return Covid stats for the region with the given ISO-3 code
-     * @throws Exception if no country with the given [isoCode] or other error
+     * @return Hot flow of all known regions in no particular order - never completes
      */
-     suspend fun getReport(isoCode : String?): Flow<ReportData>
+    fun getRegionsStream(): Flow<List<Region>>
 
     /**
-     * Get a sorted list of all known regions that have covid statistics available through
-     * [getReport].
-     *
-     * @return All known regions in ascending order by name
-     * @throws Exception any error in getting the region list
+     * @return Cold flow of covid stats for the given region - completes after one emission
      */
-     suspend fun getRegions(): Flow<List<Region>>
+    suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>>
 
-     suspend fun getRegionsByName(searchText: String) : Flow<List<Region>>
 }

@@ -1,56 +1,70 @@
 package com.rodbailey.covid.data.repo
 
-import com.rodbailey.covid.data.source.LocalDataSource
-import com.rodbailey.covid.data.source.RemoteDataSource
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionStatsDao
+import com.rodbailey.covid.data.db.toRegion
+import com.rodbailey.covid.data.db.toRegionStats
+import com.rodbailey.covid.data.db.toRegionStatsList
+import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.domain.Region
-import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.domain.toRegionEntityList
+import com.rodbailey.covid.domain.toRegionStatsEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
+import kotlinx.coroutines.flow.onEach
 
 class DefaultCovidRepository(
-    private val localDataSource: LocalDataSource,
-    private val remoteDataSource: RemoteDataSource
+    private val regionDao: RegionDao,
+    private val regionStatsDao: RegionStatsDao,
+    private val covidApi: CovidAPI
 ) : CovidRepository {
 
-    companion object {
-        const val GLOBAL_ISO3_CODE = "___"
+
+    override suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>> {
+        val dbStats = regionStatsDao.getRegionStats(code.chars)
+        return flowOf(
+            if (dbStats.isEmpty()) {
+                val report = covidApi.getReport(codeToApiQueryParam(code))
+                val entity = report.data.toRegionStatsEntity(code.chars)
+                regionStatsDao.insert(entity)
+                listOf(entity.toRegionStats())
+            } else {
+                dbStats.toRegionStatsList()
+            }
+        )
     }
 
-    override suspend fun getReport(isoCode: String?): Flow<ReportData> {
-        val nullSafeIsoCode = isoCode ?: GLOBAL_ISO3_CODE
-        val dbStatsCount = localDataSource.loadReportDataCount(nullSafeIsoCode).first()
-
-        Timber.i("Into getReport() for iso $isoCode. Num matching records in db = $dbStatsCount")
-
-        return if (dbStatsCount == 0) {
-            remoteDataSource.loadReportDataByIso3Code(isoCode).map {
-                localDataSource.saveReportData(nullSafeIsoCode, it.data)
-                it.data
-            }
+    private fun codeToApiQueryParam(code: RegionCode): String? {
+        return if (code is GlobalCode) {
+            null
         } else {
-            localDataSource.loadReportDataByIso3Code(nullSafeIsoCode).map {
-                it[0]
-            }
+            code.chars
         }
     }
 
-    override suspend fun getRegions(): Flow<List<Region>> {
-        val dbRegionCount = localDataSource.loadRegionCount().first()
-
-        return if (dbRegionCount == 0) {
-            remoteDataSource.loadRegions().map {
-                localDataSource.saveRegions(it.regions)
-                it.regions
+    override fun getRegionsStream(): Flow<List<Region>> {
+        return regionDao.getAllRegionsStream()
+            .map { regions ->
+                regions.map { regionEntity ->
+                    regionEntity.toRegion()
+                }
+            }.onEach {
+                if (it.isEmpty()) {
+                    // The insertion of region data into the table by refreshRegions() will
+                    // trigger a new emission containing the newly retrieved regions into the
+                    // regionDao.getAllRegionsStream() above.
+                    refreshRegions()
+                }
             }
-        } else {
-            localDataSource.loadAllRegions()
-        }
     }
 
-    override suspend fun getRegionsByName(searchText: String): Flow<List<Region>> {
-        return localDataSource.loadRegionsByName(searchText)
+    private suspend fun refreshRegions() {
+        covidApi.getRegions()
+            .also {
+                regionDao.insert(
+                    it.regions.toRegionEntityList()
+                )
+            }
     }
-
 }
