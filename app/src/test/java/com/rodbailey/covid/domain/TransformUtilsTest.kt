@@ -93,8 +93,8 @@ class TransformUtilsTest {
     @Test
     fun regionToRegionCode() {
         assertEquals(
-            regionAus.toRegionCode(),
-            regionCodeAus
+            "AUS",
+            regionAus.toRegionCode().chars
         )
     }
 }
