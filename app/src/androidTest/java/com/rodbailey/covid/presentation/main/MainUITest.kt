@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.cash.turbine.test
 import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.domain.Region
@@ -53,8 +54,12 @@ class MainUITest {
 
     @Test
     fun first_country_alphabetically_is_displayed_on_startup(): Unit = runBlocking {
-        val firstRegion = FakeCovidRepository().getRegionsStream().first().first()
-        rule.onNodeWithText(firstRegion.name).assertIsDisplayed()
+        FakeCovidRepository().getRegionsStream().test {
+            val empty = awaitItem() // Empty list
+            val regions = awaitItem() // Regions
+            rule.onNodeWithText(regions.first().name).assertIsDisplayed()
+            awaitComplete()
+        }
     }
 
     @Test
