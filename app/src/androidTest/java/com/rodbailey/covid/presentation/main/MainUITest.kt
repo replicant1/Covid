@@ -122,16 +122,24 @@ class MainUITest {
     fun scroll_to_last_region_and_click_shows_region_stats_in_data_panel(): Unit = runBlocking {
         rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
 
-        val lastRegion = FakeCovidRepository().getRegionsStream().first().last()
-        rule.onNodeWithText(lastRegion.name).performClick()
+        val lastRegion = FakeCovidRepository().getRegionsStream().test {
+            val empty = awaitItem() // Empty list
+            val regions = awaitItem() // Regions
 
-        val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
+            val lastRegion = regions.last()
 
-        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
+            rule.onNodeWithText(lastRegion.name).performClick()
+
+            val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
+
+            rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
+
+            awaitComplete()
+        }
     }
 
     @Test
