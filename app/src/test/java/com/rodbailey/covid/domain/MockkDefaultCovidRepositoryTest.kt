@@ -1,0 +1,104 @@
+package com.rodbailey.covid.domain
+
+import app.cash.turbine.test
+import com.rodbailey.covid.data.db.RegionDao
+import com.rodbailey.covid.data.db.RegionEntity
+import com.rodbailey.covid.data.db.RegionStatsDao
+import com.rodbailey.covid.data.net.CovidAPI
+import com.rodbailey.covid.data.repo.CovidRepository
+import com.rodbailey.covid.data.repo.DefaultCovidRepository
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit4.MockKRule
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+/**
+ * Test DefaultCovidRepository by supplying mock dependent objects to it.
+ */
+
+class MockkDefaultCovidRepositoryTest {
+
+    @get:Rule
+    val mockkRule = MockKRule(this)
+
+    private lateinit var mRegionDao: RegionDao
+
+    private lateinit var mRegionStatsDao: RegionStatsDao
+
+    private lateinit var mCovidAPI: CovidAPI
+
+    private lateinit var mRepo: CovidRepository
+
+    @Before
+    fun setup() {
+        MockKAnnotations.init(this)
+        mRegionDao = mockk<RegionDao>()
+        mRegionStatsDao = mockk<RegionStatsDao>()
+        mCovidAPI = mockk<CovidAPI>()
+        mRepo = DefaultCovidRepository(mRegionDao, mRegionStatsDao, mCovidAPI)
+    }
+
+    @Test
+    fun repo_gets_regions_from_api_at_first(): Unit = runBlocking {
+        coEvery { mCovidAPI.getRegions() } returns RegionList(listOf(Region("AUS", "Australia")))
+        coEvery { mRegionDao.getAllRegionsStream() } returns flowOf(
+            emptyList(),
+            listOf(RegionEntity(1, "TWN", "Taiwan"))
+        )
+        coEvery { mRegionDao.insert(any()) } just runs
+
+        val regionsFlow = mRepo.getRegionsStream()
+
+        regionsFlow.test {
+            coVerify(exactly = 1) { mCovidAPI.getRegions() } // Retrieved regions from API
+            coVerify(exactly = 0) { mCovidAPI.getReport(any()) } // Didn't call this - unneeded
+
+            // Returned empty list first time, region list second time
+            coVerify(exactly = 1) { mRegionDao.getAllRegionsStream() }
+
+            val item1 = awaitItem() // []
+
+            val item2 = awaitItem()
+            Assert.assertEquals("TWN", item2.first().iso3Code)
+            Assert.assertEquals("Taiwan", item2.first().name)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun repo_gets_regions_from_db_on_second(): Unit = runBlocking {
+        coEvery { mRegionDao.getAllRegionsStream() } returns flowOf(
+            listOf(
+                RegionEntity(
+                    1,
+                    "AUS",
+                    "Australia"
+                )
+            )
+        )
+
+        val regionsFlow = mRepo.getRegionsStream()
+
+        regionsFlow.test {
+            coVerify(exactly  = 1) { mRegionDao.getAllRegionsStream()}
+            coVerify(exactly = 0) { mCovidAPI.getRegions() }
+            val item1 = awaitItem()
+            Assert.assertEquals("AUS", item1.first().iso3Code)
+            Assert.assertEquals("Australia", item1.first().name)
+            awaitComplete()
+        }
+    }
+
+
+}

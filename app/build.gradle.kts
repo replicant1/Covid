@@ -25,8 +25,9 @@ android {
 
     buildTypes {
         debug {
-            enableAndroidTestCoverage = true
-            enableUnitTestCoverage = true
+            // had to turn these off due to "invalidclassformatException" from jacoco 0.8.8
+//            enableAndroidTestCoverage = true
+//            enableUnitTestCoverage = true
         }
         release {
             isMinifyEnabled = false
@@ -110,4 +111,7 @@ dependencies {
 
     // Turbine - for testing Flows
     androidTestImplementation("app.cash.turbine:turbine:1.0.0")
+
+    testImplementation("io.mockk:mockk:1.12.8")
+    testImplementation("app.cash.turbine:turbine:1.0.0")
 }
