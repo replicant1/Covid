@@ -4,9 +4,11 @@ import app.cash.turbine.test
 import com.rodbailey.covid.data.db.RegionDao
 import com.rodbailey.covid.data.db.RegionEntity
 import com.rodbailey.covid.data.db.RegionStatsDao
+import com.rodbailey.covid.data.db.RegionStatsEntity
 import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.DefaultCovidRepository
+import com.rodbailey.covid.data.repo.RegionCode
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -15,6 +17,7 @@ import io.mockk.junit4.MockKRule
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -56,13 +59,19 @@ class MockkDefaultCovidRepositoryTest {
             emptyList(),
             listOf(RegionEntity(1, "TWN", "Taiwan"))
         )
-        coEvery { mRegionDao.insert(any()) } just runs
+        val regionListSlot = slot<List<RegionEntity>>()
+        coEvery { mRegionDao.insert(capture(regionListSlot)) } just runs
 
         val regionsFlow = mRepo.getRegionsStream()
 
         regionsFlow.test {
             coVerify(exactly = 1) { mCovidAPI.getRegions() } // Retrieved regions from API
             coVerify(exactly = 0) { mCovidAPI.getReport(any()) } // Didn't call this - unneeded
+
+            // The valdue returned by the API is inserted into the db
+            Assert.assertTrue(regionListSlot.isCaptured)
+            Assert.assertEquals(1, regionListSlot.captured.size)
+            Assert.assertEquals("AUS", regionListSlot.captured.first().iso3code)
 
             // Returned empty list first time, region list second time
             coVerify(exactly = 1) { mRegionDao.getAllRegionsStream() }
@@ -91,11 +100,38 @@ class MockkDefaultCovidRepositoryTest {
         val regionsFlow = mRepo.getRegionsStream()
 
         regionsFlow.test {
-            coVerify(exactly  = 1) { mRegionDao.getAllRegionsStream()}
+            coVerify(exactly = 1) { mRegionDao.getAllRegionsStream() }
             coVerify(exactly = 0) { mCovidAPI.getRegions() }
             val item1 = awaitItem()
             Assert.assertEquals("AUS", item1.first().iso3Code)
             Assert.assertEquals("Australia", item1.first().name)
+            awaitComplete()
+        }
+    }
+
+    @Test
+    fun repo_first_access_of_region_stats_comes_from_api(): Unit = runBlocking {
+        coEvery { mCovidAPI.getReport("AUS") } returns
+                Report(
+                    ReportData(
+                        confirmed = 1,
+                        deaths = 2,
+                        recovered = 3,
+                        active = 4,
+                        fatalityRate = 0.87F
+                    )
+                )
+        coEvery { mRegionStatsDao.getRegionStats("AUS") } returns emptyList()
+        coEvery { mRegionStatsDao.insert(any())} just runs
+
+        val regionStatsFlow = mRepo.getRegionStatsStream(RegionCode("AUS"))
+
+        regionStatsFlow.test {
+            coVerify(exactly = 1) { mCovidAPI.getReport("AUS") }
+            coVerify(exactly = 1) { mRegionStatsDao.getRegionStats("AUS")}
+            val item1 = awaitItem()
+            Assert.assertEquals(1, item1.size)
+            Assert.assertEquals("AUS", item1.first().iso3Code)
             awaitComplete()
         }
     }
