@@ -172,17 +172,17 @@ class MainViewModelTest {
         }
     }
 
-//    @Test
-//    fun exception_from_api_when_loading_stats_results_in_error_message() = runTest {
-//        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
-//        viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
-//
-//        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
-//
-//        viewModel.errorFlow.test {
-//            val result = awaitItem()
-//            Assert.assertTrue(result.asString(context).contains("Fail"))
-//        }
-//    }
+    @Test
+    fun exception_from_api_when_loading_stats_results_in_error_message() = runTest {
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
+        viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
+
+        viewModel.errorFlow.test {
+            val result = awaitItem()
+            Assert.assertTrue(result.asString(context).contains("Fail"))
+        }
+    }
 
 }
