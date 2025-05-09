@@ -1,28 +1,17 @@
 package com.rodbailey.covid.presentation.main
 
-import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.semantics.text
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.SemanticsNodeInteractionCollection
-import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.filter
-import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isOn
-import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -39,9 +28,9 @@ import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.presentation.core.MainActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,11 +88,22 @@ class MainUITest {
         // of the lazy column that is displayed. Apparently not. So we settle for testing there is
         // exactly one node with text "Afghanistan" and that node is displayed.
         // https://issuetracker.google.com/issues/187188981
-        val allDescendantsWithTextAfghanistan : SemanticsNodeInteractionCollection =
+        val allAncestors =
             rule.onAllNodes(hasAnyAncestor(hasTestTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)))
-                .filter(hasText("Afghanistan"))
+        val allDescendantsWithTextAfghanistan: SemanticsNodeInteractionCollection =
+            allAncestors.filter(hasText("Afghanistan"))
         allDescendantsWithTextAfghanistan.assertCountEquals(1)
         allDescendantsWithTextAfghanistan.onFirst().assertIsDisplayed()
+
+        // Another way of testing that is more precise but more verbose
+        val nodeTexts = mutableListOf<String>()
+        for (node in allAncestors.fetchSemanticsNodes()) {
+            node.config.getOrNull(SemanticsProperties.Text)?.let {
+                nodeTexts.add(it.get(0).text)
+            }
+        }
+        // Confirm "Afghanistan" occurs exactly once in [nodeTexts]
+        assertEquals(1, nodeTexts.filter { it.equals("Afghanistan") }.size)
     }
 
     @Test
