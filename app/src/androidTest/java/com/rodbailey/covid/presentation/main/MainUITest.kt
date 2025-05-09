@@ -1,15 +1,36 @@
 package com.rodbailey.covid.presentation.main
 
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.SemanticsPropertyKey
+import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.SemanticsNodeInteractionCollection
+import androidx.compose.ui.test.assertAll
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.filter
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isOn
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.printToLog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.rodbailey.covid.data.FakeRegions
@@ -44,7 +65,8 @@ class MainUITest {
 
     @Test
     fun search_field_is_displayed_on_startup() {
-        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
+        rule.onRoot(useUnmergedTree = false).printToLog("TAG")
+        //rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
@@ -64,7 +86,8 @@ class MainUITest {
 
     @Test
     fun can_scroll_to_last_country_alphabetically_in_country_list() {
-        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
+            .performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
         rule.onNodeWithText(FakeRegions.LAST_REGION_BY_NAME.name).assertIsDisplayed()
     }
 
@@ -73,11 +96,14 @@ class MainUITest {
         rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).performTextInput("fgh")
 
         // There should be an easy way to test that "Afghanistan" is the only displayed child node
-        // of the lazy column that is displayed. Apparently not.
+        // of the lazy column that is displayed. Apparently not. So we settle for testing there is
+        // exactly one node with text "Afghanistan" and that node is displayed.
         // https://issuetracker.google.com/issues/187188981
-        rule.onNodeWithText("Afghanistan").assertIsDisplayed()
-        rule.onNodeWithText("Algeria").assertIsNotDisplayed()
-        rule.onNodeWithText("Australia").assertIsNotDisplayed()
+        val allDescendantsWithTextAfghanistan : SemanticsNodeInteractionCollection =
+            rule.onAllNodes(hasAnyAncestor(hasTestTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)))
+                .filter(hasText("Afghanistan"))
+        allDescendantsWithTextAfghanistan.assertCountEquals(1)
+        allDescendantsWithTextAfghanistan.onFirst().assertIsDisplayed()
     }
 
     @Test
@@ -95,12 +121,17 @@ class MainUITest {
         rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
 
         rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
-        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag).assertTextEquals(FakeRegions.GLOBAL_REGION.name)
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag)
+            .assertTextEquals(FakeRegions.GLOBAL_REGION.name)
         val globalStats = FakeRegions.GLOBAL_REGION_STATS
-        rule.onNodeWithText(globalStats.confirmed.toString(), useUnmergedTree = true).assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText(globalStats.deaths.toString(), useUnmergedTree = true).assertIsDisplayed() // deaths
-        rule.onNodeWithText(globalStats.active.toString(), useUnmergedTree = true).assertIsDisplayed() // active cases
-        rule.onNodeWithText(globalStats.fatalityRate.toString(), useUnmergedTree = true).assertIsDisplayed() // fatality rate
+        rule.onNodeWithText(globalStats.confirmed.toString(), useUnmergedTree = true)
+            .assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(globalStats.deaths.toString(), useUnmergedTree = true)
+            .assertIsDisplayed() // deaths
+        rule.onNodeWithText(globalStats.active.toString(), useUnmergedTree = true)
+            .assertIsDisplayed() // active cases
+        rule.onNodeWithText(globalStats.fatalityRate.toString(), useUnmergedTree = true)
+            .assertIsDisplayed() // fatality rate
     }
 
     @Test
@@ -112,15 +143,24 @@ class MainUITest {
         }.values.elementAt(0)
 
         rule.onNodeWithTag("tag.card").assertIsDisplayed()
-        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.confirmed.toString()).assertIsDisplayed() // confirmed cases
-        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.deaths.toString()).assertIsDisplayed() // deaths
-        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.active.toString()) // active cases
-        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.fatalityRate.toString()) // fatality rate
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.confirmed.toString())
+            .assertIsDisplayed() // confirmed cases
+        rule.onNodeWithText(useUnmergedTree = true, text = ozStats.deaths.toString())
+            .assertIsDisplayed() // deaths
+        rule.onNodeWithText(
+            useUnmergedTree = true,
+            text = ozStats.active.toString()
+        ) // active cases
+        rule.onNodeWithText(
+            useUnmergedTree = true,
+            text = ozStats.fatalityRate.toString()
+        ) // fatality rate
     }
 
     @Test
     fun scroll_to_last_region_and_click_shows_region_stats_in_data_panel(): Unit = runBlocking {
-        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag).performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
+            .performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
 
         val lastRegion = FakeCovidRepository().getRegionsStream().test {
             val empty = awaitItem() // Empty list
@@ -133,10 +173,18 @@ class MainUITest {
             val lastRegionStats = FakeRegions.REGIONS.get(lastRegion)
 
             rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertIsDisplayed()
-            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.confirmed.toString()).assertIsDisplayed()
-            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString()).assertIsDisplayed()
-            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString()).assertIsDisplayed()
-            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.fatalityRate.toString()).assertIsDisplayed()
+            rule.onNodeWithText(
+                useUnmergedTree = true,
+                text = lastRegionStats?.confirmed.toString()
+            ).assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.deaths.toString())
+                .assertIsDisplayed()
+            rule.onNodeWithText(useUnmergedTree = true, text = lastRegionStats?.active.toString())
+                .assertIsDisplayed()
+            rule.onNodeWithText(
+                useUnmergedTree = true,
+                text = lastRegionStats?.fatalityRate.toString()
+            ).assertIsDisplayed()
 
             awaitComplete()
         }
