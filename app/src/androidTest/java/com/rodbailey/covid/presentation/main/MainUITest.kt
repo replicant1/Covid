@@ -54,8 +54,7 @@ class MainUITest {
 
     @Test
     fun search_field_is_displayed_on_startup() {
-        rule.onRoot(useUnmergedTree = false).printToLog("TAG")
-        //rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
+        rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag).assertIsDisplayed()
     }
 
     @Test
