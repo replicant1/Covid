@@ -140,5 +140,5 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
 
     // Turbine - for testing Flows
-    androidTestImplementation("app.cash.turbine:turbine:1.2.1")
+    androidTestImplementation("app.cash.turbine:turbine:1.1.0")
 }
