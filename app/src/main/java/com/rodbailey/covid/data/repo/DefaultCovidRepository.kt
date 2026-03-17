@@ -9,10 +9,11 @@ import com.rodbailey.covid.data.net.CovidAPI
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.toRegionEntityList
 import com.rodbailey.covid.domain.toRegionStatsEntity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.transformLatest
 
 class DefaultCovidRepository(
     private val regionDao: RegionDao,
@@ -43,19 +44,21 @@ class DefaultCovidRepository(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRegionsStream(): Flow<List<Region>> {
         return regionDao.getAllRegionsStream()
             .map { regions ->
                 regions.map { regionEntity ->
                     regionEntity.toRegion()
                 }
-            }.onEach {
-                if (it.isEmpty()) {
+            }.transformLatest { regions ->
+                if (regions.isEmpty()) {
                     // The insertion of region data into the table by refreshRegions() will
                     // trigger a new emission containing the newly retrieved regions into the
                     // regionDao.getAllRegionsStream() above.
                     refreshRegions()
                 }
+                emit(regions)
             }
     }
 
