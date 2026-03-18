@@ -66,7 +66,6 @@ class MainViewModel @Inject constructor(
      * How the view communicates intent/actions to this ViewModel.
      */
     sealed interface MainIntent {
-        data object ExpandDataPanel : MainIntent
         data object CollapseDataPanel : MainIntent
         data object LoadReportDataForGlobal : MainIntent
         data class LoadReportDataForRegion(
@@ -115,7 +114,6 @@ class MainViewModel @Inject constructor(
     fun processIntent(mainIntent: MainIntent) {
         when (mainIntent) {
             is CollapseDataPanel -> collapseDataPanel()
-            is MainIntent.ExpandDataPanel -> expandDataPanel()
             is LoadReportDataForGlobal -> loadReportDataForGlobal()
             is LoadReportDataForRegion -> loadReportDataForRegion(
                 mainIntent.regionName,
@@ -131,10 +129,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             errorChannel.send(message)
         }
-    }
-
-    private fun expandDataPanel() {
-        dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
     }
 
     private fun collapseDataPanel() {
