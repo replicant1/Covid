@@ -22,9 +22,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -150,14 +149,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
-                repo.getRegionStatsStream(regionIso3Code)
-                    .collectLatest {
-                        if (it.isNotEmpty()) {
-                            val regionStats = it.first()
-                            dataPanelUIState.value =
-                                DataPanelOpenWithData(regionName, regionStats.toReportData())
-                        }
-                    }
+                val regionStats = repo.getRegionStatsStream(regionIso3Code).first()
+                dataPanelUIState.value =
+                    DataPanelOpenWithData(regionName, regionStats.first().toReportData())
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
