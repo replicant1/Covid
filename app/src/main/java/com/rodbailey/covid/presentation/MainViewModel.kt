@@ -85,15 +85,19 @@ class MainViewModel @Inject constructor(
     private val searchText = MutableStateFlow("")
     private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
 
+    // Filtered region list recomputed only when regions or search text change
+    private val filteredRegions = combine(regions, searchText) { aRegions, aSearchText ->
+        Pair(matchingRegionsResult(aRegions, aSearchText), aSearchText)
+    }
+
     // Communicates UI state changes to the view
     val uiState: StateFlow<UIState> = combine(
-        regions,
-        searchText,
+        filteredRegions,
         dataPanelUIState,
-    ) { aRegions, aSearchText, aDataPanelUIState ->
+    ) { (aMatchingRegions, aSearchText), aDataPanelUIState ->
         UIState(
             dataPanelUIState = aDataPanelUIState,
-            matchingRegions = matchingRegionsResult(aRegions, aSearchText),
+            matchingRegions = aMatchingRegions,
             searchText = aSearchText
         )
     }.stateIn(
