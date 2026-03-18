@@ -134,7 +134,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun expandDataPanel() {
+    private fun expandDataPanel() {
         dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
     }
 
