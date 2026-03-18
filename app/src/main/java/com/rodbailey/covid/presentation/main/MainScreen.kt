@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionCode
 import com.rodbailey.covid.presentation.MainViewModel
@@ -34,55 +35,84 @@ import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
 import com.rodbailey.covid.presentation.Result.*
 import com.rodbailey.covid.presentation.core.UIText
+import androidx.compose.ui.tooling.preview.Preview
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
- * Main (only) screen of the covid application. Search field at top of screen, list of matching
- * regions in middle of screen, animated data panel at bottom of screen showing covid statistics
- * for the selected region or global statistics.
+ * Main (only) screen of the covid application. Stateful entry point — owns the ViewModel,
+ * collects state, and delegates rendering to [MainScreenContent].
  */
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
+    val viewModel: MainViewModel = viewModel()
+
+    // Error toast
+    LaunchedEffect(viewModel) {
+        viewModel.errorFlow.collect { uiText ->
+            Toast.makeText(
+                context,
+                uiText.asString(context),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    MainScreenContent(
+        uiState = uiState,
+        onSearchTextChanged = { viewModel.processIntent(OnSearchTextChanged(it)) },
+        onGlobalClicked = { viewModel.processIntent(LoadReportDataForGlobal) },
+        onRegionClicked = { region ->
+            viewModel.processIntent(
+                LoadReportDataForRegion(UIText.DynamicString(region.name), region.toRegionCode())
+            )
+        },
+        onDataPanelCollapsed = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) }
+    )
+}
+
+/**
+ * Stateless content for the main screen. Receives all state and callbacks as parameters,
+ * making it independently previewable and testable without a ViewModel.
+ *
+ * @param uiState Current UI state
+ * @param onSearchTextChanged Invoked when the search field text changes
+ * @param onGlobalClicked Invoked when the global stats icon is tapped
+ * @param onRegionClicked Invoked when a region list item is tapped
+ * @param onDataPanelCollapsed Invoked when the data panel is tapped to collapse it
+ */
+@Composable
+fun MainScreenContent(
+    uiState: MainViewModel.UIState,
+    onSearchTextChanged: (String) -> Unit,
+    onGlobalClicked: () -> Unit,
+    onRegionClicked: (Region) -> Unit,
+    onDataPanelCollapsed: () -> Unit
+) {
     CovidTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            val context = LocalContext.current
-            val viewModel: MainViewModel = viewModel()
-
-            // Error toast
-            LaunchedEffect(Unit) {
-                viewModel.errorFlow.collect { uiText ->
-                    Toast.makeText(
-                        context,
-                        uiText.asString(context),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-
-            val uiState by viewModel.uiState.collectAsState()
-
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // Search text field with global icon at right
                 TextField(
                     value = uiState.searchText,
-                    onValueChange = {
-                        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(it))
-                    },
+                    onValueChange = onSearchTextChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
                     trailingIcon = {
-                        GlobalRegionIcon() {
-                            viewModel.processIntent(LoadReportDataForGlobal)
-                        }
+                        GlobalRegionIcon(clickCallback = onGlobalClicked)
                     },
                     placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
                 )
@@ -106,21 +136,14 @@ fun MainScreen() {
                         .weight(1f)
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
-                    if (uiState.matchingRegions is Success) {
-                        val successRegions = uiState.matchingRegions as Success
-                        items(successRegions.data) { region ->
+                    when (val regions = uiState.matchingRegions) {
+                        is Success -> items(regions.data) { region ->
                             RegionSearchResultItem(
                                 region = region,
-                                clickCallback = {
-                                    viewModel.processIntent(
-                                        LoadReportDataForRegion(
-                                            UIText.DynamicString(
-                                                region.name
-                                            ), region.toRegionCode()
-                                        )
-                                    )
-                                })
+                                clickCallback = { onRegionClicked(region) }
+                            )
                         }
+                        else -> {}
                     }
                 }
 
@@ -134,11 +157,134 @@ fun MainScreen() {
                             ?: "",
                         reportData = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportData
                             ?: ReportData(),
-                        clickCallback = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) },
+                        clickCallback = onDataPanelCollapsed,
                         isLoading = uiState.dataPanelUIState is DataPanelOpenWithLoading
                     )
                 }
             }
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+private val previewRegions = listOf(
+    Region("AUS", "Australia"),
+    Region("BRA", "Brazil"),
+    Region("CAN", "Canada"),
+    Region("DEU", "Germany"),
+    Region("IND", "India"),
+)
+
+private val previewReportData = ReportData(
+    confirmed = 10_423_776L,
+    deaths = 187_934L,
+    recovered = 9_876_543L,
+    active = 359_299L,
+    fatalityRate = 0.018f
+)
+
+/** Initial state — region list is still loading from network/database. */
+@Preview(showBackground = true, name = "Regions Loading")
+@Composable
+fun PreviewMainScreenRegionsLoading() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Loading,
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Regions loaded, search field empty, data panel closed. */
+@Preview(showBackground = true, name = "Regions Loaded")
+@Composable
+fun PreviewMainScreenRegionsLoaded() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            searchText = "",
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** User has typed in the search field, list is filtered to matching regions. */
+@Preview(showBackground = true, name = "Search Active")
+@Composable
+fun PreviewMainScreenSearchActive() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            searchText = "a",
+            matchingRegions = Success(
+                previewRegions.filter { it.name.contains("a", ignoreCase = true) }
+            ),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** User tapped a region — data panel is open and showing a loading spinner. */
+@Preview(showBackground = true, name = "Data Panel Loading")
+@Composable
+fun PreviewMainScreenDataPanelLoading() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Data panel open with stats for a specific region. */
+@Preview(showBackground = true, name = "Data Panel Open With Data")
+@Composable
+fun PreviewMainScreenDataPanelOpen() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithData(
+                reportDataTitle = UIText.DynamicString("Australia"),
+                reportData = previewReportData
+            )
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Region list failed to load — network or database error. */
+@Preview(showBackground = true, name = "Regions Error")
+@Composable
+fun PreviewMainScreenRegionsError() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Error(),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
 }
