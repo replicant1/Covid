@@ -17,6 +17,6 @@ interface CovidRepository {
     /**
      * @return Cold flow of covid stats for the given region - completes after one emission
      */
-    suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>>
+    fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>>
 
 }

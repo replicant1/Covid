@@ -11,7 +11,7 @@ import com.rodbailey.covid.domain.toRegionEntityList
 import com.rodbailey.covid.domain.toRegionStatsEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
 
@@ -22,9 +22,9 @@ class DefaultCovidRepository(
 ) : CovidRepository {
 
 
-    override suspend fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>> {
+    override fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>> = flow {
         val dbStats = regionStatsDao.getRegionStats(code.chars)
-        return flowOf(
+        emit(
             if (dbStats.isEmpty()) {
                 val report = covidApi.getReport(codeToApiQueryParam(code))
                 val entity = report.data.toRegionStatsEntity(code.chars)
