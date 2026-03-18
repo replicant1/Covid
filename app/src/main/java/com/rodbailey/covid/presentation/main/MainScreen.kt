@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rodbailey.covid.R
+import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionCode
 import com.rodbailey.covid.presentation.MainViewModel
@@ -34,55 +35,82 @@ import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForGlobal
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataForRegion
+import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
 import com.rodbailey.covid.presentation.Result.*
 import com.rodbailey.covid.presentation.core.UIText
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
- * Main (only) screen of the covid application. Search field at top of screen, list of matching
- * regions in middle of screen, animated data panel at bottom of screen showing covid statistics
- * for the selected region or global statistics.
+ * Main (only) screen of the covid application. Stateful entry point — owns the ViewModel,
+ * collects state, and delegates rendering to [MainScreenContent].
  */
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
+    val viewModel: MainViewModel = viewModel()
+
+    // Error toast
+    LaunchedEffect(viewModel) {
+        viewModel.errorFlow.collect { uiText ->
+            Toast.makeText(
+                context,
+                uiText.asString(context),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    MainScreenContent(
+        uiState = uiState,
+        onSearchTextChanged = { viewModel.processIntent(OnSearchTextChanged(it)) },
+        onGlobalClicked = { viewModel.processIntent(LoadReportDataForGlobal) },
+        onRegionClicked = { region ->
+            viewModel.processIntent(
+                LoadReportDataForRegion(UIText.DynamicString(region.name), region.toRegionCode())
+            )
+        },
+        onDataPanelCollapsed = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) }
+    )
+}
+
+/**
+ * Stateless content for the main screen. Receives all state and callbacks as parameters,
+ * making it independently previewable and testable without a ViewModel.
+ *
+ * @param uiState Current UI state
+ * @param onSearchTextChanged Invoked when the search field text changes
+ * @param onGlobalClicked Invoked when the global stats icon is tapped
+ * @param onRegionClicked Invoked when a region list item is tapped
+ * @param onDataPanelCollapsed Invoked when the data panel is tapped to collapse it
+ */
+@Composable
+fun MainScreenContent(
+    uiState: MainViewModel.UIState,
+    onSearchTextChanged: (String) -> Unit,
+    onGlobalClicked: () -> Unit,
+    onRegionClicked: (Region) -> Unit,
+    onDataPanelCollapsed: () -> Unit
+) {
     CovidTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            val context = LocalContext.current
-            val viewModel: MainViewModel = viewModel()
-
-            // Error toast
-            LaunchedEffect(Unit) {
-                viewModel.errorFlow.collect { uiText ->
-                    Toast.makeText(
-                        context,
-                        uiText.asString(context),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-
-            val uiState by viewModel.uiState.collectAsState()
-
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // Search text field with global icon at right
                 TextField(
                     value = uiState.searchText,
-                    onValueChange = {
-                        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(it))
-                    },
+                    onValueChange = onSearchTextChanged,
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
                     trailingIcon = {
-                        GlobalRegionIcon() {
-                            viewModel.processIntent(LoadReportDataForGlobal)
-                        }
+                        GlobalRegionIcon(clickCallback = onGlobalClicked)
                     },
                     placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
                 )
@@ -106,21 +134,14 @@ fun MainScreen() {
                         .weight(1f)
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
-                    if (uiState.matchingRegions is Success) {
-                        val successRegions = uiState.matchingRegions as Success
-                        items(successRegions.data) { region ->
+                    when (val regions = uiState.matchingRegions) {
+                        is Success -> items(regions.data) { region ->
                             RegionSearchResultItem(
                                 region = region,
-                                clickCallback = {
-                                    viewModel.processIntent(
-                                        LoadReportDataForRegion(
-                                            UIText.DynamicString(
-                                                region.name
-                                            ), region.toRegionCode()
-                                        )
-                                    )
-                                })
+                                clickCallback = { onRegionClicked(region) }
+                            )
                         }
+                        else -> {}
                     }
                 }
 
@@ -134,7 +155,7 @@ fun MainScreen() {
                             ?: "",
                         reportData = (uiState.dataPanelUIState as? DataPanelOpenWithData)?.reportData
                             ?: ReportData(),
-                        clickCallback = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) },
+                        clickCallback = onDataPanelCollapsed,
                         isLoading = uiState.dataPanelUIState is DataPanelOpenWithLoading
                     )
                 }
