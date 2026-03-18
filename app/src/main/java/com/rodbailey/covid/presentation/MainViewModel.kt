@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    val repo: CovidRepository,
+    private val repo: CovidRepository,
 ) :
     ViewModel() {
 
