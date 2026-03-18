@@ -30,7 +30,7 @@ class FakeCovidRepository() : CovidRepository {
             FakeRegions.REGIONS.keys.toList())
     }
 
-    override suspend fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
+    override fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
