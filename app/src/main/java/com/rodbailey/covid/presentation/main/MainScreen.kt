@@ -38,6 +38,8 @@ import com.rodbailey.covid.presentation.MainViewModel.MainIntent.LoadReportDataF
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.OnSearchTextChanged
 import com.rodbailey.covid.presentation.Result.*
 import com.rodbailey.covid.presentation.core.UIText
+import androidx.compose.ui.tooling.preview.Preview
+import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
@@ -162,4 +164,127 @@ fun MainScreenContent(
             }
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------------
+
+private val previewRegions = listOf(
+    Region("AUS", "Australia"),
+    Region("BRA", "Brazil"),
+    Region("CAN", "Canada"),
+    Region("DEU", "Germany"),
+    Region("IND", "India"),
+)
+
+private val previewReportData = ReportData(
+    confirmed = 10_423_776L,
+    deaths = 187_934L,
+    recovered = 9_876_543L,
+    active = 359_299L,
+    fatalityRate = 0.018f
+)
+
+/** Initial state — region list is still loading from network/database. */
+@Preview(showBackground = true, name = "Regions Loading")
+@Composable
+fun PreviewMainScreenRegionsLoading() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Loading,
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Regions loaded, search field empty, data panel closed. */
+@Preview(showBackground = true, name = "Regions Loaded")
+@Composable
+fun PreviewMainScreenRegionsLoaded() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            searchText = "",
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** User has typed in the search field, list is filtered to matching regions. */
+@Preview(showBackground = true, name = "Search Active")
+@Composable
+fun PreviewMainScreenSearchActive() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            searchText = "a",
+            matchingRegions = Success(
+                previewRegions.filter { it.name.contains("a", ignoreCase = true) }
+            ),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** User tapped a region — data panel is open and showing a loading spinner. */
+@Preview(showBackground = true, name = "Data Panel Loading")
+@Composable
+fun PreviewMainScreenDataPanelLoading() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Data panel open with stats for a specific region. */
+@Preview(showBackground = true, name = "Data Panel Open With Data")
+@Composable
+fun PreviewMainScreenDataPanelOpen() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Success(previewRegions),
+            dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithData(
+                reportDataTitle = UIText.DynamicString("Australia"),
+                reportData = previewReportData
+            )
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
+}
+
+/** Region list failed to load — network or database error. */
+@Preview(showBackground = true, name = "Regions Error")
+@Composable
+fun PreviewMainScreenRegionsError() {
+    MainScreenContent(
+        uiState = MainViewModel.UIState(
+            matchingRegions = Error(),
+            dataPanelUIState = DataPanelClosed
+        ),
+        onSearchTextChanged = {},
+        onGlobalClicked = {},
+        onRegionClicked = {},
+        onDataPanelCollapsed = {}
+    )
 }
