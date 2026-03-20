@@ -19,15 +19,17 @@ sealed class UIText {
     /**
      * String from XML resource
      */
-    class StringResource(
+    data class StringResource(
         @StringRes val resId: Int,
-        vararg val args: Any
-    ) : UIText()
+        val args: List<Any> = emptyList()
+    ) : UIText() {
+        constructor(@StringRes resId: Int, vararg args: Any) : this(resId, args.toList())
+    }
 
     /**
      * String from XML resource and another [UIText]
      */
-    class CompoundStringResource(
+    data class CompoundStringResource(
         @StringRes val resId: Int,
         val uiText: UIText
     ) : UIText()
@@ -36,7 +38,7 @@ sealed class UIText {
     fun asString(): String {
         return when (this) {
             is DynamicString -> value
-            is StringResource -> stringResource(resId, args)
+            is StringResource -> stringResource(resId, *args.toTypedArray())
             is CompoundStringResource -> stringResource(resId, uiText.asString())
         }
     }
@@ -44,7 +46,7 @@ sealed class UIText {
     fun asString(ctx: Context): String {
         return when (this) {
             is DynamicString -> value
-            is StringResource -> ctx.getString(resId, *args)
+            is StringResource -> ctx.getString(resId, *args.toTypedArray())
             is CompoundStringResource -> ctx.getString(resId, uiText.asString(ctx))
         }
     }
