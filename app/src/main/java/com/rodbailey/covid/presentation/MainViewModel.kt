@@ -109,7 +109,7 @@ class MainViewModel @Inject constructor(
     private fun matchingRegionsResult(aRegions: Result<List<Region>>, aSearchText: String) =
         if (aRegions is Result.Success) {
             val sortedRegions = aRegions.data.sortedBy { it.name }
-            // Use binary search for prefix matching if search text is provided, otherwise return all
+            // Use case insensitive substring matching if search text is provided, otherwise return all
             val matchingRegions = if (aSearchText.isNotEmpty()) {
                 sortedRegions.filter { it.name.contains(aSearchText, ignoreCase = true) }
             } else {
