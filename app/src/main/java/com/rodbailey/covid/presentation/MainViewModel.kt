@@ -152,9 +152,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
-                val regionStats = repo.getRegionStatsStream(regionIso3Code).first()
+                val regionStatsList = repo.getRegionStatsStream(regionIso3Code).first()
                 dataPanelUIState.value =
-                    DataPanelOpenWithData(regionName, regionStats.first().toReportData())
+                    DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
