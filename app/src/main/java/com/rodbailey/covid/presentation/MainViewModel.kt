@@ -116,7 +116,11 @@ class MainViewModel @Inject constructor(
                 sortedRegions
             }
             Result.Success(matchingRegions)
-        } else {
+        } else if (aRegions is Result.Error) {
+            showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
+            aRegions
+        }
+        else {
             aRegions
         }
 

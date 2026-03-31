@@ -17,6 +17,7 @@ import com.rodbailey.covid.presentation.core.UIText
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
@@ -200,6 +201,22 @@ class MainViewModelTest {
         viewModel.errorFlow.test {
             val result = awaitItem()
             Assert.assertTrue(result.asString(context).contains("No data available"))
+        }
+    }
+
+    @Test
+    fun regions_stream_error_shows_failed_to_load_country_list_message() = runTest {
+        // Flag must be set before ViewModel construction so the regions flow throws on collection
+        (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(true)
+        val errorViewModel = MainViewModel(fakeCovidRepository)
+        (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(false)
+
+        // uiState uses WhileSubscribed — must have an active subscriber to trigger flow collection
+        backgroundScope.launch { errorViewModel.uiState.collect {} }
+
+        errorViewModel.errorFlow.test {
+            val result = awaitItem()
+            Assert.assertTrue(result.asString(context).contains("Failed to load country list"))
         }
     }
 

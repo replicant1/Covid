@@ -22,11 +22,20 @@ class FakeCovidRepository() : CovidRepository {
     private var regionStatsEmpty = false
 
     /**
+     * If tests set this to true, [getRegionsStream] will throw inside the flow so that
+     * [asResult] converts it to [Result.Error].
+     */
+    private var regionsThrowException = false
+
+    /**
      * @see [CovidRepository.getRegions]
      */
     override fun getRegionsStream(): Flow<List<Region>> {
         if (allMethodsThrowException) {
             throw RuntimeException()
+        }
+        if (regionsThrowException) {
+            return flow { throw RuntimeException("Fake regions error") }
         }
         // Emulate the flow produced by Room that first emits "empty" before emitting an
         // updated region list.
@@ -60,6 +69,10 @@ class FakeCovidRepository() : CovidRepository {
 
     fun setRegionStatsEmpty(value: Boolean) {
         regionStatsEmpty = value
+    }
+
+    fun setRegionsThrowException(value: Boolean) {
+        regionsThrowException = value
     }
 
 }
