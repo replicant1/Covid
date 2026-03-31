@@ -60,7 +60,7 @@ MEDIUM PRIORITY BUGS
 
 6. Empty stats result produces a misleading generic error
    File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
-   Lines: ~157-159
+   Lines: ~157-165
    Detail: The original isNotEmpty() guard that caused infinite loading is gone.
    However, if the API returns an empty list, regionStatsList.first() throws
    NoSuchElementException, which is caught by the generic catch block. The data
