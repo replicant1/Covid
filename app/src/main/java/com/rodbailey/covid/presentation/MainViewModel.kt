@@ -74,7 +74,6 @@ class MainViewModel @Inject constructor(
         ) : MainIntent
 
         data class OnSearchTextChanged(val text: String) : MainIntent
-        data class ShowErrorMessage(val message: UIText) : MainIntent
     }
 
     // Error text from network failures etc. Use a Channel to prevent event duplication on
@@ -131,7 +130,6 @@ class MainViewModel @Inject constructor(
             )
 
             is OnSearchTextChanged -> onSearchTextChanged(mainIntent.text)
-            is MainIntent.ShowErrorMessage -> showErrorMessage(mainIntent.message)
         }
     }
 
@@ -157,8 +155,18 @@ class MainViewModel @Inject constructor(
             try {
                 dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
                 val regionStatsList = repo.getRegionStatsStream(regionIso3Code).first()
-                dataPanelUIState.value =
-                    DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
+                if (regionStatsList.isEmpty()) {
+                    showErrorMessage(
+                        UIText.CompoundStringResource(
+                            R.string.no_data_available_for,
+                            regionName
+                        )
+                    )
+                    dataPanelUIState.value = DataPanelClosed
+                } else {
+                    dataPanelUIState.value =
+                        DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
+                }
             } catch (th: Throwable) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
