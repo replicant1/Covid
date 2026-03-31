@@ -173,6 +173,39 @@ class MainViewModelTest {
     }
 
     @Test
+    fun search_text_matching_is_case_insensitive() = runTest {
+        // "BRAZIL" in upper case must still match "Brazil"
+        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("BRAZIL"))
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            val empty = awaitItem()
+            val result = awaitItem()
+            val resultAsSuccess = result.matchingRegions as Result.Success
+            Assert.assertEquals(1, resultAsSuccess.data.size)
+            Assert.assertEquals("Brazil", resultAsSuccess.data[0].name)
+        }
+    }
+
+    @Test
+    fun search_text_matches_substring_not_just_prefix() = runTest {
+        // "istan" is a substring of "Afghanistan" and "Pakistan" but a prefix of neither.
+        // Prefix-matching would return 0 results; substring-matching must return 2.
+        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("istan"))
+
+        viewModel.uiState.test {
+            val loading = awaitItem()
+            val empty = awaitItem()
+            val result = awaitItem()
+            val resultAsSuccess = result.matchingRegions as Result.Success
+            val names = resultAsSuccess.data.map { it.name }
+            Assert.assertEquals(2, resultAsSuccess.data.size)
+            Assert.assertTrue(names.contains("Afghanistan"))
+            Assert.assertTrue(names.contains("Pakistan"))
+        }
+    }
+
+    @Test
     fun exception_from_api_when_loading_stats_results_in_error_message() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)

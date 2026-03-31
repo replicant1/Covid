@@ -9,7 +9,6 @@ import com.rodbailey.covid.data.repo.RegionCode
 import com.rodbailey.covid.data.repo.toReportData
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
-import com.rodbailey.covid.domain.binarySearchByPrefix
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithData
 import com.rodbailey.covid.presentation.MainViewModel.MainIntent.CollapseDataPanel
@@ -110,9 +109,9 @@ class MainViewModel @Inject constructor(
     private fun matchingRegionsResult(aRegions: Result<List<Region>>, aSearchText: String) =
         if (aRegions is Result.Success) {
             val sortedRegions = aRegions.data.sortedBy { it.name }
-            // Use binary search for prefix matching if search text is provided, otherwise return all
+            // Use case insensitive substring matching if search text is provided, otherwise return all
             val matchingRegions = if (aSearchText.isNotEmpty()) {
-                sortedRegions.binarySearchByPrefix(aSearchText)
+                sortedRegions.filter { it.name.contains(aSearchText, ignoreCase = true) }
             } else {
                 sortedRegions
             }
