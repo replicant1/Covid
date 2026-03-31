@@ -11,6 +11,7 @@ import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+import com.rodbailey.covid.R
 import com.rodbailey.covid.presentation.Result
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -210,12 +211,13 @@ class MainViewModelTest {
         (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(false)
 
         // uiState uses WhileSubscribed — must have an active subscriber to trigger flow collection
-        backgroundScope.launch { errorViewModel.uiState.collect {} }
+        val collectorJob = backgroundScope.launch { errorViewModel.uiState.collect {} }
 
         errorViewModel.errorFlow.test {
             val result = awaitItem()
-            Assert.assertTrue(result.asString(context).contains("Failed to load country list"))
+            Assert.assertEquals(context.getString(R.string.failed_to_load_country_list), result.asString(context))
         }
+        collectorJob.cancel()
     }
 
     @Test
