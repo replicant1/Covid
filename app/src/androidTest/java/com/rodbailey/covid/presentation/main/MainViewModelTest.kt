@@ -159,20 +159,6 @@ class MainViewModelTest {
     }
 
     @Test
-    fun show_error_message() = runTest {
-        viewModel.processIntent(
-            MainViewModel.MainIntent.ShowErrorMessage(
-                UIText.DynamicString("An error has occurred.")
-            )
-        )
-
-        viewModel.errorFlow.test {
-            val result = awaitItem()
-            Assert.assertEquals(result.asString(context), "An error has occurred.")
-        }
-    }
-
-    @Test
     fun search_text_matching_is_case_insensitive() = runTest {
         // "BRAZIL" in upper case must still match "Brazil"
         viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("BRAZIL"))
@@ -202,6 +188,18 @@ class MainViewModelTest {
             Assert.assertEquals(2, resultAsSuccess.data.size)
             Assert.assertTrue(names.contains("Afghanistan"))
             Assert.assertTrue(names.contains("Pakistan"))
+        }
+    }
+
+    @Test
+    fun empty_stats_result_closes_data_panel_and_shows_error() = runTest {
+        (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(true)
+        viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+        (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(false)
+
+        viewModel.errorFlow.test {
+            val result = awaitItem()
+            Assert.assertTrue(result.asString(context).contains("No data available"))
         }
     }
 

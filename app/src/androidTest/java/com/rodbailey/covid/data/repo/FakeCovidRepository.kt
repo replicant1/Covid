@@ -17,6 +17,11 @@ class FakeCovidRepository() : CovidRepository {
     private var allMethodsThrowException = false
 
     /**
+     * If tests set this to true, [getRegionStatsStream] will return an empty list.
+     */
+    private var regionStatsEmpty = false
+
+    /**
      * @see [CovidRepository.getRegions]
      */
     override fun getRegionsStream(): Flow<List<Region>> {
@@ -35,6 +40,10 @@ class FakeCovidRepository() : CovidRepository {
             throw RuntimeException()
         }
 
+        if (regionStatsEmpty) {
+            return flowOf(emptyList())
+        }
+
         val reportData = if (iso3code is GlobalCode) {
             FakeRegions.GLOBAL_REGION_STATS
         } else {
@@ -47,6 +56,10 @@ class FakeCovidRepository() : CovidRepository {
 
     fun setAllMethodsThrowException(value: Boolean) {
         allMethodsThrowException = value
+    }
+
+    fun setRegionStatsEmpty(value: Boolean) {
+        regionStatsEmpty = value
     }
 
 }
