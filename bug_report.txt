@@ -35,7 +35,7 @@ CRITICAL BUGS
 HIGH PRIORITY BUGS
 ==================
 
-4. HTTP logging interceptor always set to BODY level in production
+4. [FIXED - PR #27] HTTP logging interceptor always set to BODY level in production
    File: app/src/main/java/com/rodbailey/covid/data/net/CovidAPIClient.kt
    Lines: 11-13
    Detail: HttpLoggingInterceptor.Level.BODY is set unconditionally, logging full
@@ -85,6 +85,6 @@ MEDIUM PRIORITY BUGS
 SUMMARY
 =======
 Critical:  3 (3 fixed, 0 open)
-High:      2 (0 fixed, 2 open)
+High:      2 (1 fixed, 1 open)
 Medium:    3 (0 fixed, 3 open)
-Total:     8 (3 fixed, 5 open)
+Total:     8 (4 fixed, 4 open)
