@@ -119,8 +119,7 @@ class MainViewModel @Inject constructor(
         } else if (aRegions is Result.Error) {
             showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
             aRegions
-        }
-        else {
+        } else {
             aRegions
         }
 
