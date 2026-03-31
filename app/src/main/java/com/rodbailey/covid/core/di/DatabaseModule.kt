@@ -26,11 +26,13 @@ object DatabaseModule {
         ).build()
     }
 
+    @Singleton
     @Provides
     fun provideRegionDao(db: AppDatabase): RegionDao {
         return db.regionDao()
     }
 
+    @Singleton
     @Provides
     fun provideRegStatsDao(db: AppDatabase): RegionStatsDao {
         return db.regionStatsDao()
