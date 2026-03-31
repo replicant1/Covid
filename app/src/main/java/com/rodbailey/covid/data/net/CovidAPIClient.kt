@@ -9,17 +9,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class CovidAPIClient {
     fun getAPIClient(): CovidAPI {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                    else HttpLoggingInterceptor.Level.NONE
-        }
+        val builder = OkHttpClient.Builder()
 
-        val client = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = HttpLoggingInterceptor()
+            loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+            builder.addInterceptor(loggingInterceptor)
+        }
 
         return Retrofit.Builder()
             .baseUrl("https://covid-api.com/")
             .addConverterFactory(GsonConverterFactory.create())
-            .client(client)
+            .client(builder.build())
             .build()
             .create(CovidAPI::class.java)
     }
