@@ -58,13 +58,16 @@ HIGH PRIORITY BUGS
 MEDIUM PRIORITY BUGS
 ====================
 
-6. Empty stats result leaves UI in infinite loading state
+6. Empty stats result produces a misleading generic error
    File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
-   Lines: ~155-159
-   Detail: Inside collectLatest, stats are only applied if (it.isNotEmpty()). If the API
-   returns an empty list, the UI state stays as DataPanelOpenWithLoading indefinitely
-   with no way to recover.
-   Fix: Add an else branch that transitions the state to an error or closed state.
+   Lines: ~157-159
+   Detail: The original isNotEmpty() guard that caused infinite loading is gone.
+   However, if the API returns an empty list, regionStatsList.first() throws
+   NoSuchElementException, which is caught by the generic catch block. The data
+   panel closes and a generic "failed to load data" error is shown, with no
+   indication that the response was simply empty rather than a network failure.
+   Fix: Check regionStatsList.isEmpty() before calling .first() and handle the
+   empty case explicitly (e.g. show a "no data available" message).
 
 7. Error state never rendered in region list
    File: app/src/main/java/com/rodbailey/covid/presentation/main/MainScreen.kt
