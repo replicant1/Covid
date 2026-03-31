@@ -14,14 +14,15 @@ CRITICAL BUGS
    data inconsistency, memory leaks, and unpredictable test failures.
    Fix: Add @Singleton to provideAppDatabase().
 
-2. [FIXED - PR #11] onEach calling a suspend function without a coroutine context
+2. [FIXED - PR #11] onEach used for long-running suspend side effects
    File: app/src/main/java/com/rodbailey/covid/data/repo/DefaultCovidRepository.kt
    Lines: 46-60
-   Detail: getRegionsStream() calls refreshRegions() (a suspend function) directly inside
-   onEach, which is not a suspending operator. This will crash at runtime on first launch
-   when the local Room cache is empty, because onEach cannot call suspend functions.
-   Fix: Replaced onEach with transformLatest, which supports suspend lambdas and cancels
-   in-flight calls when a new emission arrives.
+   Detail: getRegionsStream() calls refreshRegions() (a suspend function) inside onEach for
+   each emission. While onEach does accept a suspend lambda, this causes long-running work
+   to accumulate and previously started refreshes to continue even when new data arrives.
+   Fix: Replaced onEach with transformLatest so that in-flight refreshRegions() calls are
+   cancelled when a new emission arrives, avoiding overlapping work and matching the
+   intended behaviour.
 
 3. Missing @Singleton on DAO providers
    File: app/src/main/java/com/rodbailey/covid/core/di/DatabaseModule.kt

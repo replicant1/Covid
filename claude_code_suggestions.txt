@@ -5,11 +5,11 @@ Generated: 2026-03-17
 PRIORITY 1 - FIX REMAINING BUGS
 =================================
 Pick any of the other bugs from bug_report.txt and ask Claude to fix them.
-The onEach crash bug (#2) is the most urgent — it affects first-launch behaviour
-when the local Room cache is empty.
+Start with the highest-priority open bug from bug_report.txt (for example, bug #3)
+and prioritise crashes that affect first-launch behaviour and empty Room cache scenarios.
 
 Example prompt:
-  "Fix bug #2 from bug_report.txt — the onEach calling a suspend function crash"
+  "Fix bug #3 from bug_report.txt — treat it as the current highest-priority open issue"
 
 
 PRIORITY 2 - TEST GENERATION

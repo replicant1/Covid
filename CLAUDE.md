@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Android COVID-19 data app (technical exercise) that displays regional stats from `https://covid-api.com/`. Single-screen app built with Kotlin and Jetpack Compose.
 
 - **Min SDK**: 24, **Target SDK**: 34
-- **Build**: Android Gradle Plugin 8.2.2, Kotlin 1.9.0
+- **Build**: Android Gradle Plugin 8.2.2, Kotlin 1.9.25
 
 ## Build & Run Commands
 
@@ -24,7 +24,7 @@ All Gradle commands from the project root (`~/StudioProjects/Covid`):
 ./gradlew connectedAndroidTest
 
 # Run a single instrumented test class
-./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rodbailey.covid.MainViewModelTest
+./gradlew connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.rodbailey.covid.presentation.main.MainViewModelTest
 
 # Lint
 ./gradlew lint
@@ -42,7 +42,7 @@ Data          →  Repository pattern
                  └── Local:   Room (AppDatabase)
 ```
 
-**Key data flow**: `MainViewModel` consumes `Flow`s from `CovidRepository`. The region list is a **hot flow** (cached in Room, persists across sessions). Region stats are a **cold flow** (one emission per request, network-first then cached).
+**Key data flow**: `MainViewModel` consumes `Flow`s from `CovidRepository`. The region list is a **hot flow** (cached in Room, persists across sessions). Region stats are a **cold flow** (one emission per request, cache-first: reads from Room; if empty, fetches from network then caches).
 
 **DI**: Hilt throughout. Modules live in `core/di/` — `NetworkModule`, `DatabaseModule`, `RepositoryModule`, `UseCaseModule`.
 
@@ -50,16 +50,16 @@ Data          →  Repository pattern
 
 ## Key Files
 
-| Purpose | Path |
-|---|---|
-| App entry point | `app/src/main/java/com/rodbailey/covid/core/app/CovidApplication.kt` |
-| Single Activity | `presentation/core/MainActivity.kt` |
-| ViewModel | `presentation/MainViewModel.kt` |
-| Main screen | `presentation/main/MainScreen.kt` |
-| Repository interface | `data/repo/CovidRepository.kt` |
-| Repository impl | `data/repo/DefaultCovidRepository.kt` |
-| Retrofit API | `data/net/CovidAPI.kt` |
-| Room database | `data/db/AppDatabase.kt` |
+| Purpose              | Path                                                                        |
+|----------------------|-----------------------------------------------------------------------------|
+| App entry point      | `app/src/main/java/com/rodbailey/covid/core/app/CovidApplication.kt`        |
+| Single Activity      | `app/src/main/java/com/rodbailey/covid/presentation/core/MainActivity.kt`   |
+| ViewModel            | `app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt`       |
+| Main screen          | `app/src/main/java/com/rodbailey/covid/presentation/main/MainScreen.kt`     |
+| Repository interface | `app/src/main/java/com/rodbailey/covid/data/repo/CovidRepository.kt`        |
+| Repository impl      | `app/src/main/java/com/rodbailey/covid/data/repo/DefaultCovidRepository.kt` |
+| Retrofit API         | `app/src/main/java/com/rodbailey/covid/data/net/CovidAPI.kt`                |
+| Room database        | `app/src/main/java/com/rodbailey/covid/data/db/AppDatabase.kt`              |
 
 ## Testing
 
@@ -70,7 +70,6 @@ Data          →  Repository pattern
 - `RepositoryTest` — Repository integration tests
 
 **Unit tests** (`app/src/test/`):
-- `MockkDefaultCovidRepositoryTest` — Repository with MockK mocks
 - `TransformUtilsTest` — Utility functions
 
 **Test infrastructure**: `FakeCovidAPI`, `FakeCovidRepository`, `CoroutinesTestRule` (JUnit rule for coroutine dispatchers), `Turbine` (Flow assertions), `CustomTestRunner` (Hilt integration).
