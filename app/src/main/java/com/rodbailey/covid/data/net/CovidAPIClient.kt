@@ -1,5 +1,6 @@
 package com.rodbailey.covid.data.net
 
+import com.rodbailey.covid.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -9,7 +10,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class CovidAPIClient {
     fun getAPIClient(): CovidAPI {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                    else HttpLoggingInterceptor.Level.NONE
         }
 
         val client = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
