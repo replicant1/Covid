@@ -69,7 +69,7 @@ MEDIUM PRIORITY BUGS
    Fix: Check regionStatsList.isEmpty() before calling .first() and handle the
    empty case explicitly (e.g. show a "no data available" message).
 
-7. Error state never rendered in region list
+7. [FIXED - PR #31] Error state never rendered in region list
    File: app/src/main/java/com/rodbailey/covid/presentation/main/MainScreen.kt
    Lines: ~109-125
    Detail: The LazyColumn only handles UIState.matchingRegions is Success. If the state
@@ -89,5 +89,5 @@ SUMMARY
 =======
 Critical:  3 (3 fixed, 0 open)
 High:      2 (2 fixed, 0 open)
-Medium:    3 (1 fixed, 2 open)
-Total:     8 (6 fixed, 2 open)
+Medium:    3 (2 fixed, 1 open)
+Total:     8 (7 fixed, 1 open)

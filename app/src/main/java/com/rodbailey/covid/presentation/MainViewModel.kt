@@ -22,8 +22,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Job
@@ -88,6 +90,16 @@ class MainViewModel @Inject constructor(
     // Filtered region list recomputed only when regions or search text change
     private val filteredRegions = combine(regions, searchText) { aRegions, aSearchText ->
         Pair(matchingRegionsResult(aRegions, aSearchText), aSearchText)
+    }
+
+    init {
+        // Show the error message exactly once when the regions flow fails, not on every
+        // combine re-emission (e.g. each keystroke) that would otherwise repeat the toast.
+        viewModelScope.launch {
+            if (regions.filter { it is Result.Error }.firstOrNull() != null) {
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
+            }
+        }
     }
 
     // Communicates UI state changes to the view
