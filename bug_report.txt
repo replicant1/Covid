@@ -45,7 +45,7 @@ HIGH PRIORITY BUGS
        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
                else HttpLoggingInterceptor.Level.NONE
 
-5. collectLatest on a cold flow triggers multiple concurrent network requests
+5. [FIXED] collectLatest on a cold flow triggers multiple concurrent network requests
    File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
    Lines: ~150-172
    Detail: loadReportDataForRegion() uses collectLatest on a cold flow returned by
@@ -85,6 +85,6 @@ MEDIUM PRIORITY BUGS
 SUMMARY
 =======
 Critical:  3 (3 fixed, 0 open)
-High:      2 (1 fixed, 1 open)
+High:      2 (2 fixed, 0 open)
 Medium:    3 (0 fixed, 3 open)
-Total:     8 (4 fixed, 4 open)
+Total:     8 (5 fixed, 3 open)

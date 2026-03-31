@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -148,8 +149,11 @@ class MainViewModel @Inject constructor(
         loadReportDataForRegion(UIText.StringResource(R.string.region_global), GlobalCode())
     }
 
+    private var loadReportJob: Job? = null
+
     private fun loadReportDataForRegion(regionName: UIText, regionIso3Code: RegionCode) {
-        viewModelScope.launch {
+        loadReportJob?.cancel()
+        loadReportJob = viewModelScope.launch {
             try {
                 dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
                 val regionStatsList = repo.getRegionStatsStream(regionIso3Code).first()
