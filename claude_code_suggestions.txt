@@ -1,0 +1,81 @@
+Claude Code Suggestions for Covid Android App
+Generated: 2026-03-17
+============================================================
+
+PRIORITY 1 - FIX REMAINING BUGS
+=================================
+Pick any of the other bugs from bug_report.txt and ask Claude to fix them.
+The onEach crash bug (#2) is the most urgent — it affects first-launch behaviour
+when the local Room cache is empty.
+
+Example prompt:
+  "Fix bug #2 from bug_report.txt — the onEach calling a suspend function crash"
+
+
+PRIORITY 2 - TEST GENERATION
+==============================
+Ask Claude to write tests for currently untested code paths.
+
+Example prompts:
+  "Write unit tests for DefaultCovidRepository covering the cache-miss and cache-hit paths"
+  "Write instrumented tests for the error channel behaviour in MainViewModel"
+  "Add test cases to MainUITest for the loading and error UI states"
+
+
+PRIORITY 3 - REFACTORING
+==========================
+Ask Claude to improve architecture and correctness of existing code.
+
+Example prompts:
+  "Refactor MainViewModel so rapid region taps don't trigger multiple concurrent network requests"
+  "Refactor getRegionsStream() in DefaultCovidRepository to fix the onEach/suspend issue"
+  "Replace the errorChannel with a BufferedChannel to prevent message loss on race conditions"
+
+
+PRIORITY 4 - CODE REVIEW
+==========================
+Ask Claude to review files for best practices and potential issues.
+
+Example prompts:
+  "Review MainScreen.kt for Compose best practices and potential recomposition issues"
+  "Review DefaultCovidRepository.kt for coroutine and Flow correctness"
+  "Do a security review of the networking layer"
+
+
+PRIORITY 5 - DEPENDENCY UPDATES
+=================================
+Ask Claude to check for and apply dependency updates.
+
+Example prompts:
+  "Check app/build.gradle.kts for outdated dependencies and update them"
+  "Resolve the KSP/Kotlin version mismatch warning that appears during builds"
+
+
+PRIORITY 6 - DOCUMENTATION
+============================
+Ask Claude to improve or expand project documentation.
+
+Example prompts:
+  "Update CLAUDE.md to document the hot/cold flow distinction and the error channel pattern"
+  "Add inline documentation to MainViewModel explaining the sealed UIState design"
+  "Generate an architecture overview diagram in CLAUDE.md"
+
+
+PRIORITY 7 - GIT WORKFLOWS
+============================
+Continue using Claude for branch and PR management — one branch per bug fix,
+then a PR for each.
+
+Example prompts:
+  "Create a branch and fix bug #3 from bug_report.txt, then open a PR"
+  "Create a branch for the HTTP logging interceptor fix and open a PR"
+
+
+PRIORITY 8 - CI SETUP
+=======================
+Ask Claude to set up continuous integration.
+
+Example prompts:
+  "Create a GitHub Actions workflow that runs ./gradlew test on every PR"
+  "Add a lint check to the GitHub Actions workflow"
+  "Set up a workflow that blocks merging if unit tests fail"

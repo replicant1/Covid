@@ -1,0 +1,89 @@
+Static Analysis Bug Report — Covid Android App
+Generated: 2026-03-17
+Last updated: 2026-03-17
+============================================================
+
+CRITICAL BUGS
+=============
+
+1. [FIXED - PR #10] Missing @Singleton on AppDatabase provider
+   File: app/src/main/java/com/rodbailey/covid/core/di/DatabaseModule.kt
+   Lines: 18-25
+   Detail: The provideAppDatabase() function lacks @Singleton. Despite being installed in
+   SingletonComponent, every injection creates a new Room database instance. This causes
+   data inconsistency, memory leaks, and unpredictable test failures.
+   Fix: Add @Singleton to provideAppDatabase().
+
+2. [FIXED - PR #11] onEach calling a suspend function without a coroutine context
+   File: app/src/main/java/com/rodbailey/covid/data/repo/DefaultCovidRepository.kt
+   Lines: 46-60
+   Detail: getRegionsStream() calls refreshRegions() (a suspend function) directly inside
+   onEach, which is not a suspending operator. This will crash at runtime on first launch
+   when the local Room cache is empty, because onEach cannot call suspend functions.
+   Fix: Replaced onEach with transformLatest, which supports suspend lambdas and cancels
+   in-flight calls when a new emission arrives.
+
+3. Missing @Singleton on DAO providers
+   File: app/src/main/java/com/rodbailey/covid/core/di/DatabaseModule.kt
+   Lines: 27-35
+   Detail: provideRegionDao() and provideRegStatsDao() both lack @Singleton. This compounds
+   bug #1 — DAOs may be derived from different AppDatabase instances.
+   Fix: Add @Singleton to both DAO provider functions.
+
+
+HIGH PRIORITY BUGS
+==================
+
+4. HTTP logging interceptor always set to BODY level in production
+   File: app/src/main/java/com/rodbailey/covid/data/net/CovidAPIClient.kt
+   Lines: 11-13
+   Detail: HttpLoggingInterceptor.Level.BODY is set unconditionally, logging full
+   request/response bodies in production builds. This is a performance and data
+   exposure risk.
+   Fix: Gate on BuildConfig.DEBUG:
+       level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+               else HttpLoggingInterceptor.Level.NONE
+
+5. collectLatest on a cold flow triggers multiple concurrent network requests
+   File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
+   Lines: ~150-172
+   Detail: loadReportDataForRegion() uses collectLatest on a cold flow returned by
+   getRegionStatsStream(). Rapid region taps cancel the previous collection but still
+   fire network requests before cancellation completes, creating unnecessary traffic.
+   Fix: Cancel the previous job explicitly before launching a new one, or use a
+   MutableStateFlow with flatMapLatest to serialize requests.
+
+
+MEDIUM PRIORITY BUGS
+====================
+
+6. Empty stats result leaves UI in infinite loading state
+   File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
+   Lines: ~155-159
+   Detail: Inside collectLatest, stats are only applied if (it.isNotEmpty()). If the API
+   returns an empty list, the UI state stays as DataPanelOpenWithLoading indefinitely
+   with no way to recover.
+   Fix: Add an else branch that transitions the state to an error or closed state.
+
+7. Error state never rendered in region list
+   File: app/src/main/java/com/rodbailey/covid/presentation/main/MainScreen.kt
+   Lines: ~109-125
+   Detail: The LazyColumn only handles UIState.matchingRegions is Success. If the state
+   is Error, nothing is displayed and the failure is silently swallowed.
+   Fix: Add an else/is Error branch to show an error message to the user.
+
+8. Channel with default RENDEZVOUS capacity may drop errors
+   File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
+   Lines: 83-84
+   Detail: errorChannel is created with default capacity (RENDEZVOUS = 0). If an error
+   is emitted before the UI has subscribed to errorFlow (race condition during
+   screen initialisation), the send suspends and the error may be lost.
+   Fix: Use Channel(Channel.BUFFERED) to allow at least one error to be queued.
+
+
+SUMMARY
+=======
+Critical:  3 (2 fixed, 1 open)
+High:      2 (0 fixed, 2 open)
+Medium:    3 (0 fixed, 3 open)
+Total:     8 (2 fixed, 6 open)
