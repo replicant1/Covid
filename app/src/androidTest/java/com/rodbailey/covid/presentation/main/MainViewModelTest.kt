@@ -6,14 +6,12 @@ import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
 import com.rodbailey.covid.core.di.CoroutinesTestRule
 import com.rodbailey.covid.data.FakeRegions
-import com.rodbailey.covid.data.net.FakeCovidAPI
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
 import com.rodbailey.covid.presentation.Result
-import com.rodbailey.covid.presentation.core.UIText
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -193,7 +191,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun empty_stats_result_closes_data_panel_and_shows_error() = runTest {
+    fun empty_country_stats_closes_data_panel_and_shows_error() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(false)
@@ -205,7 +203,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun regions_stream_error_shows_failed_to_load_country_list_message() = runTest {
+    fun exception_from_api_when_loading_country_list_results_in_error_message() = runTest {
         // Flag must be set before ViewModel construction so the regions flow throws on collection
         (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(true)
         val errorViewModel = MainViewModel(fakeCovidRepository)
@@ -221,7 +219,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun exception_from_api_when_loading_stats_results_in_error_message() = runTest {
+    fun exception_from_api_when_loading_country_stats_results_in_error_message() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
 
