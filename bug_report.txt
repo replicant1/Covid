@@ -58,7 +58,7 @@ HIGH PRIORITY BUGS
 MEDIUM PRIORITY BUGS
 ====================
 
-6. Empty stats result produces a misleading generic error
+6. [FIXED - PR #30] Empty stats result produces a misleading generic error
    File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
    Lines: ~157-165
    Detail: The original isNotEmpty() guard that caused infinite loading is gone.
@@ -89,5 +89,5 @@ SUMMARY
 =======
 Critical:  3 (3 fixed, 0 open)
 High:      2 (2 fixed, 0 open)
-Medium:    3 (0 fixed, 3 open)
-Total:     8 (5 fixed, 3 open)
+Medium:    3 (1 fixed, 2 open)
+Total:     8 (6 fixed, 2 open)
