@@ -43,7 +43,7 @@ HIGH PRIORITY BUGS
    exposure risk.
    Fix: Gate on BuildConfig.DEBUG:
        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-               else HttpLoggi bugngInterceptor.Level.NONE
+               else HttpLoggingInterceptor.Level.NONE
 
 5. [FIXED] collectLatest on a cold flow triggers multiple concurrent network requests
    File: app/src/main/java/com/rodbailey/covid/presentation/MainViewModel.kt
