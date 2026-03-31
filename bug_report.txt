@@ -1,4 +1,4 @@
-Static Analysis Bug Report — Covid Android App
+YStatic Analysis Bug Report — Covid Android App
 Generated: 2026-03-17
 Last updated: 2026-03-17
 ============================================================
@@ -24,7 +24,7 @@ CRITICAL BUGS
    cancelled when a new emission arrives, avoiding overlapping work and matching the
    intended behaviour.
 
-3. Missing @Singleton on DAO providers
+3. [FIXED - PR #26] Missing @Singleton on DAO providers
    File: app/src/main/java/com/rodbailey/covid/core/di/DatabaseModule.kt
    Lines: 27-35
    Detail: provideRegionDao() and provideRegStatsDao() both lack @Singleton. This compounds
@@ -84,7 +84,7 @@ MEDIUM PRIORITY BUGS
 
 SUMMARY
 =======
-Critical:  3 (2 fixed, 1 open)
+Critical:  3 (3 fixed, 0 open)
 High:      2 (0 fixed, 2 open)
 Medium:    3 (0 fixed, 3 open)
-Total:     8 (2 fixed, 6 open)
+Total:     8 (3 fixed, 5 open)
