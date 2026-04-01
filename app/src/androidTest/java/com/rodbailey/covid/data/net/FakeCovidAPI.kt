@@ -11,8 +11,15 @@ class FakeCovidAPI : CovidAPI {
 
     private var aMethodWasCalledFlag = false
 
+    var lastReportIso3Code: String? = "UNSET"
+
+    var getRegionsCallCount = 0
+
     override suspend fun getRegions(): RegionList {
         aMethodWasCalledFlag = true
+        synchronized(this) {
+            getRegionsCallCount++
+        }
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -21,6 +28,7 @@ class FakeCovidAPI : CovidAPI {
 
     override suspend fun getReport(iso3Code: String?): Report {
         aMethodWasCalledFlag = true
+        lastReportIso3Code = iso3Code
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -44,5 +52,11 @@ class FakeCovidAPI : CovidAPI {
 
     fun clearWasCalled() {
         aMethodWasCalledFlag = false
+    }
+
+    fun reset() {
+        aMethodWasCalledFlag = false
+        getRegionsCallCount = 0
+        lastReportIso3Code = "UNSET"
     }
 }

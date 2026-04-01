@@ -15,6 +15,9 @@ import com.rodbailey.covid.data.net.FakeCovidAPI
 import com.rodbailey.covid.domain.Region
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -133,6 +136,29 @@ class RepositoryTest {
     }
 
     @Test
+    fun second_country_list_load_is_from_database() = runBlocking {
+        // First load populates the database from the network
+        repo.getRegionsStream().test {
+            awaitItem() // empty list triggers network fetch
+            awaitItem() // populated list from network
+            cancel()
+        }
+
+        (fakeAPI as FakeCovidAPI).clearWasCalled()
+
+        // Second load: DB is non-empty so refreshRegions() is skipped entirely
+        repo.getRegionsStream().test {
+            val cachedRegions = awaitItem()
+            Assert.assertEquals(FakeRegions.REGIONS.size, cachedRegions.size)
+            Assert.assertTrue(containsRegion(cachedRegions, FakeRegions.regionByIso3Code("AUS")))
+            Assert.assertTrue(containsRegion(cachedRegions, FakeRegions.regionByIso3Code("NLD")))
+            cancel()
+        }
+
+        Assert.assertFalse((fakeAPI as FakeCovidAPI).wasCalled())
+    }
+
+    @Test
     fun first_load_global_stats_is_from_network() = runBlocking {
         repo.getRegionStatsStream(GlobalCode()).test {
             val globalStats = awaitItem()
@@ -153,6 +179,42 @@ class RepositoryTest {
             FakeRegions.GLOBAL_REGION_STATS.fatalityRate,
             dbStats[0].fatalityRate
         )
+    }
+
+    @Test
+    fun concurrent_region_list_loads_result_in_single_network_call() = runBlocking {
+        (fakeAPI as FakeCovidAPI).reset()
+        val job1 = async(Dispatchers.IO) {
+            repo.getRegionsStream().first { it.isNotEmpty() }
+        }
+        val job2 = async(Dispatchers.IO) {
+            repo.getRegionsStream().first { it.isNotEmpty() }
+        }
+
+        val regions1 = job1.await()
+        val regions2 = job2.await()
+
+        Assert.assertEquals(1, (fakeAPI as FakeCovidAPI).getRegionsCallCount)
+        Assert.assertEquals(FakeRegions.REGIONS.size, regions1.size)
+        Assert.assertEquals(FakeRegions.REGIONS.size, regions2.size)
+    }
+
+    @Test
+    fun global_code_passes_null_to_api() = runBlocking {
+        repo.getRegionStatsStream(GlobalCode()).test {
+            awaitItem()
+            awaitComplete()
+        }
+        Assert.assertNull((fakeAPI as FakeCovidAPI).lastReportIso3Code)
+    }
+
+    @Test
+    fun region_code_passes_iso3_string_to_api() = runBlocking {
+        repo.getRegionStatsStream(RegionCode("AUS")).test {
+            awaitItem()
+            awaitComplete()
+        }
+        Assert.assertEquals("AUS", (fakeAPI as FakeCovidAPI).lastReportIso3Code)
     }
 
     private fun containsRegion(allRegions: List<Region>, target: Region): Boolean {

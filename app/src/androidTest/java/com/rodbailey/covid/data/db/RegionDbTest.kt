@@ -50,4 +50,20 @@ class RegionDbTest {
             cancel()
         }
     }
+
+    @Test
+    fun get_region_count_returns_zero_for_empty_table() = runTest {
+        Assert.assertEquals(0, regionDao.getRegionCount())
+    }
+
+    @Test
+    fun get_region_count_reflects_number_of_inserted_regions() = runTest {
+        val regions = listOf(
+            RegionEntity(iso3code = "TWN", name = "Taiwan"),
+            RegionEntity(iso3code = "CHN", name = "China"),
+            RegionEntity(iso3code = "AUS", name = "Australia")
+        )
+        regionDao.insert(regions)
+        Assert.assertEquals(regions.size, regionDao.getRegionCount())
+    }
 }
