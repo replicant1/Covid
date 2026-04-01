@@ -8,7 +8,7 @@ Here's a summary of the most meaningful gaps, roughly in priority order:
 - ~~**`codeToApiQueryParam()`** — no test that `GlobalCode` maps to `null` and a `RegionCode` maps to its ISO3 string~~ DONE: `global_code_passes_null_to_api`, `region_code_passes_iso3_string_to_api`
 
 ### MainViewModelTest.kt — State transitions
-- **`CollapseDataPanel` intent** — closing the data panel is never directly tested; only tested implicitly via UI test
+- ~~**`CollapseDataPanel` intent** — closing the data panel is never directly tested; only tested implicitly via UI test~~ DONE: `collapse_data_panel_intent_closes_open_data_panel`
 - **Successful region stats load (non-global)** — there's no test verifying `DataPanelUIState.OpenWithData` for a regular country (only global is tested)
 - **Job cancellation** — if a second `LoadReportDataForRegion` arrives while the first is still in flight, the first job should be cancelled; this is untested
 - **Data panel state on error** — `DataPanelUIState` transitions to `Closed` when a stats-load error occurs, but no ViewModel test covers this (only the error channel message is tested)

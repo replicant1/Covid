@@ -192,6 +192,26 @@ class MainViewModelTest {
     }
 
     @Test
+    fun collapse_data_panel_intent_closes_open_data_panel() = runTest {
+        viewModel.uiState.test {
+            awaitItem() // Result.Loading
+            awaitItem() // Result.Success (empty regions)
+            awaitItem() // Result.Success (regions loaded)
+
+            // Open the data panel first
+            viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+            awaitItem() // DataPanelOpenWithLoading
+            val openState = awaitItem()
+            Assert.assertTrue(openState.dataPanelUIState is MainViewModel.DataPanelUIState.DataPanelOpenWithData)
+
+            // Now collapse it
+            viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel)
+            val closedState = awaitItem()
+            Assert.assertTrue(closedState.dataPanelUIState is DataPanelClosed)
+        }
+    }
+
+    @Test
     fun empty_country_stats_closes_data_panel_and_shows_error() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
