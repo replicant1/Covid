@@ -229,13 +229,17 @@ class MainViewModelTest {
             skipItems(3) // Result.Loading, Result.Success (empty), Result.Success (loaded)
 
             (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
-            viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+            try {
+                viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
 
-            val loadingState = awaitItem()
-            Assert.assertTrue(loadingState.dataPanelUIState is DataPanelOpenWithLoading)
+                val loadingState = awaitItem()
+                Assert.assertTrue(loadingState.dataPanelUIState is DataPanelOpenWithLoading)
 
-            val errorState = awaitItem()
-            Assert.assertTrue(errorState.dataPanelUIState is DataPanelClosed)
+                val errorState = awaitItem()
+                Assert.assertTrue(errorState.dataPanelUIState is DataPanelClosed)
+            } finally {
+                (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
+            }
         }
     }
 
