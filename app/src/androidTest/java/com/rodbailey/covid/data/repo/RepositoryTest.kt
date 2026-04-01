@@ -133,6 +133,29 @@ class RepositoryTest {
     }
 
     @Test
+    fun second_country_list_load_is_from_database() = runBlocking {
+        // First load populates the database from the network
+        repo.getRegionsStream().test {
+            awaitItem() // empty list triggers network fetch
+            awaitItem() // populated list from network
+            cancel()
+        }
+
+        (fakeAPI as FakeCovidAPI).clearWasCalled()
+
+        // Second load: DB is non-empty so refreshRegions() is skipped entirely
+        repo.getRegionsStream().test {
+            val cachedRegions = awaitItem()
+            Assert.assertEquals(FakeRegions.REGIONS.size, cachedRegions.size)
+            Assert.assertTrue(containsRegion(cachedRegions, FakeRegions.regionByIso3Code("AUS")))
+            Assert.assertTrue(containsRegion(cachedRegions, FakeRegions.regionByIso3Code("NLD")))
+            cancel()
+        }
+
+        Assert.assertFalse((fakeAPI as FakeCovidAPI).wasCalled())
+    }
+
+    @Test
     fun first_load_global_stats_is_from_network() = runBlocking {
         repo.getRegionStatsStream(GlobalCode()).test {
             val globalStats = awaitItem()
