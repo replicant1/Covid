@@ -15,6 +15,9 @@ import com.rodbailey.covid.data.net.FakeCovidAPI
 import com.rodbailey.covid.domain.Region
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -176,6 +179,23 @@ class RepositoryTest {
             FakeRegions.GLOBAL_REGION_STATS.fatalityRate,
             dbStats[0].fatalityRate
         )
+    }
+
+    @Test
+    fun concurrent_region_list_loads_result_in_single_network_call() = runBlocking {
+        val job1 = async(Dispatchers.IO) {
+            repo.getRegionsStream().first { it.isNotEmpty() }
+        }
+        val job2 = async(Dispatchers.IO) {
+            repo.getRegionsStream().first { it.isNotEmpty() }
+        }
+
+        val regions1 = job1.await()
+        val regions2 = job2.await()
+
+        Assert.assertEquals(1, (fakeAPI as FakeCovidAPI).getRegionsCallCount)
+        Assert.assertEquals(FakeRegions.REGIONS.size, regions1.size)
+        Assert.assertEquals(FakeRegions.REGIONS.size, regions2.size)
     }
 
     @Test

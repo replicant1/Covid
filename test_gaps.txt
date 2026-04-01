@@ -1,0 +1,298 @@
+Here's a summary of the most meaningful gaps, roughly in priority order:
+
+## Missing Test Cases
+
+### RepositoryTest.kt — Incomplete coverage
+- ~~**Second region list load uses DB cache** — only first load (from network) is tested; the cache-hit path is never verified for `getRegions()`~~ DONE: `second_country_list_load_is_from_database`
+- ~~**Concurrent calls to `refreshRegions()`** — the `Mutex` + double-check pattern is untested; two simultaneous calls should result in only one network fetch~~ DONE: `concurrent_region_list_loads_result_in_single_network_call`
+- ~~**`codeToApiQueryParam()`** — no test that `GlobalCode` maps to `null` and a `RegionCode` maps to its ISO3 string~~ DONE: `global_code_passes_null_to_api`, `region_code_passes_iso3_string_to_api`
+
+### MainViewModelTest.kt — State transitions
+- **`CollapseDataPanel` intent** — closing the data panel is never directly tested; only tested implicitly via UI test
+- **Successful region stats load (non-global)** — there's no test verifying `DataPanelUIState.OpenWithData` for a regular country (only global is tested)
+- **Job cancellation** — if a second `LoadReportDataForRegion` arrives while the first is still in flight, the first job should be cancelled; this is untested
+- **Data panel state on error** — `DataPanelUIState` transitions to `Closed` when a stats-load error occurs, but no ViewModel test covers this (only the error channel message is tested)
+
+### RegionDbTest.kt / RegionStatsDbTest.kt — DB edge cases
+- **Flow emits on update** — `getAllRegionsStream()` is a `Flow`; no test verifies it emits a second time when the table is modified after initial subscription
+- **RegionDao: duplicate inserts** — `RegionDbTest` never tests the `onConflict` strategy (the mutex in the repo prevents duplicates, but the DAO strategy itself is untested)
+
+### RepositoryTest.kt — Error paths
+- **Network exception during `getRegions()`** — exception should propagate to callers; never tested at the repository level
+- **Network exception during `getRegionStats()`** — same gap
+
+### Deserialization (no tests exist)
+- `ReportData` JSON mapping (`fatality_rate` → `fatalityRate`, etc.) is never tested; a wrong `@SerializedName` annotation would go undetected until a UI test fails
+
+### TransformUtilsTest.kt — Minor gaps
+- No test for `regionToRegionCode` when the ISO3 code contains unusual characters or is an empty string
+- No test for the reverse path: `RegionEntity → Region` when the name field is blank
+
+The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mutex test, **(2)** the cache-hit path for regions~~, **(3)** job cancellation in `MainViewModel`, and **(4)** a `CollapseDataPanel` ViewModel test.
+
+---
+
+## Full Analysis
+
+### Test Files Overview
+
+8 test files in total:
+
+#### Unit Tests (app/src/test/java):
+1. **TransformUtilsTest.kt** - Unit tests for data transformation functions
+
+#### Instrumented Tests (app/src/androidTest/java):
+1. **RegionDbTest.kt** - Database tests for Region entity
+2. **RegionStatsDbTest.kt** - Database tests for RegionStats entity
+3. **RepositoryTest.kt** - Integration tests for DefaultCovidRepository
+4. **MainViewModelTest.kt** - Tests for MainViewModel behavior
+5. **UITextTest.kt** - Tests for UIText sealed class
+6. **UITextComposableAsStringTest.kt** - Compose integration tests for UIText
+7. **MainUITest.kt** - UI integration tests for main screen
+
+---
+
+### Detailed Test Coverage by File
+
+#### **1. TransformUtilsTest.kt** (7 test scenarios)
+
+**Tests:**
+- RegionStatsEntity → ReportData transformation
+- ReportData → RegionStatsEntity transformation (with iso3code)
+- Region → RegionEntity transformation
+- RegionEntity → Region transformation
+- List<Region> → List<RegionEntity> transformation
+- List<RegionEntity> → List<Region> transformation
+- Region → RegionCode transformation
+
+**Coverage:** Tests all extension functions in domain layer for entity/domain object conversions.
+
+---
+
+#### **2. RegionDbTest.kt** (3 test scenarios)
+
+**Tests:**
+- Insert two regions and verify they can be streamed via Flow
+- Get region count returns 0 for empty table
+- Get region count reflects the number of inserted regions
+
+**Coverage:** Tests RegionDao insert and count operations on in-memory Room database.
+
+---
+
+#### **3. RegionStatsDbTest.kt** (4 test scenarios)
+
+**Tests:**
+- Insert stats and retrieve them unchanged
+- Retrieve non-existent iso3Code returns empty list
+- Insert two stats with same iso3code generates unique primary keys
+- Insert two stats with different iso codes and retrieve by iso3code filters correctly
+
+**Coverage:** Tests RegionStatsDao insert and query operations.
+
+---
+
+#### **4. RepositoryTest.kt** (3 test scenarios)
+
+**Tests:**
+- First country list load is from network
+- First region stats load is from network, second is from database cache
+- First load of global stats is from network
+
+**Coverage:** Tests DefaultCovidRepository's caching strategy and network-database integration with FakeCovidAPI and real Room database.
+
+---
+
+#### **5. MainViewModelTest.kt** (11 test scenarios)
+
+**Tests:**
+- Sorted region list loads at startup
+- Data panel is closed at startup
+- Search text "Brazil" matches exactly one region
+- Empty search text matches all regions
+- Load report for global gives global data in data panel
+- Search text matching is case insensitive
+- Search text matches substring, not just prefix
+- Empty country stats closes data panel and shows error
+- Exception from API when loading country list results in error message
+- Exception from API when loading country stats results in error message
+- (Implicit: OnSearchTextChanged intent processing)
+
+**Coverage:** Tests MainViewModel state management, search filtering, data panel loading, and error handling with FakeCovidRepository.
+
+---
+
+#### **6. UITextTest.kt** (13 test scenarios)
+
+**Tests:**
+- DynamicString.asString()
+- DynamicString preserves empty and whitespace
+- StringResource.asString()
+- StringResource with vararg format arguments
+- StringResource with list format arguments
+- CompoundStringResource.asString()
+- CompoundStringResource with dynamic inner text
+- Nested CompoundStringResource resolves recursively
+- DynamicString data class value semantics
+- StringResource data class value semantics
+- CompoundStringResource data class value semantics
+- Different UIText types with similar content are not equal
+
+**Coverage:** Tests all branches of UIText sealed class and value semantics.
+
+---
+
+#### **7. UITextComposableAsStringTest.kt** (3 test scenarios)
+
+**Tests:**
+- UIText.DynamicString.asString() in Compose context
+- UIText.StringResource.asString() in Compose context
+- UIText.CompoundStringResource.asString() in Compose context
+
+**Coverage:** Tests Compose @Composable variant of UIText.asString().
+
+---
+
+#### **8. MainUITest.kt** (11 test scenarios)
+
+**Tests:**
+- Search field is displayed on startup
+- Search progress indicator is displayed on startup
+- First country alphabetically is displayed on startup
+- Can scroll to last country in list
+- Search for "fgh" matches only Afghanistan
+- Clear text after search restores full country list
+- Click global icon shows global stats in data panel
+- Click Australia shows Australia stats in data panel
+- Scroll to last region and click shows region stats in data panel
+- Tapping on data panel when showing hides the data panel
+
+**Coverage:** Tests UI compose interactions, search filtering, data panel display and dismissal.
+
+---
+
+### Missing Test Coverage
+
+#### **CRITICAL GAPS - No Tests:**
+
+1. ~~**DefaultCovidRepository.codeToApiQueryParam()** - Helper method for GlobalCode vs RegionCode~~
+   - ~~No test validates that null is passed for GlobalCode~~
+   - ~~No test validates that iso3Code string is passed for RegionCode~~
+   - DONE: `global_code_passes_null_to_api`, `region_code_passes_iso3_string_to_api`
+
+2. ~~**DefaultCovidRepository.refreshMutex behavior** - Mutex serialization logic~~
+   - ~~No test validates mutex serialization prevents concurrent API calls~~
+   - ~~No test validates the double-check pattern (refresh check inside lock)~~
+   - ~~No test validates concurrent flow collectors properly serialize~~
+   - DONE: `concurrent_region_list_loads_result_in_single_network_call`
+
+3. **RegionDao.getAllRegionsStream()** - Flow behavior specifics
+   - No test verifies the Flow emits on updates (tested indirectly via repository)
+   - No test of Flow behavior when database is modified after subscription
+
+4. **RegionStatsDao.getRegionStats()** - No tests for:
+   - Null/empty iso3code parameter handling
+   - Case sensitivity of iso3code matching
+   - Database transaction behavior with concurrent inserts
+
+5. **MainViewModel.Result wrapper** - Custom Result sealed class not tested
+   - No tests for Result.Loading state transitions
+   - No tests for Result.Error state with different exception types
+   - No tests for Result.Success payload transformation
+
+6. **MainViewModel.CollapseDataPanel intent** - Not explicitly tested
+   - No test verifies collapsing from DataPanelOpenWithData state
+   - No test verifies collapsing from DataPanelOpenWithLoading state
+   - No test verifies no-op when already closed
+
+7. **MainViewModel.LoadReportDataForRegion** - Incomplete coverage
+   - No test for successful region stats load with non-global region
+   - Job cancellation behavior when loading second report while first is in progress is untested
+
+8. **Network Error Scenarios** - Missing:
+   - No test for Retrofit network timeout exceptions
+   - No test for malformed JSON response handling
+   - No test for HTTP error codes (404, 500, etc.)
+   - No test for connection failures
+
+9. **Database Edge Cases** - Missing:
+   - No test for database transaction rollback scenarios
+   - No test for concurrent database access patterns
+   - No test for database migration scenarios
+   - No test for data corruption recovery
+
+10. **MainViewModel.matchingRegionsResult()** - Private method, partial coverage
+    - No test for Result.Error state filtering (only tested through exception flow)
+    - No test for empty sorted results
+
+11. **MainViewModel initialization timing** - Missing:
+    - No test for errorFlow emission timing relative to flow collection
+    - No test for race conditions between init block and subscribers
+
+12. **Data Panel State Transitions** - Missing:
+    - No test for transition from DataPanelOpenWithLoading to DataPanelClosed on error
+    - No test for transition from DataPanelOpenWithData to DataPanelClosed on error
+    - No test for re-opening data panel after closing it
+
+13. **CovidAPI Interface** - Untested directly (only via FakeCovidAPI):
+    - No tests for actual Retrofit HTTP calls
+    - No tests for query parameter serialization
+    - No tests for response deserialization edge cases
+
+14. **ReportData deserialization** - Missing:
+    - No test for JSON field name mapping (@SerializedName "fatality_rate" → fatalityRate)
+    - No test for default values when fields are missing
+    - No test for handling of null values in JSON
+
+15. **RegionList/Report deserialization** - Missing:
+    - No test for "data" field extraction from JSON
+    - No test for empty or null data field handling
+
+16. **AppDatabase** - No tests:
+    - No test for database creation
+    - No test for DAO instantiation
+    - No test for database version migration
+
+17. **UI Text Edge Cases** - Missing:
+    - No test for very long text strings
+    - No test for special characters and unicode handling
+    - No test for null context parameter to asString()
+
+18. **Search Functionality Edge Cases** - Missing:
+    - No test for special regex characters in search text
+    - No test for very long search strings
+    - No test for numeric search matching region codes
+
+19. **MainViewModel scope lifecycle** - Missing:
+    - No test for viewModelScope cancellation behavior
+    - No test for resource cleanup on ViewModel destruction
+    - No test for coroutine scope exception handling
+
+20. **Specific Method Coverage Gaps**:
+    - `RegionCode.chars` property - never directly tested
+    - `GlobalCode` subclass - tested indirectly only
+    - `Region` data class - no equality/hashcode specific tests
+    - `ReportData` data class - tested in TransformUtilsTest but not comprehensive
+
+---
+
+### Summary
+
+**Test Statistics:**
+- **Total Tests:** ~42 test methods
+- **Unit Tests:** 7
+- **Instrumented Tests:** 35
+- **Lines of Test Code:** ~1,597 (androidTest only)
+
+**Coverage Quality:**
+- Strong: Data transformation layer, UI rendering, basic CRUD operations, happy path flows
+- Moderate: Repository caching logic, ViewModel state management
+- Weak: Error handling edge cases, network failure scenarios, database concurrency, network API behavior
+
+**Priority Areas for Additional Testing:**
+1. Network failure and error handling in DefaultCovidRepository
+2. ~~Mutex synchronization in DefaultCovidRepository.refreshRegions()~~ DONE
+3. Job cancellation and coroutine cleanup in MainViewModel
+4. Data panel state transitions and error states
+5. Database transaction and concurrent access patterns
+6. Deserialization edge cases for network responses

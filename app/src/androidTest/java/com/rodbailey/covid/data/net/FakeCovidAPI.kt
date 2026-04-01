@@ -13,8 +13,11 @@ class FakeCovidAPI : CovidAPI {
 
     var lastReportIso3Code: String? = "UNSET"
 
+    var getRegionsCallCount = 0
+
     override suspend fun getRegions(): RegionList {
         aMethodWasCalledFlag = true
+        getRegionsCallCount++
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
