@@ -53,4 +53,10 @@ class FakeCovidAPI : CovidAPI {
     fun clearWasCalled() {
         aMethodWasCalledFlag = false
     }
+
+    fun reset() {
+        aMethodWasCalledFlag = false
+        getRegionsCallCount = 0
+        lastReportIso3Code = "UNSET"
+    }
 }

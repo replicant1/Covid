@@ -183,6 +183,7 @@ class RepositoryTest {
 
     @Test
     fun concurrent_region_list_loads_result_in_single_network_call() = runBlocking {
+        (fakeAPI as FakeCovidAPI).reset()
         val job1 = async(Dispatchers.IO) {
             repo.getRegionsStream().first { it.isNotEmpty() }
         }
