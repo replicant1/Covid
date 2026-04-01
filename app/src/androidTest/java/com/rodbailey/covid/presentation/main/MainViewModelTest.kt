@@ -224,6 +224,22 @@ class MainViewModelTest {
     }
 
     @Test
+    fun stats_load_exception_closes_data_panel() = runTest {
+        viewModel.uiState.test {
+            skipItems(3) // Result.Loading, Result.Success (empty), Result.Success (loaded)
+
+            (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
+            viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+
+            val loadingState = awaitItem()
+            Assert.assertTrue(loadingState.dataPanelUIState is DataPanelOpenWithLoading)
+
+            val errorState = awaitItem()
+            Assert.assertTrue(errorState.dataPanelUIState is DataPanelClosed)
+        }
+    }
+
+    @Test
     fun exception_from_api_when_loading_country_list_results_in_error_message() = runTest {
         // Flag must be set before ViewModel construction so the regions flow throws on collection
         (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(true)

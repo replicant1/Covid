@@ -11,7 +11,7 @@ Here's a summary of the most meaningful gaps, roughly in priority order:
 - ~~**`CollapseDataPanel` intent** — closing the data panel is never directly tested; only tested implicitly via UI test~~ DONE: `collapse_data_panel_intent_closes_open_data_panel`
 - **Successful region stats load (non-global)** — there's no test verifying `DataPanelUIState.OpenWithData` for a regular country (only global is tested)
 - **Job cancellation** — if a second `LoadReportDataForRegion` arrives while the first is still in flight, the first job should be cancelled; this is untested
-- **Data panel state on error** — `DataPanelUIState` transitions to `Closed` when a stats-load error occurs, but no ViewModel test covers this (only the error channel message is tested)
+- ~~**Data panel state on error** — `DataPanelUIState` transitions to `Closed` when a stats-load error occurs, but no ViewModel test covers this (only the error channel message is tested)~~ DONE: `stats_load_exception_closes_data_panel`
 
 ### RegionDbTest.kt / RegionStatsDbTest.kt — DB edge cases
 - **Flow emits on update** — `getAllRegionsStream()` is a `Flow`; no test verifies it emits a second time when the table is modified after initial subscription
@@ -110,7 +110,7 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 
 ---
 
-#### **5. MainViewModelTest.kt** (11 test scenarios)
+#### **5. MainViewModelTest.kt** (12 test scenarios)
 
 **Tests:**
 - Sorted region list loads at startup
@@ -124,6 +124,7 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 - Exception from API when loading country list results in error message
 - Exception from API when loading country stats results in error message
 - (Implicit: OnSearchTextChanged intent processing)
+- Stats load exception transitions data panel to closed
 
 **Coverage:** Tests MainViewModel state management, search filtering, data panel loading, and error handling with FakeCovidRepository.
 
