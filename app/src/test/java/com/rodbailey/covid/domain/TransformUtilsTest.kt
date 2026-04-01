@@ -99,6 +99,14 @@ class TransformUtilsTest {
     }
 
     @Test
+    fun regionEntityToRegion_preservesBlankName() {
+        assertEquals(
+            Region(iso3Code = "AUS", name = ""),
+            RegionEntity(iso3code = "AUS", name = "").toRegion()
+        )
+    }
+
+    @Test
     fun regionToRegionCode_preservesUnusualCharacters() {
         assertEquals(
             "A-1",
