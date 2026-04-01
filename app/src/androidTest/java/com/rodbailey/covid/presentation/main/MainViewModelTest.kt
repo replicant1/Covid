@@ -194,13 +194,13 @@ class MainViewModelTest {
     @Test
     fun collapse_data_panel_intent_closes_open_data_panel() = runTest {
         viewModel.uiState.test {
-            awaitItem() // Result.Loading
-            awaitItem() // Result.Success (empty regions)
-            awaitItem() // Result.Success (regions loaded)
+            // Skip initial emissions: loading, empty regions, and regions loaded
+            skipItems(3)
 
             // Open the data panel first
             viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
-            awaitItem() // DataPanelOpenWithLoading
+            val loadingPanelState = awaitItem()
+            Assert.assertTrue(loadingPanelState.dataPanelUIState is DataPanelOpenWithLoading)
             val openState = awaitItem()
             Assert.assertTrue(openState.dataPanelUIState is MainViewModel.DataPanelUIState.DataPanelOpenWithData)
 
