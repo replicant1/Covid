@@ -178,6 +178,24 @@ class RepositoryTest {
         )
     }
 
+    @Test
+    fun global_code_passes_null_to_api() = runBlocking {
+        repo.getRegionStatsStream(GlobalCode()).test {
+            awaitItem()
+            awaitComplete()
+        }
+        Assert.assertNull((fakeAPI as FakeCovidAPI).lastReportIso3Code)
+    }
+
+    @Test
+    fun region_code_passes_iso3_string_to_api() = runBlocking {
+        repo.getRegionStatsStream(RegionCode("AUS")).test {
+            awaitItem()
+            awaitComplete()
+        }
+        Assert.assertEquals("AUS", (fakeAPI as FakeCovidAPI).lastReportIso3Code)
+    }
+
     private fun containsRegion(allRegions: List<Region>, target: Region): Boolean {
         for (region in allRegions) {
             if (region.iso3Code == target.iso3Code && region.name == target.name) {
