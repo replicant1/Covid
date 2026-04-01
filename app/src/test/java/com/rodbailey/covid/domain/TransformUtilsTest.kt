@@ -97,4 +97,20 @@ class TransformUtilsTest {
             regionAus.toRegionCode().chars
         )
     }
+
+    @Test
+    fun regionToRegionCode_preservesUnusualCharacters() {
+        assertEquals(
+            "A-1",
+            Region(iso3Code = "A-1", name = "Unusual").toRegionCode().chars
+        )
+    }
+
+    @Test
+    fun regionToRegionCode_preservesEmptyString() {
+        assertEquals(
+            "",
+            Region(iso3Code = "", name = "Empty").toRegionCode().chars
+        )
+    }
 }
