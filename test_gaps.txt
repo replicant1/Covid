@@ -25,8 +25,8 @@ Here's a summary of the most meaningful gaps, roughly in priority order:
 - `ReportData` JSON mapping (`fatality_rate` → `fatalityRate`, etc.) is never tested; a wrong `@SerializedName` annotation would go undetected until a UI test fails
 
 ### TransformUtilsTest.kt — Minor gaps
-- No test for `regionToRegionCode` when the ISO3 code contains unusual characters or is an empty string
-- No test for the reverse path: `RegionEntity → Region` when the name field is blank
+- ~~No test for `regionToRegionCode` when the ISO3 code contains unusual characters or is an empty string~~ DONE: `regionToRegionCode_preservesUnusualCharacters`, `regionToRegionCode_preservesEmptyString`
+- ~~No test for the reverse path: `RegionEntity → Region` when the name field is blank~~ DONE: `regionEntityToRegion_preservesBlankName`
 
 The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mutex test, **(2)** the cache-hit path for regions~~, **(3)** job cancellation in `MainViewModel`, and **(4)** a `CollapseDataPanel` ViewModel test.
 
@@ -54,7 +54,7 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 
 ### Detailed Test Coverage by File
 
-#### **1. TransformUtilsTest.kt** (7 test scenarios)
+#### **1. TransformUtilsTest.kt** (10 test scenarios)
 
 **Tests:**
 - RegionStatsEntity → ReportData transformation
@@ -64,6 +64,9 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 - List<Region> → List<RegionEntity> transformation
 - List<RegionEntity> → List<Region> transformation
 - Region → RegionCode transformation
+- Region → RegionCode preserves unusual characters
+- Region → RegionCode preserves empty string
+- RegionEntity → Region preserves blank name
 
 **Coverage:** Tests all extension functions in domain layer for entity/domain object conversions.
 
