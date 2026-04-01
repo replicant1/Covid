@@ -21,8 +21,8 @@ Here's a summary of the most meaningful gaps, roughly in priority order:
 - **Network exception during `getRegions()`** — exception should propagate to callers; never tested at the repository level
 - **Network exception during `getRegionStats()`** — same gap
 
-### Deserialization (no tests exist)
-- `ReportData` JSON mapping (`fatality_rate` → `fatalityRate`, etc.) is never tested; a wrong `@SerializedName` annotation would go undetected until a UI test fails
+### Deserialization
+- ~~`ReportData` JSON mapping (`fatality_rate` → `fatalityRate`, etc.) is never tested; a wrong `@SerializedName` annotation would go undetected until a UI test fails~~ DONE: `all_fields_deserialize_correctly_from_json`, `fatality_rate_snake_case_key_maps_to_fatalityRate_property`, `missing_fields_produce_default_values`, `report_data_field_unwraps_correctly_from_report_json`
 
 ### TransformUtilsTest.kt — Minor gaps
 - ~~No test for `regionToRegionCode` when the ISO3 code contains unusual characters or is an empty string~~ DONE: `regionToRegionCode_preservesUnusualCharacters`, `regionToRegionCode_preservesEmptyString`
