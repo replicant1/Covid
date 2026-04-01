@@ -12,4 +12,7 @@ interface RegionDao {
 
     @Query("select * from regions")
     fun getAllRegionsStream(): Flow<List<RegionEntity>>
+
+    @Query("select count(*) from regions")
+    suspend fun getRegionCount(): Int
 }
