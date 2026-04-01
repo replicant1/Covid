@@ -17,7 +17,9 @@ class FakeCovidAPI : CovidAPI {
 
     override suspend fun getRegions(): RegionList {
         aMethodWasCalledFlag = true
-        getRegionsCallCount++
+        synchronized(this) {
+            getRegionsCallCount++
+        }
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
