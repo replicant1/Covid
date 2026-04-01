@@ -92,12 +92,16 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 
 ---
 
-#### **4. RepositoryTest.kt** (3 test scenarios)
+#### **4. RepositoryTest.kt** (7 test scenarios)
 
 **Tests:**
 - First country list load is from network
 - First region stats load is from network, second is from database cache
 - First load of global stats is from network
+- Second region list load is from database cache
+- Concurrent calls to `refreshRegions()` result in a single network call (mutex + double-check)
+- `codeToApiQueryParam()` maps `GlobalCode` to `null`
+- `codeToApiQueryParam()` maps a `RegionCode` to its ISO3 string
 
 **Coverage:** Tests DefaultCovidRepository's caching strategy and network-database integration with FakeCovidAPI and real Room database.
 
