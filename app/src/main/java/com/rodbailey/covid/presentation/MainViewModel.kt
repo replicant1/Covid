@@ -80,8 +80,9 @@ class MainViewModel @Inject constructor(
 
     // Error text from network failures etc. Use a Channel to prevent event duplication on
     // configuration change. BUFFERED capacity avoids a race where an error is emitted before
-    // the UI has subscribed to errorFlow — with the default RENDEZVOUS (capacity=0) the send
-    // would suspend indefinitely and the error would be silently lost.
+    // the UI has subscribed to errorFlow — with the default RENDEZVOUS (capacity = 0) the send
+    // would suspend until there is a receiver, and the message could be lost if the sending
+    // coroutine is cancelled before a collector starts.
     private val errorChannel = Channel<UIText>(Channel.BUFFERED)
     val errorFlow = errorChannel.receiveAsFlow()
 
