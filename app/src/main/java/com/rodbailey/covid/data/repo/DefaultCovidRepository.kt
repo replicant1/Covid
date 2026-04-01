@@ -69,7 +69,7 @@ class DefaultCovidRepository(
 
     private suspend fun refreshRegions() {
         // Mutex serialises concurrent callers (e.g. two collectors of the cold regions flow).
-        // "withLock" waits for the lock rather than skipping.ii
+        // "withLock" waits for the lock rather than skipping it.
         // Inside the lock we re-check the DB so the second caller skips the network request
         // if the first one already populated the table. ie. the second concurrent caller waits
         // for the first to finish, then finds the DB already populated and skips the
