@@ -21,26 +21,29 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rodbailey.covid.domain.ReportData
+import com.rodbailey.covid.presentation.MainViewModel
+import com.rodbailey.covid.presentation.core.UIText
 
 
 /**
  * Panel of covid statistics for a particular region. Shows confirmed, deaths, active and
  * fatality rate.
  *
- * @param title Name of the region - appears above data table
- * @param reportData Covid stats to put in the data table
+ * @param dataPanelUIState Current state of the data panel — loading or open with data
  * @param clickCallback Invoked when user clicks on this panel
- * @param isLoading true if the data to be displayed is still loading, so show a progress monitor
- * instead of the data table.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegionDataPanel(
-    title: String,
-    reportData: ReportData,
-    clickCallback: () -> Unit,
-    isLoading: Boolean
+    dataPanelUIState: MainViewModel.DataPanelUIState,
+    clickCallback: () -> Unit
 ) {
+    val isLoading = dataPanelUIState is MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
+    val title = (dataPanelUIState as? MainViewModel.DataPanelUIState.DataPanelOpenWithData)
+        ?.reportDataTitle?.asString() ?: ""
+    val reportData = (dataPanelUIState as? MainViewModel.DataPanelUIState.DataPanelOpenWithData)
+        ?.reportData ?: ReportData()
+
     Card(
         onClick = clickCallback, modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -86,22 +89,19 @@ fun RegionDataPanelPreviewNotLoading(
     @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData
 ) {
     RegionDataPanel(
-        title = ReportDataParameterProvider.title,
-        reportData = reportData,
-        clickCallback = {},
-        isLoading = false
+        dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithData(
+            reportDataTitle = UIText.DynamicString(ReportDataParameterProvider.title),
+            reportData = reportData
+        ),
+        clickCallback = {}
     )
 }
 
 @Preview
 @Composable
-fun RegionDataPanelPreviewLoading(
-    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData
-) {
+fun RegionDataPanelPreviewLoading() {
     RegionDataPanel(
-        title = ReportDataParameterProvider.title,
-        reportData = reportData,
-        clickCallback = {},
-        isLoading = true
+        dataPanelUIState = MainViewModel.DataPanelUIState.DataPanelOpenWithLoading,
+        clickCallback = {}
     )
 }
