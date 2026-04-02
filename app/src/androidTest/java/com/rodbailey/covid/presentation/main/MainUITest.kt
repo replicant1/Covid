@@ -49,11 +49,11 @@ import javax.inject.Inject
 @HiltAndroidTest
 class MainUITest {
 
-    @get:Rule
-    val rule = createAndroidComposeRule<MainActivity>()
-
-    @get:Rule
+    @get:Rule(order = 0)
     var hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val rule = createAndroidComposeRule<MainActivity>()
 
     @Inject
     lateinit var fakeCovidRepository: CovidRepository
@@ -202,14 +202,16 @@ class MainUITest {
 
     @Test
     fun failed_stats_load_leaves_data_panel_closed() {
-        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
+        val fake = fakeCovidRepository as? FakeCovidRepository
+            ?: error("Test requires FakeCovidRepository but got ${fakeCovidRepository::class.java.name}")
+        fake.setAllMethodsThrowException(true)
         try {
             rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
 
             rule.waitForIdle()
             rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
         } finally {
-            (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
+            fake.setAllMethodsThrowException(false)
         }
     }
 
