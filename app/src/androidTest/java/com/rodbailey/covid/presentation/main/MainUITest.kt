@@ -23,6 +23,7 @@ import androidx.compose.ui.test.printToLog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.rodbailey.covid.data.FakeRegions
+import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.presentation.core.MainActivity
@@ -31,9 +32,11 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * Instrumented test, which will execute on an Android device. These tests are tied to the
@@ -46,11 +49,19 @@ import org.junit.runner.RunWith
 @HiltAndroidTest
 class MainUITest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    var hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
     val rule = createAndroidComposeRule<MainActivity>()
 
-    @get:Rule
-    var hiltRule = HiltAndroidRule(this)
+    @Inject
+    lateinit var fakeCovidRepository: CovidRepository
+
+    @Before
+    fun setup() {
+        hiltRule.inject()
+    }
 
     @Test
     fun search_field_is_displayed_on_startup() {
@@ -186,6 +197,21 @@ class MainUITest {
             ).assertIsDisplayed()
 
             awaitComplete()
+        }
+    }
+
+    @Test
+    fun failed_stats_load_leaves_data_panel_closed() {
+        val fake = fakeCovidRepository as? FakeCovidRepository
+            ?: error("Test requires FakeCovidRepository but got ${fakeCovidRepository::class.java.name}")
+        fake.setAllMethodsThrowException(true)
+        try {
+            rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
+
+            rule.waitForIdle()
+            rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
+        } finally {
+            fake.setAllMethodsThrowException(false)
         }
     }
 
