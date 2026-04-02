@@ -155,7 +155,7 @@ fun MainScreenContent(
                 // Clicking on the data panel collapses it.
                 AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
                     RegionDataPanel(
-C                        dataPanelUIState = uiState.dataPanelUIState,
+                        dataPanelUIState = uiState.dataPanelUIState,
                         clickCallback = onDataPanelCollapsed
                     )
                 }
