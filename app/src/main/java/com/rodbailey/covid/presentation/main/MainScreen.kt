@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -137,10 +138,11 @@ fun MainScreenContent(
                         .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
                 ) {
                     when (val regions = uiState.matchingRegions) {
-                        is Success -> items(regions.data) { region ->
+                        is Success -> items(regions.data, key = { it.iso3Code }) { region ->
+                            val clickCallback = remember(region) { { onRegionClicked(region) } }
                             RegionSearchResultItem(
                                 region = region,
-                                clickCallback = { onRegionClicked(region) }
+                                clickCallback = clickCallback
                             )
                         }
                         else -> {}
