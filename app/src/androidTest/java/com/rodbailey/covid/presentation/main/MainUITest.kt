@@ -23,6 +23,7 @@ import androidx.compose.ui.test.printToLog
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.rodbailey.covid.data.FakeRegions
+import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.FakeCovidRepository
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.presentation.core.MainActivity
@@ -31,9 +32,11 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
 /**
  * Instrumented test, which will execute on an Android device. These tests are tied to the
@@ -51,6 +54,14 @@ class MainUITest {
 
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
+
+    @Inject
+    lateinit var fakeCovidRepository: CovidRepository
+
+    @Before
+    fun setup() {
+        hiltRule.inject()
+    }
 
     @Test
     fun search_field_is_displayed_on_startup() {
@@ -187,6 +198,18 @@ class MainUITest {
 
             awaitComplete()
         }
+    }
+
+    @Test
+    fun failed_stats_load_leaves_data_panel_closed() {
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
+
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
+
+        rule.waitForIdle()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
+
+        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
     }
 
     @Test

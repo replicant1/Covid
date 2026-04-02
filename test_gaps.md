@@ -174,6 +174,7 @@ The highest-value additions would be: ~~**(1)** concurrent `refreshRegions()` mu
 - Click Australia shows Australia stats in data panel
 - Scroll to last region and click shows region stats in data panel
 - Tapping on data panel when showing hides the data panel
+- Failed stats load leaves data panel closed
 
 **Coverage:** Tests UI compose interactions, search filtering, data panel display and dismissal.
 
