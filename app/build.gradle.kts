@@ -43,6 +43,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += listOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:strongSkipping=true"
+        )
     }
     buildFeatures {
         compose = true
@@ -132,6 +136,7 @@ dependencies {
 
     // Enables " = viewModel()" access to view model in compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 
     // Constraint layout for compose (used by data panel)
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
