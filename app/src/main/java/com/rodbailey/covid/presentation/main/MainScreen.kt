@@ -139,7 +139,7 @@ fun MainScreenContent(
                 ) {
                     when (val regions = uiState.matchingRegions) {
                         is Success -> items(regions.data, key = { it.iso3Code }) { region ->
-                            val clickCallback = remember(region) { { onRegionClicked(region) } }
+                            val clickCallback = remember(region, onRegionClicked) { { onRegionClicked(region) } }
                             RegionSearchResultItem(
                                 region = region,
                                 clickCallback = clickCallback
