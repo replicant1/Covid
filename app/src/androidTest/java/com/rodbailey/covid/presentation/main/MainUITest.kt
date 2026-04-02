@@ -230,4 +230,39 @@ class MainUITest {
         rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
     }
 
+    @Test
+    fun data_panel_retains_content_during_exit_animation() {
+        // Open the data panel with known content
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
+        rule.waitForIdle()
+
+        val expectedTitle = FakeRegions.GLOBAL_REGION.name
+        val globalStats = FakeRegions.GLOBAL_REGION_STATS
+
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag)
+            .assertTextEquals(expectedTitle)
+
+        // Freeze the Compose animation clock before triggering the close,
+        // so we can inspect the composition mid-animation.
+        rule.mainClock.autoAdvance = false
+
+        // Tap the panel — starts the AnimatedVisibility exit animation,
+        // but the frozen clock prevents it from advancing.
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).performClick()
+
+        // Step 50ms into the exit animation (well short of completion).
+        rule.mainClock.advanceTimeBy(50L)
+
+        // Title and stats should still be present — this is what lastVisibleState guarantees.
+        rule.onNodeWithTag(useUnmergedTree = true, testTag = MainScreenTag.TAG_CARD_TITLE.tag)
+            .assertTextEquals(expectedTitle)
+        rule.onNodeWithText(globalStats.confirmed.toString(), useUnmergedTree = true)
+            .assertExists()
+
+        // Let the animation finish and confirm the panel is fully removed.
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
+    }
+
 }
