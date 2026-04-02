@@ -203,13 +203,14 @@ class MainUITest {
     @Test
     fun failed_stats_load_leaves_data_panel_closed() {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
+        try {
+            rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
 
-        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag).performClick()
-
-        rule.waitForIdle()
-        rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
-
-        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
+            rule.waitForIdle()
+            rule.onNodeWithTag(MainScreenTag.TAG_CARD.tag).assertDoesNotExist()
+        } finally {
+            (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
+        }
     }
 
     @Test
