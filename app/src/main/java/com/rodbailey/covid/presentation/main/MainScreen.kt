@@ -18,7 +18,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -52,14 +55,18 @@ fun MainScreen() {
     val context = LocalContext.current
     val viewModel: MainViewModel = viewModel()
 
-    // Error toast
-    LaunchedEffect(viewModel) {
-        viewModel.errorFlow.collect { uiText ->
-            Toast.makeText(
-                context,
-                uiText.asString(context),
-                Toast.LENGTH_LONG
-            ).show()
+    // Error toast — only shown while the UI is at least STARTED so toasts are never
+    // displayed in the background or silently dropped when the app is stopped.
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(viewModel, lifecycle) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.errorFlow.collect { uiText ->
+                Toast.makeText(
+                    context,
+                    uiText.asString(context),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
