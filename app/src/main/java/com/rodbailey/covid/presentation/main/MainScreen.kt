@@ -22,7 +22,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -160,9 +162,16 @@ fun MainScreenContent(
 
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
+                // lastVisibleState retains the most recent non-closed state so that
+                // RegionDataPanel holds its content during the exit animation rather
+                // than blanking immediately when dataPanelUIState becomes DataPanelClosed.
+                var lastVisibleState by remember { mutableStateOf(uiState.dataPanelUIState) }
+                if (uiState.dataPanelUIState !is DataPanelClosed) {
+                    lastVisibleState = uiState.dataPanelUIState
+                }
                 AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
                     RegionDataPanel(
-                        dataPanelUIState = uiState.dataPanelUIState,
+                        dataPanelUIState = lastVisibleState,
                         clickCallback = onDataPanelCollapsed
                     )
                 }
