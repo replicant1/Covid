@@ -117,7 +117,7 @@ class MainViewModel @Inject constructor(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000L),
         initialValue = UIState()
     )
 
