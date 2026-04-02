@@ -166,8 +166,10 @@ fun MainScreenContent(
                 // RegionDataPanel holds its content during the exit animation rather
                 // than blanking immediately when dataPanelUIState becomes DataPanelClosed.
                 var lastVisibleState by remember { mutableStateOf(uiState.dataPanelUIState) }
-                if (uiState.dataPanelUIState !is DataPanelClosed) {
-                    lastVisibleState = uiState.dataPanelUIState
+                LaunchedEffect(uiState.dataPanelUIState) {
+                    if (uiState.dataPanelUIState !is DataPanelClosed) {
+                        lastVisibleState = uiState.dataPanelUIState
+                    }
                 }
                 AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
                     RegionDataPanel(
