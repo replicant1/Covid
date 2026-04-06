@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("jacoco")
@@ -41,19 +42,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += listOf(
-            "-P",
-            "plugin:androidx.compose.compiler.plugins.kotlin:strongSkipping=true"
-        )
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+        }
     }
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
     }
     packaging {
         resources {
@@ -93,6 +89,10 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
     })
 }
 
+configurations.all {
+    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
+}
+
 dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
@@ -120,9 +120,9 @@ dependencies {
 
 //    def room_version = "2.6.1"
 
-    implementation("androidx.room:room-runtime:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
 
     // To use Kotlin annotation processing tool (kapt)
 //    kapt("androidx.room:room-compiler:2.6.1")
@@ -130,9 +130,11 @@ dependencies {
     //ksp "androidx.room:room-compiler:$room_version"
 
     // Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.51.1")
+    implementation("com.google.dagger:hilt-android:2.58")
+    ksp("com.google.dagger:hilt-android-compiler:2.58")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.58")
+    // Explicit kotlin-metadata-jvm override allows Hilt to process Kotlin 2.3 metadata
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
 
     // Enables " = viewModel()" access to view model in compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
