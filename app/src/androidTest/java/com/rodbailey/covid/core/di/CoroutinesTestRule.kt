@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION_ERROR")
+
 package com.rodbailey.covid.core.di
 
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,5 @@ class CoroutinesTestRule(
     override fun finished(description: Description?) {
         super.finished(description)
         Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
     }
 }
