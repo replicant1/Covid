@@ -1,5 +1,6 @@
 package com.rodbailey.covid.presentation.main
 
+import androidx.lifecycle.ViewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,8 +18,8 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -61,18 +62,29 @@ class MainViewModelTest {
         viewModel = MainViewModel(fakeCovidRepository)
     }
 
-    @After
-    fun tearDown() {
-        // Cancel viewModelScope to stop infinite MutableStateFlow collectors, preventing
-        // runTest's advanceUntilIdle() from hanging after the test body completes.
-        // onCleared() is protected so we invoke it via reflection.
-        val method = androidx.lifecycle.ViewModel::class.java.getDeclaredMethod("onCleared")
+    /**
+     * Runs [testBody] inside [runTest] and cancels [viewModel]'s viewModelScope in a finally
+     * block before runTest's advanceUntilIdle() runs. Without this, the infinite
+     * MutableStateFlow collectors in the ViewModel keep the scheduler busy and cause
+     * advanceUntilIdle() to hang.
+     */
+    private fun runViewModelTest(testBody: suspend TestScope.() -> Unit) =
+        runTest(coroutinesTestRule.testDispatcher) {
+            try {
+                testBody()
+            } finally {
+                clearViewModel(viewModel)
+            }
+        }
+
+    private fun clearViewModel(vm: ViewModel) {
+        val method = ViewModel::class.java.getDeclaredMethod("onCleared")
         method.isAccessible = true
-        method.invoke(viewModel)
+        method.invoke(vm)
     }
 
     @Test
-    fun sorted_region_list_loads_at_startup() = runTest(coroutinesTestRule.testDispatcher) {
+    fun sorted_region_list_loads_at_startup() = runViewModelTest {
         viewModel.uiState.test {
             // "asResult" flow automatically inserts "Loading" at flow start
             val item1 = awaitItem()
@@ -103,7 +115,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun data_panel_is_closed_at_startup() = runTest(coroutinesTestRule.testDispatcher) {
+    fun data_panel_is_closed_at_startup() = runViewModelTest {
         viewModel.uiState.test {
             val item1 = awaitItem()
             Assert.assertTrue(item1.dataPanelUIState is DataPanelClosed)
@@ -111,7 +123,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_of_brazil_matches_exactly_one_region() = runTest(coroutinesTestRule.testDispatcher) {
+    fun search_text_of_brazil_matches_exactly_one_region() = runViewModelTest {
         // Type "Brazil" into the search box
         viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("Brazil"))
 
@@ -127,7 +139,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun empty_search_text_matches_all_regions() = runTest(coroutinesTestRule.testDispatcher) {
+    fun empty_search_text_matches_all_regions() = runViewModelTest {
         // Type "" into the search box
         viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(""))
 
@@ -142,7 +154,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun load_report_for_global_gives_global_data_in_data_panel() = runTest(coroutinesTestRule.testDispatcher) {
+    fun load_report_for_global_gives_global_data_in_data_panel() = runViewModelTest {
         viewModel.uiState.test {
             val loading = awaitItem()
             val regionsEmpty = awaitItem()
@@ -170,7 +182,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_matching_is_case_insensitive() = runTest(coroutinesTestRule.testDispatcher) {
+    fun search_text_matching_is_case_insensitive() = runViewModelTest {
         // "BRAZIL" in upper case must still match "Brazil"
         viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("BRAZIL"))
 
@@ -185,7 +197,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_matches_substring_not_just_prefix() = runTest(coroutinesTestRule.testDispatcher) {
+    fun search_text_matches_substring_not_just_prefix() = runViewModelTest {
         // "istan" is a substring of "Afghanistan" and "Pakistan" but a prefix of neither.
         // Prefix-matching would return 0 results; substring-matching must return 2.
         viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("istan"))
@@ -203,7 +215,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun collapse_data_panel_intent_closes_open_data_panel() = runTest(coroutinesTestRule.testDispatcher) {
+    fun collapse_data_panel_intent_closes_open_data_panel() = runViewModelTest {
         viewModel.uiState.test {
             // Skip initial emissions: loading, empty regions, and regions loaded
             skipItems(3)
@@ -223,7 +235,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun empty_country_stats_closes_data_panel_and_shows_error() = runTest(coroutinesTestRule.testDispatcher) {
+    fun empty_country_stats_closes_data_panel_and_shows_error() = runViewModelTest {
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(false)
@@ -235,7 +247,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun stats_load_exception_closes_data_panel() = runTest(coroutinesTestRule.testDispatcher) {
+    fun stats_load_exception_closes_data_panel() = runViewModelTest {
         viewModel.uiState.test {
             skipItems(3) // Result.Loading, Result.Success (empty), Result.Success (loaded)
 
@@ -255,24 +267,29 @@ class MainViewModelTest {
     }
 
     @Test
-    fun exception_from_api_when_loading_country_list_results_in_error_message() = runTest(coroutinesTestRule.testDispatcher) {
-        // Flag must be set before ViewModel construction so the regions flow throws on collection
-        (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(true)
-        val errorViewModel = MainViewModel(fakeCovidRepository)
-        (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(false)
+    fun exception_from_api_when_loading_country_list_results_in_error_message() =
+        runTest(coroutinesTestRule.testDispatcher) {
+            // Flag must be set before ViewModel construction so the regions flow throws on collection
+            (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(true)
+            val errorViewModel = MainViewModel(fakeCovidRepository)
+            (fakeCovidRepository as FakeCovidRepository).setRegionsThrowException(false)
 
-        // uiState uses WhileSubscribed — must have an active subscriber to trigger flow collection
-        val collectorJob = backgroundScope.launch { errorViewModel.uiState.collect {} }
+            try {
+                // uiState uses WhileSubscribed — must have an active subscriber to trigger flow collection
+                val collectorJob = backgroundScope.launch { errorViewModel.uiState.collect {} }
 
-        errorViewModel.errorFlow.test {
-            val result = awaitItem()
-            Assert.assertEquals(context.getString(R.string.failed_to_load_country_list), result.asString(context))
+                errorViewModel.errorFlow.test {
+                    val result = awaitItem()
+                    Assert.assertEquals(context.getString(R.string.failed_to_load_country_list), result.asString(context))
+                }
+                collectorJob.cancel()
+            } finally {
+                clearViewModel(errorViewModel)
+            }
         }
-        collectorJob.cancel()
-    }
 
     @Test
-    fun exception_from_api_when_loading_country_stats_results_in_error_message() = runTest(coroutinesTestRule.testDispatcher) {
+    fun exception_from_api_when_loading_country_stats_results_in_error_message() = runViewModelTest {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
         viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
 
