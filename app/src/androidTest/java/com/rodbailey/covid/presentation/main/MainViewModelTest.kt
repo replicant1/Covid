@@ -18,6 +18,7 @@ import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -58,6 +59,16 @@ class MainViewModelTest {
 
         // Have to construct viewModel manually here rather than inject. See comment above.
         viewModel = MainViewModel(fakeCovidRepository)
+    }
+
+    @After
+    fun tearDown() {
+        // Cancel viewModelScope to stop infinite MutableStateFlow collectors, preventing
+        // runTest's advanceUntilIdle() from hanging after the test body completes.
+        // onCleared() is protected so we invoke it via reflection.
+        val method = androidx.lifecycle.ViewModel::class.java.getDeclaredMethod("onCleared")
+        method.isAccessible = true
+        method.invoke(viewModel)
     }
 
     @Test
