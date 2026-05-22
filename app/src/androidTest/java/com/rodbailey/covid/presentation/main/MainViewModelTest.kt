@@ -118,19 +118,18 @@ class MainViewModelTest {
         }
 
     @Test
-    fun empty_search_text_matches_all_regions() = runTest {
-        // Type "" into the search box
-        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged(""))
-
-        viewModel.uiState.test {
-            val loading = awaitItem()
-            val empty = awaitItem()
-            val result = awaitItem()
-            // Confirm region list contains all regions
-            val resultAsSuccess = result.matchingRegions as Result.Success
-            Assert.assertEquals(FakeRegions.REGIONS.size, resultAsSuccess.data.size)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun empty_search_text_matches_all_regions() =
+        runTest(UnconfinedTestDispatcher()) {
+            viewModel.uiState.test {
+                skipItems(2) // Skip initial emissions: loading and empty regions
+                // Empty search text is the default — no intent needed.
+                // The third emission is the full unfiltered region list.
+                val result = awaitItem()
+                val resultAsSuccess = result.matchingRegions as Result.Success
+                Assert.assertEquals(FakeRegions.REGIONS.size, resultAsSuccess.data.size)
+            }
         }
-    }
 
     @Test
     fun load_report_for_global_gives_global_data_in_data_panel() = runTest {
