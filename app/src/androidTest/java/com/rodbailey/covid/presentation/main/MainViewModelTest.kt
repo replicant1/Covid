@@ -161,19 +161,22 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_matching_is_case_insensitive() = runTest {
-        // "BRAZIL" in upper case must still match "Brazil"
-        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("BRAZIL"))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun search_text_matching_is_case_insensitive() =
+        runTest(UnconfinedTestDispatcher()) {
+            viewModel.uiState.test {
+                skipItems(2) // Skip initial emissions: loading and empty regions
+                awaitItem() // Skip loaded regions emission
 
-        viewModel.uiState.test {
-            val loading = awaitItem()
-            val empty = awaitItem()
-            val result = awaitItem()
-            val resultAsSuccess = result.matchingRegions as Result.Success
-            Assert.assertEquals(1, resultAsSuccess.data.size)
-            Assert.assertEquals("Brazil", resultAsSuccess.data[0].name)
+                // "BRAZIL" in upper case must still match "Brazil"
+                viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("BRAZIL"))
+
+                val result = awaitItem()
+                val resultAsSuccess = result.matchingRegions as Result.Success
+                Assert.assertEquals(1, resultAsSuccess.data.size)
+                Assert.assertEquals("Brazil", resultAsSuccess.data[0].name)
+            }
         }
-    }
 
     @Test
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -219,12 +222,15 @@ class MainViewModelTest {
     @Test
     fun empty_country_stats_closes_data_panel_and_shows_error() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(true)
-        viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
-        (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(false)
+        try {
+            viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
 
-        viewModel.errorFlow.test {
-            val result = awaitItem()
-            Assert.assertTrue(result.asString(context).contains("No data available"))
+            viewModel.errorFlow.test {
+                val result = awaitItem()
+                Assert.assertTrue(result.asString(context).contains("No data available"))
+            }
+        } finally {
+            (fakeCovidRepository as FakeCovidRepository).setRegionStatsEmpty(false)
         }
     }
 
@@ -268,13 +274,15 @@ class MainViewModelTest {
     @Test
     fun exception_from_api_when_loading_country_stats_results_in_error_message() = runTest {
         (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(true)
-        viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
+        try {
+            viewModel.processIntent(MainViewModel.MainIntent.LoadReportDataForGlobal)
 
-        (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
-
-        viewModel.errorFlow.test {
-            val result = awaitItem()
-            Assert.assertTrue(result.asString(context).contains("Fail"))
+            viewModel.errorFlow.test {
+                val result = awaitItem()
+                Assert.assertTrue(result.asString(context).contains("Fail"))
+            }
+        } finally {
+            (fakeCovidRepository as FakeCovidRepository).setAllMethodsThrowException(false)
         }
     }
 
