@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import app.cash.turbine.test
-import com.rodbailey.covid.core.di.CoroutinesTestRule
 import com.rodbailey.covid.data.FakeRegions
 import com.rodbailey.covid.data.repo.CovidRepository
 import com.rodbailey.covid.data.repo.FakeCovidRepository
@@ -17,6 +16,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
@@ -34,10 +34,6 @@ import javax.inject.Inject
 class MainViewModelTest {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @get:Rule
-    var coroutinesTestRule = CoroutinesTestRule()
 
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
@@ -100,20 +96,26 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_of_brazil_matches_exactly_one_region() = runTest {
-        // Type "Brazil" into the search box
-        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("Brazil"))
+    fun search_text_of_brazil_matches_exactly_one_region() =
+        runTest(UnconfinedTestDispatcher()) {
+            // Type "Brazil" into the search box
 
-        viewModel.uiState.test {
-            val loading = awaitItem()
-            val empty = awaitItem()
-            val result = awaitItem()
-            // Confirm region list contains just the element "Brazil"
-            val resultAsSuccess = result.matchingRegions as Result.Success
-            Assert.assertEquals(1, resultAsSuccess.data.size)
-            Assert.assertEquals("Brazil", resultAsSuccess.data[0].name)
+
+            viewModel.uiState.test {
+                skipItems(2) // Skip initial emissions: loading and empty regions
+                awaitItem() // Skip loaded regions emission
+
+                viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("Brazil"))
+
+                val result = awaitItem()
+                println("Result: $result")
+
+                // Confirm region list contains just the element "Brazil"
+                val resultAsSuccess = result.matchingRegions as Result.Success
+                Assert.assertEquals(1, resultAsSuccess.data.size)
+                Assert.assertEquals("Brazil", resultAsSuccess.data[0].name)
+            }
         }
-    }
 
     @Test
     fun empty_search_text_matches_all_regions() = runTest {
@@ -174,22 +176,25 @@ class MainViewModelTest {
     }
 
     @Test
-    fun search_text_matches_substring_not_just_prefix() = runTest {
-        // "istan" is a substring of "Afghanistan" and "Pakistan" but a prefix of neither.
-        // Prefix-matching would return 0 results; substring-matching must return 2.
-        viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("istan"))
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun search_text_matches_substring_not_just_prefix() =
+        runTest(UnconfinedTestDispatcher()) {
+            // "istan" is a substring of "Afghanistan" and "Pakistan" but a prefix of neither.
+            // Prefix-matching would return 0 results; substring-matching must return 2.
+            viewModel.uiState.test {
+                skipItems(2) // Skip initial emissions: loading and empty regions
+                awaitItem() // Skip loaded regions emission
 
-        viewModel.uiState.test {
-            val loading = awaitItem()
-            val empty = awaitItem()
-            val result = awaitItem()
-            val resultAsSuccess = result.matchingRegions as Result.Success
-            val names = resultAsSuccess.data.map { it.name }
-            Assert.assertEquals(2, resultAsSuccess.data.size)
-            Assert.assertTrue(names.contains("Afghanistan"))
-            Assert.assertTrue(names.contains("Pakistan"))
+                viewModel.processIntent(MainViewModel.MainIntent.OnSearchTextChanged("istan"))
+
+                val result = awaitItem()
+                val resultAsSuccess = result.matchingRegions as Result.Success
+                val names = resultAsSuccess.data.map { it.name }
+                Assert.assertEquals(2, resultAsSuccess.data.size)
+                Assert.assertTrue(names.contains("Afghanistan"))
+                Assert.assertTrue(names.contains("Pakistan"))
+            }
         }
-    }
 
     @Test
     fun collapse_data_panel_intent_closes_open_data_panel() = runTest {
