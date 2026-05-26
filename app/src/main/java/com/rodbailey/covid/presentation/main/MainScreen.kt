@@ -22,16 +22,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
@@ -53,9 +58,9 @@ import com.rodbailey.covid.presentation.theme.CovidTheme
  * collects state, and delegates rendering to [MainScreenContent].
  */
 @Composable
-fun MainScreen() {
+fun MainScreen(onNavigateToCacheStats: () -> Unit = {}) {
     val context = LocalContext.current
-    val viewModel: MainViewModel = viewModel()
+    val viewModel: MainViewModel = hiltViewModel()
 
     // Error toast — only shown while the UI is at least STARTED so toasts are never
     // displayed in the background or silently dropped when the app is stopped.
@@ -83,9 +88,13 @@ fun MainScreen() {
                 LoadReportDataForRegion(UIText.DynamicString(region.name), region.toRegionCode())
             )
         },
-        onDataPanelCollapsed = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) }
+        onDataPanelCollapsed = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) },
+        onTripleTap = onNavigateToCacheStats
     )
 }
+
+/** Time window in milliseconds within which 3 taps must occur to count as a triple-tap. */
+private const val TRIPLE_TAP_TIMEOUT_MS = 500L
 
 /**
  * Stateless content for the main screen. Receives all state and callbacks as parameters,
@@ -96,15 +105,41 @@ fun MainScreen() {
  * @param onGlobalClicked Invoked when the global stats icon is tapped
  * @param onRegionClicked Invoked when a region list item is tapped
  * @param onDataPanelCollapsed Invoked when the data panel is tapped to collapse it
+ * @param onTripleTap Invoked when three taps are detected within [TRIPLE_TAP_TIMEOUT_MS]
  */
+
 @Composable
 fun MainScreenContent(
     uiState: MainViewModel.UIState,
     onSearchTextChanged: (String) -> Unit,
     onGlobalClicked: () -> Unit,
     onRegionClicked: (Region) -> Unit,
-    onDataPanelCollapsed: () -> Unit
+    onDataPanelCollapsed: () -> Unit,
+    onTripleTap: () -> Unit = {}
 ) {
+    // Triple-tap state tracked at the composable level so it survives recomposition.
+    var tapCount by remember { mutableIntStateOf(0) }
+    var lastTapTime by remember { mutableLongStateOf(0L) }
+
+    // Observe pointer presses using PointerEventPass.Initial so child elements (search
+    // field, list items, data panel) still receive all their own touch events unaffected.
+    val tripleTapModifier = Modifier.pointerInput(onTripleTap) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                if (event.type == PointerEventType.Press) {
+                    val now = System.currentTimeMillis()
+                    tapCount = if (now - lastTapTime > TRIPLE_TAP_TIMEOUT_MS) 1 else tapCount + 1
+                    lastTapTime = now
+                    if (tapCount >= 3) {
+                        tapCount = 0
+                        onTripleTap()
+                    }
+                }
+            }
+        }
+    }
+
     CovidTheme {
         // A surface container using the 'background' color from the theme
         Surface(
@@ -112,7 +147,9 @@ fun MainScreenContent(
             color = MaterialTheme.colorScheme.background
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(tripleTapModifier)
             ) {
                 // Search text field with global icon at right
                 TextField(

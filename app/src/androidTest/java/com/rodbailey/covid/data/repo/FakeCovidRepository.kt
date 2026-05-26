@@ -1,6 +1,7 @@
 package com.rodbailey.covid.data.repo
 
 import com.rodbailey.covid.data.FakeRegions
+import com.rodbailey.covid.data.repo.CacheEntry
 import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionStats
@@ -74,5 +75,14 @@ class FakeCovidRepository() : CovidRepository {
     fun setRegionsThrowException(value: Boolean) {
         regionsThrowException = value
     }
+
+    /** The list returned by [getCacheEntriesStream]. Defaults to empty. */
+    private var cacheEntries: List<CacheEntry> = emptyList()
+
+    fun setCacheEntries(entries: List<CacheEntry>) {
+        cacheEntries = entries
+    }
+
+    override fun getCacheEntriesStream(): Flow<List<CacheEntry>> = flowOf(cacheEntries)
 
 }

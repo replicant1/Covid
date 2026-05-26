@@ -23,7 +23,7 @@ object DatabaseModule {
             ctx,
             AppDatabase::class.java,
             "covid"
-        ).build()
+        ).fallbackToDestructiveMigration(true).build()
     }
 
     @Singleton
