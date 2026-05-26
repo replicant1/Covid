@@ -12,4 +12,7 @@ interface RegionStatsDao {
 
     @Query("select * from stats where iso3code = :iso3code")
     suspend fun getRegionStats(iso3code: String): List<RegionStatsEntity>
+
+    @Query("SELECT * FROM stats ORDER BY iso3code COLLATE NOCASE ASC")
+    fun getAllStatsStream(): Flow<List<RegionStatsEntity>>
 }

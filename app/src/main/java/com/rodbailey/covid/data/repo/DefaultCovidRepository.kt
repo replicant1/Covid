@@ -33,6 +33,7 @@ class DefaultCovidRepository(
             if (dbStats.isEmpty()) {
                 val report = covidApi.getReport(codeToApiQueryParam(code))
                 val entity = report.data.toRegionStatsEntity(code.chars)
+                    .copy(timestamp = System.currentTimeMillis())
                 regionStatsDao.insert(entity)
                 listOf(entity.toRegionStats())
             } else {
@@ -40,6 +41,13 @@ class DefaultCovidRepository(
             }
         )
     }
+
+    override fun getCacheEntriesStream(): Flow<List<CacheEntry>> =
+        regionStatsDao.getAllStatsStream().map { entities ->
+            val now = System.currentTimeMillis()
+            entities.map { CacheEntry(iso3Code = it.iso3code, ageMillis = now - it.timestamp) }
+            // DAO returns rows ORDER BY iso3code COLLATE NOCASE ASC — no in-memory sort needed
+        }
 
     private fun codeToApiQueryParam(code: RegionCode): String? {
         return if (code is GlobalCode) {

@@ -27,7 +27,11 @@ data class RegionStatsEntity(
     val active: Long,
 
     @ColumnInfo(name = "fatalityRate")
-    val fatalityRate: Float
+    val fatalityRate: Float,
+
+    /** Milliseconds since epoch when this row was inserted into the cache. */
+    @ColumnInfo(name = "timestamp")
+    val timestamp: Long = 0L
 )
 
 fun RegionStatsEntity.toRegionStats() =

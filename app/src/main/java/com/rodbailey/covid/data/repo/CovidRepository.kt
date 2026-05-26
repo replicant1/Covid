@@ -19,4 +19,10 @@ interface CovidRepository {
      */
     fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>>
 
+    /**
+     * @return Hot flow of all cached region stats entries, sorted by ISO3 code
+     * (case-insensitive). Emits a new list whenever the cache changes.
+     */
+    fun getCacheEntriesStream(): Flow<List<CacheEntry>>
+
 }

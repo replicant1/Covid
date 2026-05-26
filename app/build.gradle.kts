@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("jacoco")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -149,4 +150,9 @@ dependencies {
 
     // Turbine - for testing Flows
     androidTestImplementation("app.cash.turbine:turbine:1.1.0")
+
+    // Compose Navigation + type-safe routes
+    implementation("androidx.navigation:navigation-compose:2.8.4")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
