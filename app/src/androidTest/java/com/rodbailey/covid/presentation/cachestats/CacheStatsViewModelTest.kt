@@ -1,5 +1,6 @@
 package com.rodbailey.covid.presentation.cachestats
 
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import app.cash.turbine.test
@@ -40,7 +41,7 @@ class CacheStatsViewModelTest {
         hiltRule.inject()
         // Reset cache entries to empty before each test
         (fakeCovidRepository as FakeCovidRepository).setCacheEntries(emptyList())
-        viewModel = CacheStatsViewModel(fakeCovidRepository)
+        viewModel = CacheStatsViewModel(fakeCovidRepository, ApplicationProvider.getApplicationContext())
     }
 
     // -------------------------------------------------------------------------
@@ -94,7 +95,7 @@ class CacheStatsViewModelTest {
             )
             (fakeCovidRepository as FakeCovidRepository).setCacheEntries(testEntries)
             // Rebuild ViewModel so it picks up the new entries
-            viewModel = CacheStatsViewModel(fakeCovidRepository)
+            viewModel = CacheStatsViewModel(fakeCovidRepository, ApplicationProvider.getApplicationContext())
 
             viewModel.uiState.test {
                 skipItems(1) // skip Result.Loading
@@ -117,7 +118,7 @@ class CacheStatsViewModelTest {
                 CacheEntry("FRA", 600_000L),
             )
             (fakeCovidRepository as FakeCovidRepository).setCacheEntries(testEntries)
-            viewModel = CacheStatsViewModel(fakeCovidRepository)
+            viewModel = CacheStatsViewModel(fakeCovidRepository, ApplicationProvider.getApplicationContext())
 
             viewModel.uiState.test {
                 skipItems(1) // skip Result.Loading
@@ -142,7 +143,7 @@ class CacheStatsViewModelTest {
             (fakeCovidRepository as FakeCovidRepository).setCacheEntries(
                 listOf(CacheEntry("USA", 45_000L))
             )
-            viewModel = CacheStatsViewModel(fakeCovidRepository)
+            viewModel = CacheStatsViewModel(fakeCovidRepository, ApplicationProvider.getApplicationContext())
 
             viewModel.uiState.test {
                 skipItems(1) // skip Result.Loading
