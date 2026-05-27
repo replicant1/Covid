@@ -12,15 +12,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +46,7 @@ import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
  * Converts [millis] to a human-readable age string.
- * Examples: "45s", "3m 12s", "2h 05m", "1d 14h".
+ * Examples: "45s", "3m 12s", "2h 05m 30s", "1d 14h 30m 05s".
  */
 fun formatAge(millis: Long): String {
     if (millis <= 0L) return "0s"
@@ -58,6 +66,25 @@ fun formatAge(millis: Long): String {
 private fun formatBytes(bytes: Int): String = when {
     bytes >= 1024 -> "${bytes / 1024} KB"
     else -> "$bytes B"
+}
+
+// ---------------------------------------------------------------------------
+// Sort
+// ---------------------------------------------------------------------------
+
+/** The four orderings available to the user via the sort control. */
+enum class SortOption(val label: String) {
+    ISO_CODE_ASC("ISO Code (up)"),
+    ISO_CODE_DESC("ISO Code (down)"),
+    AGE_ASC("Age (up)"),
+    AGE_DESC("Age (down)")
+}
+
+private fun List<CacheEntry>.applySortOption(option: SortOption): List<CacheEntry> = when (option) {
+    SortOption.ISO_CODE_ASC  -> sortedBy { it.iso3Code }
+    SortOption.ISO_CODE_DESC -> sortedByDescending { it.iso3Code }
+    SortOption.AGE_ASC       -> sortedBy { it.ageMillis }
+    SortOption.AGE_DESC      -> sortedByDescending { it.ageMillis }
 }
 
 // ---------------------------------------------------------------------------
@@ -81,6 +108,8 @@ fun CacheStatsScreen(
 
     CacheStatsScreenContent(
         entries = entries,
+        sortOption = uiState.sortOption,
+        onSortOptionSelected = viewModel::setSortOption,
         onDismiss = onDismiss
     )
 }
@@ -92,20 +121,27 @@ fun CacheStatsScreen(
 /**
  * Stateless content for the cache statistics screen.
  *
- * Layout:
- * - [CacheStatsSummaryTable] pinned below the top bar (never scrolls).
- * - [HorizontalBarChart] fills the remaining height with its own independent scroll.
+ * Layout (top to bottom, nothing scrolls except the bar chart's own LazyColumn):
+ * - [CacheStatsSummaryTable] — pinned below the top bar.
+ * - [SortControl] — dropdown for choosing the bar chart's sort order.
+ * - [HorizontalBarChart] — fills remaining height, scrolls independently.
  *
- * @param entries Cache entries sorted by ISO3 code (caller responsible for ordering).
+ * @param entries Raw cache entries from the repository (unsorted).
+ * @param sortOption Currently active sort order, owned by the caller.
+ * @param onSortOptionSelected Invoked when the user picks a new sort order.
  * @param onDismiss Invoked when the user navigates back.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CacheStatsScreenContent(
     entries: List<CacheEntry>,
+    sortOption: SortOption,
+    onSortOptionSelected: (SortOption) -> Unit,
     onDismiss: () -> Unit
 ) {
     BackHandler(onBack = onDismiss)
+
+    val sortedEntries = entries.applySortOption(sortOption)
 
     CovidTheme {
         Scaffold(
@@ -138,15 +174,80 @@ fun CacheStatsScreenContent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Sort control — fixed, not scrollable
+                SortControl(
+                    selected = sortOption,
+                    onOptionSelected = onSortOptionSelected,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 // Bar chart — fills remaining height; LazyColumn inside scrolls independently
                 HorizontalBarChart(
-                    entries = entries.map {
+                    entries = sortedEntries.map {
                         BarChartEntry(label = it.iso3Code, value = it.ageMillis.toFloat())
                     },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     valueFormatter = { formatAge(it.toLong()) }
+                )
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Sort control
+// ---------------------------------------------------------------------------
+
+/**
+ * Dropdown control that lets the user choose how the bar chart is ordered.
+ *
+ * @param selected      The currently active [SortOption].
+ * @param onOptionSelected Callback invoked when the user picks a different option.
+ * @param modifier      Applied to the [ExposedDropdownMenuBox] root.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SortControl(
+    selected: SortOption,
+    onOptionSelected: (SortOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            value = selected.label,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Sort by") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            SortOption.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
             }
         }
@@ -225,11 +326,21 @@ private val previewEntries = listOf(
 @Preview(showBackground = true, name = "Cache Stats — with data")
 @Composable
 private fun PreviewCacheStatsWithData() {
-    CacheStatsScreenContent(entries = previewEntries, onDismiss = {})
+    CacheStatsScreenContent(
+        entries = previewEntries,
+        sortOption = SortOption.ISO_CODE_ASC,
+        onSortOptionSelected = {},
+        onDismiss = {}
+    )
 }
 
 @Preview(showBackground = true, name = "Cache Stats — empty cache")
 @Composable
 private fun PreviewCacheStatsEmpty() {
-    CacheStatsScreenContent(entries = emptyList(), onDismiss = {})
+    CacheStatsScreenContent(
+        entries = emptyList(),
+        sortOption = SortOption.ISO_CODE_ASC,
+        onSortOptionSelected = {},
+        onDismiss = {}
+    )
 }
