@@ -48,8 +48,8 @@ fun formatAge(millis: Long): String {
     val minutes = (totalSeconds % 3600L) / 60L
     val seconds = totalSeconds % 60L
     return when {
-        days > 0 -> "${days}d ${hours}h"
-        hours > 0 -> "${hours}h ${minutes.toString().padStart(2, '0')}m"
+        days > 0 -> "${days}d ${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s"
+        hours > 0 -> "${hours}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s"
         minutes > 0 -> "${minutes}m ${seconds.toString().padStart(2, '0')}s"
         else -> "${seconds}s"
     }
