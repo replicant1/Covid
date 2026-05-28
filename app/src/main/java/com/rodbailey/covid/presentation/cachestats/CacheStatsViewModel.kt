@@ -32,10 +32,12 @@ class CacheStatsViewModel @Inject constructor(
 
     private val prefs = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
-    private val _sortOption = MutableStateFlow(
+    // Read once so both _sortOption and the stateIn initialValue agree on the starting sort.
+    private val initialSortOption: SortOption =
         SortOption.entries.firstOrNull { it.name == prefs.getString(PREF_SORT_OPTION, null) }
             ?: SortOption.ISO_CODE_ASC
-    )
+
+    private val _sortOption = MutableStateFlow(initialSortOption)
 
     val uiState: StateFlow<UIState> = combine(
         repo.getCacheEntriesStream().asResult(),
@@ -45,7 +47,7 @@ class CacheStatsViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
-        initialValue = UIState()
+        initialValue = UIState(sortOption = initialSortOption)
     )
 
     /** Updates the active sort option and persists it to SharedPreferences. */
