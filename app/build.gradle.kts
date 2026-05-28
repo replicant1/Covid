@@ -191,7 +191,7 @@ dependencies {
     androidTestImplementation("app.cash.turbine:turbine:1.2.1")
 
     // Compose Navigation + type-safe routes
-    implementation("androidx.navigation:navigation-compose:2.8.4")
+    implementation("androidx.navigation:navigation-compose:2.9.8")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
