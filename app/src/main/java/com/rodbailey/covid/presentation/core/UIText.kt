@@ -20,7 +20,7 @@ sealed class UIText {
      * String from XML resource
      */
     data class StringResource(
-        @StringRes val resId: Int,
+        @param:StringRes @field:StringRes val resId: Int,
         val args: List<Any> = emptyList()
     ) : UIText() {
         constructor(@StringRes resId: Int, vararg args: Any) : this(resId, args.toList())
@@ -30,7 +30,7 @@ sealed class UIText {
      * String from XML resource and another [UIText]
      */
     data class CompoundStringResource(
-        @StringRes val resId: Int,
+        @param:StringRes @field:StringRes val resId: Int,
         val uiText: UIText
     ) : UIText()
 
