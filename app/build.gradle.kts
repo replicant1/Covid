@@ -137,7 +137,7 @@ configurations.all {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-ktx:1.18.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation(platform("androidx.compose:compose-bom:2026.03.01"))
@@ -154,12 +154,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // Retrofit 2.6.0+ is required to get "suspend fun" support
-    // Note: Retrofit 3.x and OkHttp 5.x require Kotlin 2.x — upgrade separately
-    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
     implementation("com.google.code.gson:gson:2.13.2")
-    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0")
 
 //    def room_version = "2.6.1"
 
