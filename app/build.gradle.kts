@@ -65,6 +65,29 @@ jacoco {
     toolVersion = "0.8.11"
 }
 
+val jacocoExclusions = listOf(
+    // Android/Hilt generated
+    "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+    "**/*Test*.*", "android/**/*.*",
+    "**/*_Hilt*.*", "**/Hilt_*.*", "**/*_Factory*.*", "**/*_MembersInjector*.*",
+    // Compose compiler generated
+    "**/*ComposableSingletons*.*",
+    "**/*\$\$composableLambda*.*",
+    // Compose UI — screens, components, theme, navigation
+    "**/presentation/theme/**",
+    "**/presentation/navigation/**",
+    "**/presentation/core/MainActivityKt*",
+    "**/presentation/main/MainScreenKt*",
+    "**/presentation/main/RegionDataPanelKt*",
+    "**/presentation/main/RegionDataPanelGridKt*",
+    "**/presentation/main/RegionSearchResultItemKt*",
+    "**/presentation/main/GlobalRegionIconKt*",
+    "**/presentation/main/MainScreenTag*",
+    "**/presentation/main/ReportDataParameterProvider*",
+    "**/presentation/cachestats/CacheStatsScreenKt*",
+    "**/presentation/cachestats/HorizontalBarChartKt*"
+)
+
 tasks.register<JacocoReport>("jacocoUnitTestReport") {
     dependsOn("testDebugUnitTest")
 
@@ -73,11 +96,7 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
         xml.required.set(false)
     }
 
-    val fileFilter = listOf(
-        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
-        "**/*Test*.*", "android/**/*.*",
-        "**/*_Hilt*.*", "**/Hilt_*.*", "**/*_Factory*.*", "**/*_MembersInjector*.*"
-    )
+    val fileFilter = jacocoExclusions
     val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
         exclude(fileFilter)
     }
@@ -87,6 +106,28 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
     classDirectories.setFrom(files(debugTree))
     executionData.setFrom(fileTree(layout.buildDirectory.get()) {
         include("outputs/unit_test_code_coverage/debugUnitTest/*.exec")
+    })
+}
+
+tasks.register<JacocoReport>("jacocoAndroidTestReport") {
+    dependsOn("connectedAndroidTest")
+
+    reports {
+        html.required.set(true)
+        xml.required.set(false)
+    }
+
+    val debugTree = fileTree(
+        "${layout.buildDirectory.get()}/intermediates/classes/debug/transformDebugClassesWithAsm/dirs"
+    ) {
+        exclude(jacocoExclusions)
+    }
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(layout.buildDirectory.get()) {
+        include("outputs/code_coverage/debugAndroidTest/connected/**/*.ec")
     })
 }
 
