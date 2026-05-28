@@ -171,9 +171,9 @@ dependencies {
     //ksp "androidx.room:room-compiler:$room_version"
 
     // Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.58")
-    ksp("com.google.dagger:hilt-android-compiler:2.58")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.58")
+    implementation("com.google.dagger:hilt-android:2.59.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.59.2")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.59.2")
     // Explicit kotlin-metadata-jvm override allows Hilt to process Kotlin 2.3 metadata
     ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
 
@@ -192,6 +192,6 @@ dependencies {
 
     // Compose Navigation + type-safe routes
     implementation("androidx.navigation:navigation-compose:2.8.4")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 }
