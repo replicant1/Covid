@@ -155,9 +155,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.google.code.gson:gson:2.14.0")
     implementation("com.squareup.retrofit2:converter-gson:3.0.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.3.2")
 
 //    def room_version = "2.6.1"
 
@@ -188,7 +188,7 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
 
     // Turbine - for testing Flows
-    androidTestImplementation("app.cash.turbine:turbine:1.1.0")
+    androidTestImplementation("app.cash.turbine:turbine:1.2.1")
 
     // Compose Navigation + type-safe routes
     implementation("androidx.navigation:navigation-compose:2.8.4")
