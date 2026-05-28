@@ -132,7 +132,7 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
 }
 
 configurations.all {
-    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
+    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.21")
 }
 
 dependencies {
@@ -175,7 +175,7 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.59.2")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.59.2")
     // Explicit kotlin-metadata-jvm override allows Hilt to process Kotlin 2.3 metadata
-    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.20")
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.21")
 
     // Enables " = viewModel()" access to view model in compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
