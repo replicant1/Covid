@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -182,6 +183,8 @@ class MainViewModel @Inject constructor(
                     dataPanelUIState.value =
                         DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
                 }
+            } catch (th: CancellationException) {
+                throw th
             } catch (th: Exception) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
