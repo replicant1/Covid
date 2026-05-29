@@ -124,10 +124,6 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
     })
 }
 
-configurations.all {
-    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.21")
-}
-
 dependencies {
 
     implementation("androidx.core:core-ktx:1.18.0")
