@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Android COVID-19 data app (technical exercise) that displays regional stats from `https://covid-api.com/`. Single-screen app built with Kotlin and Jetpack Compose.
 
-- **Min SDK**: 24, **Target SDK**: 34
-  - **Build**: Android Gradle Plugin 9.2.1, Gradle 9.4.1, Kotlin 2.3.21, Hilt 2.59.2
+- **Min SDK**: 24, **Target SDK**: 36
+- **Build**: Android Gradle Plugin 9.2.1, Gradle 9.4.1, Kotlin 2.3.21, Hilt 2.59.2
 
 ## Build & Run Commands
 
@@ -44,7 +44,7 @@ Data          →  Repository pattern
 
 **Key data flow**: `MainViewModel` consumes `Flow`s from `CovidRepository`. The region list is a **hot flow** (cached in Room, persists across sessions). Region stats are a **cold flow** (one emission per request, cache-first: reads from Room; if empty, fetches from network then caches).
 
-**DI**: Hilt throughout. Modules live in `core/di/` — `NetworkModule`, `DatabaseModule`, `RepositoryModule`, `UseCaseModule`.
+**DI**: Hilt throughout. Modules live in `core/di/` — `NetworkModule`, `DatabaseModule`, `RepositoryModule`.
 
 **State**: `MainViewModel` uses sealed `UIState`/`DataPanelUIState` and intent-driven updates. Errors are delivered via `Channel` (not `StateFlow`) to prevent duplication on config change.
 
