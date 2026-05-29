@@ -96,6 +96,7 @@ class MainViewModelTest {
     }
 
     @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun search_text_of_brazil_matches_exactly_one_region() =
         runTest(UnconfinedTestDispatcher()) {
             // Type "Brazil" into the search box
@@ -146,15 +147,15 @@ class MainViewModelTest {
             val dataPanelLoaded = awaitItem()
             Assert.assertTrue(dataPanelLoaded.dataPanelUIState is MainViewModel.DataPanelUIState.DataPanelOpenWithData)
 
-            val data =
-                (dataPanelLoaded.dataPanelUIState as MainViewModel.DataPanelUIState.DataPanelOpenWithData).reportData
+            val openData =
+                dataPanelLoaded.dataPanelUIState as MainViewModel.DataPanelUIState.DataPanelOpenWithData
+            val data = openData.reportData
             Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.active, data.active)
             Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.deaths, data.deaths)
             Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.confirmed, data.confirmed)
             Assert.assertEquals(FakeRegions.GLOBAL_REGION_STATS.recovered, data.recovered)
 
-            val title =
-                (dataPanelLoaded.dataPanelUIState as MainViewModel.DataPanelUIState.DataPanelOpenWithData).reportDataTitle
+            val title = openData.reportDataTitle
             Assert.assertEquals(FakeRegions.GLOBAL_REGION.name, title.asString(context))
         }
     }
