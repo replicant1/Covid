@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Android COVID-19 data app (technical exercise) that displays regional stats from `https://covid-api.com/`. Single-screen app built with Kotlin and Jetpack Compose.
+Android COVID-19 data app (technical exercise) that displays regional stats from `https://covid-api.com/`. Two-screen app built with Kotlin and Jetpack Compose: a main screen showing regional stats, and a cache statistics screen (accessible via triple-tap).
 
 - **Min SDK**: 24, **Target SDK**: 36
 - **Build**: Android Gradle Plugin 9.2.1, Gradle 9.4.1, Kotlin 2.3.21, Hilt 2.59.2
