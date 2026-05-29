@@ -182,7 +182,7 @@ class MainViewModel @Inject constructor(
                     dataPanelUIState.value =
                         DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
                 }
-            } catch (th: Throwable) {
+            } catch (th: Exception) {
                 Timber.e(th, "Exception while getting report data for region \"$regionName\"")
                 showErrorMessage(
                     UIText.CompoundStringResource(
