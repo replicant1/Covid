@@ -45,7 +45,7 @@ class FakeCovidRepository() : CovidRepository {
             FakeRegions.REGIONS.keys.toList())
     }
 
-    override fun getRegionStatsStream(iso3code: RegionCode): Flow<List<RegionStats>> {
+    override fun getRegionStatsStream(code: RegionCode): Flow<List<RegionStats>> {
         if (allMethodsThrowException) {
             throw RuntimeException()
         }
@@ -54,14 +54,14 @@ class FakeCovidRepository() : CovidRepository {
             return flowOf(emptyList())
         }
 
-        val reportData = if (iso3code is GlobalCode) {
+        val reportData = if (code is GlobalCode) {
             FakeRegions.GLOBAL_REGION_STATS
         } else {
-            val region = FakeRegions.REGIONS.keys.first { it.iso3Code == iso3code.chars }
+            val region = FakeRegions.REGIONS.keys.first { it.iso3Code == code.chars }
             FakeRegions.REGIONS[region]
         }
 
-        return flowOf(listOf(reportData!!.toRegionStats(iso3code.chars)))
+        return flowOf(listOf(reportData!!.toRegionStats(code.chars)))
     }
 
     fun setAllMethodsThrowException(value: Boolean) {
