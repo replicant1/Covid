@@ -22,10 +22,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,7 +53,7 @@ import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanel
 import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
- * Main (only) screen of the covid application. Stateful entry point — owns the ViewModel,
+ * Main screen of the covid application. Stateful entry point — owns the ViewModel,
  * collects state, and delegates rendering to [MainScreenContent].
  */
 @Composable
@@ -117,23 +116,28 @@ fun MainScreenContent(
     onDataPanelCollapsed: () -> Unit,
     onTripleTap: () -> Unit = {}
 ) {
-    // Triple-tap state tracked at the composable level so it survives recomposition.
-    var tapCount by remember { mutableIntStateOf(0) }
-    var lastTapTime by remember { mutableLongStateOf(0L) }
+    // rememberUpdatedState ensures the latest onTripleTap lambda is always called without
+    // restarting the pointerInput coroutine (which would drop an in-progress tap sequence).
+    val currentOnTripleTap by rememberUpdatedState(onTripleTap)
+
+    // Plain non-snapshot refs: written only inside the pointerInput coroutine, never read
+    // in Composable scope, so snapshot state would just trigger spurious recompositions.
+    val tapCount = remember { intArrayOf(0) }
+    val lastTapTime = remember { longArrayOf(0L) }
 
     // Observe pointer presses using PointerEventPass.Initial so child elements (search
     // field, list items, data panel) still receive all their own touch events unaffected.
-    val tripleTapModifier = Modifier.pointerInput(onTripleTap) {
+    val tripleTapModifier = Modifier.pointerInput(Unit) {
         awaitPointerEventScope {
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Initial)
                 if (event.type == PointerEventType.Press) {
                     val now = System.currentTimeMillis()
-                    tapCount = if (now - lastTapTime > TRIPLE_TAP_TIMEOUT_MS) 1 else tapCount + 1
-                    lastTapTime = now
-                    if (tapCount >= 3) {
-                        tapCount = 0
-                        onTripleTap()
+                    tapCount[0] = if (now - lastTapTime[0] > TRIPLE_TAP_TIMEOUT_MS) 1 else tapCount[0] + 1
+                    lastTapTime[0] = now
+                    if (tapCount[0] >= 3) {
+                        tapCount[0] = 0
+                        currentOnTripleTap()
                     }
                 }
             }
@@ -195,8 +199,6 @@ fun MainScreenContent(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // Data panel shows covid stats for current country or global.
                 // Clicking on the data panel collapses it.
                 // lastVisibleState retains the most recent non-closed state so that
@@ -208,7 +210,8 @@ fun MainScreenContent(
                         lastVisibleState = uiState.dataPanelUIState
                     }
                 }
-                AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
+                AnimatedVisibility(visible = uiState.dataPanelUIState !is DataPanelClosed) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     RegionDataPanel(
                         dataPanelUIState = lastVisibleState,
                         clickCallback = onDataPanelCollapsed
