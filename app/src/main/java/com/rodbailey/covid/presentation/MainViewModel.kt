@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -91,8 +92,13 @@ class MainViewModel @Inject constructor(
     private val searchText = MutableStateFlow("")
     private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
 
+    // Sort once per regions emission, not on every keystroke
+    private val sortedRegions: Flow<Result<List<Region>>> = regions.map { result ->
+        if (result is Result.Success<List<Region>>) Result.Success(result.data.sortedBy { it.name }) else result
+    }
+
     // Filtered region list recomputed only when regions or search text change
-    private val filteredRegions = combine(regions, searchText) { aRegions, aSearchText ->
+    private val filteredRegions = combine(sortedRegions, searchText) { aRegions, aSearchText ->
         Pair(matchingRegionsResult(aRegions, aSearchText), aSearchText)
     }
 
@@ -124,12 +130,11 @@ class MainViewModel @Inject constructor(
 
     private fun matchingRegionsResult(aRegions: Result<List<Region>>, aSearchText: String) =
         if (aRegions is Result.Success) {
-            val sortedRegions = aRegions.data.sortedBy { it.name }
             // Use case insensitive substring matching if search text is provided, otherwise return all
             val matchingRegions = if (aSearchText.isNotEmpty()) {
-                sortedRegions.filter { it.name.contains(aSearchText, ignoreCase = true) }
+                aRegions.data.filter { it.name.contains(aSearchText, ignoreCase = true) }
             } else {
-                sortedRegions
+                aRegions.data
             }
             Result.Success(matchingRegions)
         } else {
