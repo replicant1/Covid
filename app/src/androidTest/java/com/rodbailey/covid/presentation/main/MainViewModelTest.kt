@@ -38,21 +38,19 @@ class MainViewModelTest {
     @get:Rule
     var hiltRule = HiltAndroidRule(this)
 
-    // Hilt won't let me @Inject a MainViewModel here. It says:
-    //    Injection of an @HiltViewModel class is prohibited since it does not create a ViewModel instance correctly.
-    //    Access the ViewModel via the Android APIs (e.g. ViewModelProvider) instead.
-    //    Injected ViewModel: com.rodbailey.covid.presentation.MainViewModel
+    // @HiltViewModel classes cannot be @Inject-ed directly — Hilt enforces that they are
+    // created via ViewModelProvider to ensure correct ViewModelStore scoping in production.
+    // Manual construction here is intentional: Hilt provides the fake repository dependency
+    // via @Inject below, and we pass it ourselves so we control construction order (which
+    // matters for tests that configure the fake before the ViewModel's init block runs).
     lateinit var viewModel: MainViewModel
 
     @Inject
-    // Hilt injects a [FakeCovidRepository] here.
     lateinit var fakeCovidRepository: CovidRepository
 
     @Before
     fun setup() {
         hiltRule.inject()
-
-        // Have to construct viewModel manually here rather than inject. See comment above.
         viewModel = MainViewModel(fakeCovidRepository)
     }
 
