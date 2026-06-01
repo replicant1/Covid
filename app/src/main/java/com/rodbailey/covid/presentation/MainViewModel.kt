@@ -154,10 +154,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun showErrorMessage(message: UIText) {
-        viewModelScope.launch {
-            errorChannel.send(message)
-        }
+    private suspend fun showErrorMessage(message: UIText) {
+        errorChannel.send(message)
     }
 
     private fun collapseDataPanel() {
