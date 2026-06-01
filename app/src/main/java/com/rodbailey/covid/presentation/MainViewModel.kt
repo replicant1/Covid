@@ -23,13 +23,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -81,18 +80,23 @@ class MainViewModel @Inject constructor(
         data class OnSearchTextChanged(val text: String) : MainIntent
     }
 
+    // BUFFERED capacity avoids a race where an error is emitted before the UI has subscribed to
+    // errorFlow — with RENDEZVOUS (capacity = 0) the send would suspend and the message could be
+    // lost if the sending coroutine is cancelled before a collector starts.
     private val errorChannel = Channel<UIText>(Channel.BUFFERED)
+    val errorFlow = errorChannel.receiveAsFlow()
 
     private val regions: Flow<Result<List<Region>>> = repo.getRegionsStream().asResult()
 
-    // Emits the error message once if the regions stream fails; merged into errorFlow below.
-    private val regionLoadError: Flow<UIText> = regions
-        .filterIsInstance<Result.Error>()
-        .take(1)
-        .map { UIText.StringResource(R.string.failed_to_load_country_list) }
-
-    // Stats errors are sent via errorChannel; region load errors come through regionLoadError.
-    val errorFlow: Flow<UIText> = merge(regionLoadError, errorChannel.receiveAsFlow())
+    init {
+        // Show the error message exactly once per ViewModel lifetime when the regions flow fails,
+        // not on every repeatOnLifecycle STARTED cycle that would otherwise repeat the toast.
+        viewModelScope.launch {
+            if (regions.filter { it is Result.Error }.firstOrNull() != null) {
+                showErrorMessage(UIText.StringResource(R.string.failed_to_load_country_list))
+            }
+        }
+    }
 
     private val searchText = MutableStateFlow("")
     private val dataPanelUIState = MutableStateFlow<DataPanelUIState>(DataPanelClosed)
