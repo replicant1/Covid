@@ -169,8 +169,8 @@ class MainViewModel @Inject constructor(
         loadReportJob = viewModelScope.launch {
             try {
                 dataPanelUIState.value = DataPanelUIState.DataPanelOpenWithLoading
-                val regionStatsList = repo.getRegionStatsStream(regionIso3Code).first()
-                if (regionStatsList.isEmpty()) {
+                val regionStats = repo.getRegionStatsStream(regionIso3Code).first().firstOrNull()
+                if (regionStats == null) {
                     showErrorMessage(
                         UIText.CompoundStringResource(
                             R.string.no_data_available_for,
@@ -180,7 +180,7 @@ class MainViewModel @Inject constructor(
                     dataPanelUIState.value = DataPanelClosed
                 } else {
                     dataPanelUIState.value =
-                        DataPanelOpenWithData(regionName, regionStatsList.first().toReportData())
+                        DataPanelOpenWithData(regionName, regionStats.toReportData())
                 }
             } catch (th: CancellationException) {
                 throw th
