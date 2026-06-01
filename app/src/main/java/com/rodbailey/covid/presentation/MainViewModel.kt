@@ -156,6 +156,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun collapseDataPanel() {
+        loadReportJob?.cancel()
         dataPanelUIState.value = DataPanelClosed
     }
 
