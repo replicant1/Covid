@@ -141,7 +141,10 @@ fun CacheStatsScreenContent(
 ) {
     BackHandler(onBack = onDismiss)
 
-    val sortedEntries = entries.applySortOption(sortOption)
+    val sortedEntries = remember(entries, sortOption) { entries.applySortOption(sortOption) }
+    val barChartEntries = remember(sortedEntries) {
+        sortedEntries.map { BarChartEntry(label = it.iso3Code, value = it.ageMillis.toFloat()) }
+    }
 
     CovidTheme {
         Scaffold(
@@ -187,9 +190,7 @@ fun CacheStatsScreenContent(
 
                 // Bar chart — fills remaining height; LazyColumn inside scrolls independently
                 HorizontalBarChart(
-                    entries = sortedEntries.map {
-                        BarChartEntry(label = it.iso3Code, value = it.ageMillis.toFloat())
-                    },
+                    entries = barChartEntries,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
@@ -263,11 +264,11 @@ fun CacheStatsSummaryTable(
     entries: List<CacheEntry>,
     modifier: Modifier = Modifier
 ) {
-    val count = entries.size
-    val totalBytes = count * BYTES_PER_STATS_ROW
-    val avgAgeMillis = if (entries.isEmpty()) 0L else entries.map { it.ageMillis }.average().toLong()
-    val oldest = entries.maxByOrNull { it.ageMillis }
-    val youngest = entries.minByOrNull { it.ageMillis }
+    val count = remember(entries) { entries.size }
+    val totalBytes = remember(entries) { count * BYTES_PER_STATS_ROW }
+    val avgAgeMillis = remember(entries) { if (entries.isEmpty()) 0L else entries.sumOf { it.ageMillis } / count }
+    val oldest = remember(entries) { entries.maxByOrNull { it.ageMillis } }
+    val youngest = remember(entries) { entries.minByOrNull { it.ageMillis } }
 
     Card(
         modifier = modifier,
