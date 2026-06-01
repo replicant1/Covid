@@ -35,6 +35,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.rodbailey.covid.R
@@ -187,6 +189,7 @@ fun MainScreenContent(
                         .fillMaxWidth()
                         .height(16.dp)
                         .alpha(if (uiState.matchingRegions is Loading) 1f else 0f)
+                        .then(if (uiState.matchingRegions !is Loading) Modifier.semantics { hideFromAccessibility() } else Modifier)
                         .padding(bottom = 12.dp),
                     color = MaterialTheme.colorScheme.secondary,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
