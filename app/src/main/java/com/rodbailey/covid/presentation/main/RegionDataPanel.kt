@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -59,12 +61,15 @@ fun RegionDataPanel(
                 modifier = Modifier
                     .width(64.dp)
                     .alpha(if (isLoading) 1f else 0f)
+                    .then(if (!isLoading) Modifier.semantics { hideFromAccessibility() } else Modifier)
                     .align(Alignment.Center),
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
             Column(
-                modifier = Modifier.alpha(if (isLoading) 0f else 1f)
+                modifier = Modifier
+                    .alpha(if (isLoading) 0f else 1f)
+                    .then(if (isLoading) Modifier.semantics { hideFromAccessibility() } else Modifier)
             ) {
                 // Region name is title of the data panel
                 Text(
