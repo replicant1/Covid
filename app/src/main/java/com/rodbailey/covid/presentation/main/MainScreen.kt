@@ -79,16 +79,32 @@ fun MainScreen(onNavigateToCacheStats: () -> Unit = {}) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    MainScreenContent(
-        uiState = uiState,
-        onSearchTextChanged = { viewModel.processIntent(OnSearchTextChanged(it)) },
-        onGlobalClicked = { viewModel.processIntent(LoadReportDataForGlobal) },
-        onRegionClicked = { region ->
+    // Stable lambda references — captured only once per ViewModel lifetime so that
+    // remember(region, onRegionClicked) inside the LazyColumn retains its per-item
+    // callback across recompositions instead of always missing due to a new reference.
+    val onSearchTextChanged: (String) -> Unit = remember(viewModel) {
+        { viewModel.processIntent(OnSearchTextChanged(it)) }
+    }
+    val onGlobalClicked: () -> Unit = remember(viewModel) {
+        { viewModel.processIntent(LoadReportDataForGlobal) }
+    }
+    val onRegionClicked: (Region) -> Unit = remember(viewModel) {
+        { region ->
             viewModel.processIntent(
                 LoadReportDataForRegion(UIText.DynamicString(region.name), region.toRegionCode())
             )
-        },
-        onDataPanelCollapsed = { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) },
+        }
+    }
+    val onDataPanelCollapsed: () -> Unit = remember(viewModel) {
+        { viewModel.processIntent(MainViewModel.MainIntent.CollapseDataPanel) }
+    }
+
+    MainScreenContent(
+        uiState = uiState,
+        onSearchTextChanged = onSearchTextChanged,
+        onGlobalClicked = onGlobalClicked,
+        onRegionClicked = onRegionClicked,
+        onDataPanelCollapsed = onDataPanelCollapsed,
         onTripleTap = onNavigateToCacheStats
     )
 }
