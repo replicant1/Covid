@@ -195,6 +195,11 @@ class MainViewModel @Inject constructor(
                     )
                 )
                 dataPanelUIState.value = DataPanelClosed
+            } catch (th: Error) {
+                // No toast is shown because rendering a Toast during OOM/StackOverflow is unreliable.
+                // Close the panel so the UI isn't frozen, then re-throw so crash reporters see it.
+                dataPanelUIState.value = DataPanelClosed
+                throw th
             }
         }
     }
