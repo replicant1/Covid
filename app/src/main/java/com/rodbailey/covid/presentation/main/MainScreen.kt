@@ -53,7 +53,6 @@ import com.rodbailey.covid.presentation.Result.*
 import com.rodbailey.covid.presentation.core.UIText
 import androidx.compose.ui.tooling.preview.Preview
 import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanelClosed
-import com.rodbailey.covid.presentation.theme.CovidTheme
 
 /**
  * Main (only) screen of the covid application. Stateful entry point — owns the ViewModel,
@@ -158,17 +157,16 @@ fun MainScreenContent(
         }
     }
 
-    CovidTheme {
-        Scaffold(
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(tripleTapModifier)
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .then(tripleTapModifier)
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
+                .padding(innerPadding)
+        ) {
                 // Search text field with global icon at right
                 TextField(
                     value = uiState.searchText,
@@ -235,7 +233,6 @@ fun MainScreenContent(
                 }
             }
         }
-    }
 }
 
 // ---------------------------------------------------------------------------

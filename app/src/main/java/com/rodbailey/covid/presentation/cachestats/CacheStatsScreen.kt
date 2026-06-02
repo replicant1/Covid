@@ -38,7 +38,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rodbailey.covid.data.repo.BYTES_PER_STATS_ROW
 import com.rodbailey.covid.data.repo.CacheEntry
 import com.rodbailey.covid.presentation.Result
-import com.rodbailey.covid.presentation.theme.CovidTheme
 
 // ---------------------------------------------------------------------------
 // Age formatting
@@ -146,57 +145,55 @@ fun CacheStatsScreenContent(
         sortedEntries.map { BarChartEntry(label = it.iso3Code, value = it.ageMillis.toFloat()) }
     }
 
-    CovidTheme {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Cache Statistics") },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Cache Statistics") },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
-                )
-            }
-        ) { innerPadding ->
-            Column(
+                }
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Summary table — fixed, not scrollable
+            CacheStatsSummaryTable(
+                entries = entries,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Sort control — fixed, not scrollable
+            SortControl(
+                selected = sortOption,
+                onOptionSelected = onSortOptionSelected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Bar chart — fills remaining height; LazyColumn inside scrolls independently
+            HorizontalBarChart(
+                entries = barChartEntries,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                // Summary table — fixed, not scrollable
-                CacheStatsSummaryTable(
-                    entries = entries,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Sort control — fixed, not scrollable
-                SortControl(
-                    selected = sortOption,
-                    onOptionSelected = onSortOptionSelected,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Bar chart — fills remaining height; LazyColumn inside scrolls independently
-                HorizontalBarChart(
-                    entries = barChartEntries,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    valueFormatter = { formatAge(it.toLong()) }
-                )
-            }
+                    .padding(horizontal = 16.dp),
+                valueFormatter = { formatAge(it.toLong()) }
+            )
         }
     }
 }
