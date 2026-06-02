@@ -34,6 +34,10 @@ class CacheStatsViewModelTest {
     @Inject
     lateinit var fakeCovidRepository: CovidRepository
 
+    // @HiltViewModel classes cannot be @Inject-ed directly — Hilt enforces that they are
+    // created via ViewModelProvider to ensure correct ViewModelStore scoping in production.
+    // Manual construction here is intentional: Hilt provides the fake repository dependency
+    // via @Inject above, and we pass it ourselves so we control construction order.
     lateinit var viewModel: CacheStatsViewModel
 
     @Before
