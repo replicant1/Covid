@@ -11,11 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 
 /**
@@ -30,14 +30,16 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .height(48.dp)
+            .semantics(mergeDescendants = true) {}
             .clickable(
+                role = Role.Button,
                 onClick = clickCallback
             )
     ) {
         Icon(
             modifier = Modifier.padding(start = 16.dp, end = 8.dp),
             imageVector = Icons.Default.AccountBox,
-            contentDescription = stringResource(R.string.region_icon_content_description)
+            contentDescription = null   // decorative; region name from Text labels the row
         )
         Text(
             fontSize = 16.sp,
@@ -47,7 +49,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
     }
 }
 
-@Preview()
+@Preview
 @Composable
 fun RegionSearchResultItemPreview() {
     RegionSearchResultItem(
