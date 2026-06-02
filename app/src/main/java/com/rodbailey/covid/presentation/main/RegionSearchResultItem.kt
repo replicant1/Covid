@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material3.Icon
@@ -29,7 +30,6 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .height(48.dp)
             .semantics(mergeDescendants = true) {}
             .clickable(
                 role = Role.Button,
@@ -37,7 +37,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
             )
     ) {
         Icon(
-            modifier = Modifier.padding(start = 16.dp, end = 8.dp),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp).size(48.dp),
             imageVector = Icons.Default.AccountBox,
             contentDescription = null   // decorative; region name from Text labels the row
         )
