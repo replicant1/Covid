@@ -1,6 +1,7 @@
 package com.rodbailey.covid.presentation.main
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
@@ -8,7 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.rodbailey.covid.R
 
 /**
@@ -21,8 +24,9 @@ fun GlobalRegionIcon(clickCallback: () -> Unit) {
         imageVector = Icons.Default.AccountCircle,
         contentDescription = stringResource(R.string.region_global),
         modifier = Modifier
-            .clickable(onClick = clickCallback)
+            .clickable(role = Role.Button, onClick = clickCallback)
             .testTag(MainScreenTag.TAG_ICON_GLOBAL.tag)
+            .size(48.dp)
     )
 }
 
