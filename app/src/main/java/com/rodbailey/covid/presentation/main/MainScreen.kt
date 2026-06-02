@@ -1,6 +1,5 @@
 package com.rodbailey.covid.presentation.main
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -62,18 +63,16 @@ import com.rodbailey.covid.presentation.MainViewModel.DataPanelUIState.DataPanel
 fun MainScreen(onNavigateToCacheStats: () -> Unit = {}) {
     val context = LocalContext.current
     val viewModel: MainViewModel = hiltViewModel()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Error toast — only shown while the UI is at least STARTED so toasts are never
-    // displayed in the background or silently dropped when the app is stopped.
+    // Show errors in a Snackbar while the UI is at least STARTED. Using Snackbar rather
+    // than Toast ensures the message respects edge-to-edge insets, inherits the app theme,
+    // and cancels any in-flight message before showing the next one.
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(viewModel, lifecycle) {
         lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.errorFlow.collect { uiText ->
-                Toast.makeText(
-                    context,
-                    uiText.asString(context),
-                    Toast.LENGTH_LONG
-                ).show()
+                snackbarHostState.showSnackbar(uiText.asString(context))
             }
         }
     }
@@ -102,6 +101,7 @@ fun MainScreen(onNavigateToCacheStats: () -> Unit = {}) {
 
     MainScreenContent(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onSearchTextChanged = onSearchTextChanged,
         onGlobalClicked = onGlobalClicked,
         onRegionClicked = onRegionClicked,
@@ -118,6 +118,7 @@ private const val TRIPLE_TAP_TIMEOUT_MS = 500L
  * making it independently previewable and testable without a ViewModel.
  *
  * @param uiState Current UI state
+ * @param snackbarHostState Drives the Scaffold's SnackbarHost for error messages
  * @param onSearchTextChanged Invoked when the search field text changes
  * @param onGlobalClicked Invoked when the global stats icon is tapped
  * @param onRegionClicked Invoked when a region list item is tapped
@@ -128,6 +129,7 @@ private const val TRIPLE_TAP_TIMEOUT_MS = 500L
 @Composable
 fun MainScreenContent(
     uiState: MainViewModel.UIState,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onSearchTextChanged: (String) -> Unit,
     onGlobalClicked: () -> Unit,
     onRegionClicked: (Region) -> Unit,
@@ -160,7 +162,8 @@ fun MainScreenContent(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .then(tripleTapModifier)
+            .then(tripleTapModifier),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
