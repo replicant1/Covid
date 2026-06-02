@@ -170,72 +170,74 @@ fun MainScreenContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-                // Search text field with global icon at right
-                TextField(
-                    value = uiState.searchText,
-                    onValueChange = onSearchTextChanged,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
-                    trailingIcon = {
-                        GlobalRegionIcon(clickCallback = onGlobalClicked)
-                    },
-                    placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
-                )
+            // Search text field with global icon at right
+            TextField(
+                value = uiState.searchText,
+                onValueChange = onSearchTextChanged,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
+                trailingIcon = {
+                    GlobalRegionIcon(clickCallback = onGlobalClicked)
+                },
+                placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
+            )
 
-                // Tracks progress of region list loading
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
-                        .fillMaxWidth()
-                        .height(16.dp)
-                        .alpha(if (uiState.matchingRegions is Loading) 1f else 0f)
-                        .then(if (uiState.matchingRegions !is Loading) Modifier.semantics { hideFromAccessibility() } else Modifier)
-                        .padding(bottom = 12.dp),
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+            // Tracks progress of region list loading
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .testTag(MainScreenTag.TAG_PROGRESS_SEARCH.tag)
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .alpha(if (uiState.matchingRegions is Loading) 1f else 0f)
+                    .then(if (uiState.matchingRegions !is Loading) Modifier.semantics { hideFromAccessibility() } else Modifier)
+                    .padding(bottom = 12.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
 
-                // List of countries that match current contents of search field
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
-                ) {
-                    when (val regions = uiState.matchingRegions) {
-                        is Success -> items(regions.data, key = { it.iso3Code }) { region ->
-                            val clickCallback = remember(region, onRegionClicked) { { onRegionClicked(region) } }
-                            RegionSearchResultItem(
-                                region = region,
-                                clickCallback = clickCallback
-                            )
-                        }
-                        else -> {}
+            // List of countries that match current contents of search field
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
+            ) {
+                when (val regions = uiState.matchingRegions) {
+                    is Success -> items(regions.data, key = { it.iso3Code }) { region ->
+                        val clickCallback =
+                            remember(region, onRegionClicked) { { onRegionClicked(region) } }
+                        RegionSearchResultItem(
+                            region = region,
+                            clickCallback = clickCallback
+                        )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Data panel shows covid stats for current country or global.
-                // Clicking on the data panel collapses it.
-                // lastVisibleState retains the most recent non-closed state so that
-                // RegionDataPanel holds its content during the exit animation rather
-                // than blanking immediately when dataPanelUIState becomes DataPanelClosed.
-                var lastVisibleState by remember { mutableStateOf(uiState.dataPanelUIState) }
-                LaunchedEffect(uiState.dataPanelUIState) {
-                    if (uiState.dataPanelUIState !is DataPanelClosed) {
-                        lastVisibleState = uiState.dataPanelUIState
-                    }
-                }
-                AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
-                    RegionDataPanel(
-                        dataPanelUIState = lastVisibleState,
-                        clickCallback = onDataPanelCollapsed
-                    )
+                    else -> {}
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Data panel shows covid stats for current country or global.
+            // Clicking on the data panel collapses it.
+            // lastVisibleState retains the most recent non-closed state so that
+            // RegionDataPanel holds its content during the exit animation rather
+            // than blanking immediately when dataPanelUIState becomes DataPanelClosed.
+            var lastVisibleState by remember { mutableStateOf(uiState.dataPanelUIState) }
+            LaunchedEffect(uiState.dataPanelUIState) {
+                if (uiState.dataPanelUIState !is DataPanelClosed) {
+                    lastVisibleState = uiState.dataPanelUIState
+                }
+            }
+            AnimatedVisibility(visible = uiState.dataPanelUIState is DataPanelOpenWithData || uiState.dataPanelUIState is DataPanelOpenWithLoading) {
+                RegionDataPanel(
+                    dataPanelUIState = lastVisibleState,
+                    clickCallback = onDataPanelCollapsed
+                )
+            }
         }
+    }
 }
 
 // ---------------------------------------------------------------------------
