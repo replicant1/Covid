@@ -10,4 +10,16 @@
     <string name="data_field_active">Active:</string>
     <string name="data_field_fatality_rate">Fatality Rate:</string>
     <string name="search_field_hint">Search country</string>
+    <string name="cache_stats_title">Cache Statistics</string>
+    <string name="cache_stats_back_button">Back</string>
+    <string name="cache_stats_sort_control_label">Sort by</string>
+    <string name="cache_stats_summary_entries_label">Entries</string>
+    <string name="cache_stats_summary_total_size_label">Total size</string>
+    <string name="cache_stats_summary_average_age_label">Average age</string>
+    <string name="cache_stats_summary_oldest_entry_label">Oldest entry</string>
+    <string name="cache_stats_summary_youngest_entry_label">Youngest entry</string>
+    <string name="sort_option_iso_code_asc">ISO Code (up)</string>
+    <string name="sort_option_iso_code_desc">ISO Code (down)</string>
+    <string name="sort_option_age_asc">Age (up)</string>
+    <string name="sort_option_age_desc">Age (down)</string>
 </resources>

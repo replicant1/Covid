@@ -30,11 +30,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rodbailey.covid.R
 import com.rodbailey.covid.data.repo.BYTES_PER_STATS_ROW
 import com.rodbailey.covid.data.repo.CacheEntry
 import com.rodbailey.covid.presentation.Result
@@ -72,11 +74,21 @@ private fun formatBytes(bytes: Int): String = when {
 // ---------------------------------------------------------------------------
 
 /** The four orderings available to the user via the sort control. */
-enum class SortOption(val label: String) {
-    ISO_CODE_ASC("ISO Code (up)"),
-    ISO_CODE_DESC("ISO Code (down)"),
-    AGE_ASC("Age (up)"),
-    AGE_DESC("Age (down)")
+enum class SortOption {
+    ISO_CODE_ASC {
+        @Composable override fun label() = stringResource(R.string.sort_option_iso_code_asc)
+    },
+    ISO_CODE_DESC {
+        @Composable override fun label() = stringResource(R.string.sort_option_iso_code_desc)
+    },
+    AGE_ASC {
+        @Composable override fun label() = stringResource(R.string.sort_option_age_asc)
+    },
+    AGE_DESC {
+        @Composable override fun label() = stringResource(R.string.sort_option_age_desc)
+    };
+
+    @Composable abstract fun label(): String
 }
 
 private fun List<CacheEntry>.applySortOption(option: SortOption): List<CacheEntry> = when (option) {
@@ -148,12 +160,12 @@ fun CacheStatsScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Cache Statistics") },
+                title = { Text(stringResource(R.string.cache_stats_title)) },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.cache_stats_back_button)
                         )
                     }
                 }
@@ -224,10 +236,10 @@ private fun SortControl(
         modifier = modifier
     ) {
         OutlinedTextField(
-            value = selected.label,
+            value = selected.label(),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Sort by") },
+            label = { Text(stringResource(R.string.cache_stats_sort_control_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             modifier = Modifier
@@ -240,7 +252,7 @@ private fun SortControl(
         ) {
             SortOption.entries.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option.label) },
+                    text = { Text(option.label()) },
                     onClick = {
                         onOptionSelected(option)
                         expanded = false
@@ -272,15 +284,15 @@ fun CacheStatsSummaryTable(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            SummaryRow(label = "Entries", value = count.toString())
-            SummaryRow(label = "Total size", value = formatBytes(totalBytes))
-            SummaryRow(label = "Average age", value = formatAge(avgAgeMillis))
+            SummaryRow(label = stringResource(R.string.cache_stats_summary_entries_label), value = count.toString())
+            SummaryRow(label = stringResource(R.string.cache_stats_summary_total_size_label), value = formatBytes(totalBytes))
+            SummaryRow(label = stringResource(R.string.cache_stats_summary_average_age_label), value = formatAge(avgAgeMillis))
             SummaryRow(
-                label = "Oldest entry",
+                label = stringResource(R.string.cache_stats_summary_oldest_entry_label),
                 value = if (oldest != null) "${oldest.iso3Code} — ${formatAge(oldest.ageMillis)}" else "—"
             )
             SummaryRow(
-                label = "Youngest entry",
+                label = stringResource(R.string.cache_stats_summary_youngest_entry_label),
                 value = if (youngest != null) "${youngest.iso3Code} — ${formatAge(youngest.ageMillis)}" else "—"
             )
         }
