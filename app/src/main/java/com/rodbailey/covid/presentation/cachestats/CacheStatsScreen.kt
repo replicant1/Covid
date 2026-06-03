@@ -40,6 +40,9 @@ import com.rodbailey.covid.R
 import com.rodbailey.covid.data.repo.BYTES_PER_STATS_ROW
 import com.rodbailey.covid.data.repo.CacheEntry
 import com.rodbailey.covid.presentation.Result
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 // ---------------------------------------------------------------------------
 // Age formatting
@@ -115,7 +118,7 @@ fun CacheStatsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val entries = (uiState.entries as? Result.Success)?.data ?: emptyList()
+    val entries = (uiState.entries as? Result.Success)?.data?.toImmutableList() ?: persistentListOf()
 
     CacheStatsScreenContent(
         entries = entries,
@@ -145,7 +148,7 @@ fun CacheStatsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CacheStatsScreenContent(
-    entries: List<CacheEntry>,
+    entries: ImmutableList<CacheEntry>,
     sortOption: SortOption,
     onSortOptionSelected: (SortOption) -> Unit,
     onDismiss: () -> Unit
@@ -270,7 +273,7 @@ private fun SortControl(
 
 @Composable
 fun CacheStatsSummaryTable(
-    entries: List<CacheEntry>,
+    entries: ImmutableList<CacheEntry>,
     modifier: Modifier = Modifier
 ) {
     val count = remember(entries) { entries.size }
@@ -323,7 +326,7 @@ private fun SummaryRow(label: String, value: String) {
 // Previews
 // ---------------------------------------------------------------------------
 
-private val previewEntries = listOf(
+private val previewEntries = persistentListOf(
     CacheEntry("AFG", 2_478_000L),
     CacheEntry("AUS", 1_620_000L),
     CacheEntry("BRA",   660_000L),
@@ -348,7 +351,7 @@ private fun PreviewCacheStatsWithData() {
 @Composable
 private fun PreviewCacheStatsEmpty() {
     CacheStatsScreenContent(
-        entries = emptyList(),
+        entries = persistentListOf(),
         sortOption = SortOption.ISO_CODE_ASC,
         onSortOptionSelected = {},
         onDismiss = {}

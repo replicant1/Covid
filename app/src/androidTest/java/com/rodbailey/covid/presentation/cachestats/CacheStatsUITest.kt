@@ -13,6 +13,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.rodbailey.covid.data.repo.CacheEntry
 import com.rodbailey.covid.presentation.theme.CovidTheme
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -25,14 +28,14 @@ class CacheStatsUITest {
     @get:Rule
     val rule = createAndroidComposeRule<ComponentActivity>()
 
-    private val threeEntries = listOf(
+    private val threeEntries = persistentListOf(
         CacheEntry("AFG", 2_400_000L),  // ~40 minutes old
         CacheEntry("AUS",   600_000L),  // ~10 minutes old
         CacheEntry("BRA", 3_600_000L),  // ~60 minutes old
     )
 
     private fun setContent(
-        entries: List<CacheEntry> = threeEntries,
+        entries: ImmutableList<CacheEntry> = threeEntries,
         sortOption: SortOption = SortOption.ISO_CODE_ASC,
         onSortOptionSelected: (SortOption) -> Unit = {},
         onDismiss: () -> Unit = {}
@@ -79,7 +82,7 @@ class CacheStatsUITest {
 
     @Test
     fun empty_cache_shows_zero_entries_in_summary() {
-        setContent(entries = emptyList())
+        setContent(entries = persistentListOf())
         // The summary "Entries" row value is "0"
         rule.onNodeWithText("0").assertIsDisplayed()
     }
@@ -131,7 +134,7 @@ class CacheStatsUITest {
 
     @Test
     fun empty_cache_shows_no_bar_labels() {
-        setContent(entries = emptyList())
+        setContent(entries = persistentListOf())
         rule.onNodeWithText("AFG").assertDoesNotExist()
         rule.onNodeWithText("AUS").assertDoesNotExist()
     }
