@@ -26,6 +26,8 @@ import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.core.UIText
 
+private val EmptyReportData = ReportData()
+
 
 /**
  * Panel of covid statistics for a particular region. Shows confirmed, deaths, active and
@@ -40,11 +42,11 @@ fun RegionDataPanel(
     dataPanelUIState: MainViewModel.DataPanelUIState,
     clickCallback: () -> Unit
 ) {
+    val openWithData = dataPanelUIState as? MainViewModel.DataPanelUIState.DataPanelOpenWithData
     val isLoading = dataPanelUIState is MainViewModel.DataPanelUIState.DataPanelOpenWithLoading
-    val title = (dataPanelUIState as? MainViewModel.DataPanelUIState.DataPanelOpenWithData)
-        ?.reportDataTitle?.asString() ?: ""
-    val reportData = (dataPanelUIState as? MainViewModel.DataPanelUIState.DataPanelOpenWithData)
-        ?.reportData ?: ReportData()
+
+    val title = openWithData?.reportDataTitle?.asString() ?: ""
+    val reportData = openWithData?.reportData ?: EmptyReportData
 
     Card(
         onClick = clickCallback, modifier = Modifier
