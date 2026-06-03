@@ -72,6 +72,8 @@ private fun formatBytes(bytes: Int): String = when {
     else -> "$bytes B"
 }
 
+private val ageValueFormatter: (Float) -> String = { formatAge(it.toLong()) }
+
 // ---------------------------------------------------------------------------
 // Sort
 // ---------------------------------------------------------------------------
@@ -207,7 +209,7 @@ fun CacheStatsScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
-                valueFormatter = { formatAge(it.toLong()) }
+                valueFormatter = ageValueFormatter
             )
         }
     }
