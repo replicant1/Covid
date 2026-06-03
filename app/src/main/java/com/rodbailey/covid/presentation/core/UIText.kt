@@ -3,12 +3,14 @@ package com.rodbailey.covid.presentation.core
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.res.stringResource
 
 /**
  * Provides a way of passing a string resource from ViewModel to UI without
  * having access to application context at construction time
  */
+@Immutable
 sealed class UIText {
 
     /**
