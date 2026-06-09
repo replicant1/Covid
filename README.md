@@ -24,6 +24,76 @@ The app has a layered architecture. The UI layer uses the MVVM pattern with the 
 
 ![Architecture](/doc/app_architecture.png)
 
+# Data Flow
+
+The following sequence diagram shows the three main data flows: region list load on startup, search filtering, and stats fetch on region tap.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as MainScreen
+    participant VM as MainViewModel
+    participant Repo as DefaultCovidRepository
+    participant Room as Room (RegionDao / RegionStatsDao)
+    participant API as CovidAPI (Retrofit)
+
+    %% ── App startup: region list ──────────────────────────────────────
+    Note over UI,API: App startup — region list (hot flow)
+
+    UI->>VM: collect uiState
+    VM->>Repo: getRegionsStream()
+    Repo->>Room: getAllRegionsStream()
+    Room-->>Repo: [] (empty)
+    Repo->>Repo: refreshRegions() [Mutex-guarded]
+    Repo->>API: GET /api/regions
+    API-->>Repo: RegionListResponse
+    Repo->>Room: regionDao.insert(regions)
+    Room-->>Repo: getAllRegionsStream() re-emits [regions]
+    Repo-->>VM: Flow<List<Region>>
+    VM-->>UI: UIState(matchingRegions = Success([...]))
+
+    %% ── User types in search box ──────────────────────────────────────
+    Note over UI,VM: User types in search box
+
+    User->>UI: types search text
+    UI->>VM: processIntent(OnSearchTextChanged)
+    VM->>VM: searchText.value = text
+    VM-->>UI: UIState(matchingRegions = filtered list)
+
+    %% ── User taps a region (or Global) ───────────────────────────────
+    Note over UI,API: User taps a region — stats (cold flow, cache-first)
+
+    User->>UI: taps region row
+    UI->>VM: processIntent(LoadReportDataForRegion)
+    VM->>VM: dataPanelUIState = DataPanelOpenWithLoading
+    VM-->>UI: UIState(dataPanelUIState = Loading)
+    VM->>Repo: getRegionStatsStream(iso3Code)
+
+    alt Cache hit (Room has stats)
+        Repo->>Room: regionStatsDao.getRegionStats(iso3Code)
+        Room-->>Repo: [RegionStatsEntity]
+        Repo-->>VM: Flow emits List<RegionStats>
+    else Cache miss
+        Repo->>Room: regionStatsDao.getRegionStats(iso3Code)
+        Room-->>Repo: []
+        Repo->>API: GET /api/reports/total?iso={code}
+        API-->>Repo: ReportResponse
+        Repo->>Room: regionStatsDao.insert(entity)
+        Repo-->>VM: Flow emits List<RegionStats>
+    end
+
+    VM->>VM: dataPanelUIState = DataPanelOpenWithData
+    VM-->>UI: UIState(dataPanelUIState = OpenWithData)
+    UI-->>User: data panel shows stats
+
+    %% ── Error path ────────────────────────────────────────────────────
+    Note over UI,VM: On any error
+
+    VM->>VM: errorChannel.send(UIText)
+    VM-->>UI: errorFlow emits (one-shot via Channel)
+    UI-->>User: Toast shown once
+```
+
 # UI Design
 
 The UI conforms to the Material Design 3 guidelines.
