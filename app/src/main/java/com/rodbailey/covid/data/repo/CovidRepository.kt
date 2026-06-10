@@ -25,4 +25,7 @@ interface CovidRepository {
      */
     fun getCacheEntriesStream(): Flow<List<CacheEntry>>
 
+    /** Deletes all cached region stats entries. */
+    suspend fun clearCache()
+
 }

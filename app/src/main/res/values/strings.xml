@@ -22,4 +22,5 @@
     <string name="sort_option_iso_code_desc">ISO Code (down)</string>
     <string name="sort_option_age_asc">Age (up)</string>
     <string name="sort_option_age_desc">Age (down)</string>
+    <string name="cache_stats_clear_button">CLEAR</string>
 </resources>

@@ -6,6 +6,7 @@ import com.rodbailey.covid.domain.Region
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.domain.toRegionStats
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -76,13 +77,17 @@ class FakeCovidRepository() : CovidRepository {
         regionsThrowException = value
     }
 
-    /** The list returned by [getCacheEntriesStream]. Defaults to empty. */
-    private var cacheEntries: List<CacheEntry> = emptyList()
+    /** The flow backing [getCacheEntriesStream]. Defaults to empty. */
+    private val _cacheEntries = MutableStateFlow<List<CacheEntry>>(emptyList())
 
     fun setCacheEntries(entries: List<CacheEntry>) {
-        cacheEntries = entries
+        _cacheEntries.value = entries
     }
 
-    override fun getCacheEntriesStream(): Flow<List<CacheEntry>> = flowOf(cacheEntries)
+    override fun getCacheEntriesStream(): Flow<List<CacheEntry>> = _cacheEntries
+
+    override suspend fun clearCache() {
+        _cacheEntries.value = emptyList()
+    }
 
 }

@@ -137,6 +137,34 @@ class CacheStatsViewModelTest {
         }
 
     // -------------------------------------------------------------------------
+    // Clear cache
+    // -------------------------------------------------------------------------
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun clear_cache_results_in_empty_entries() =
+        runTest(UnconfinedTestDispatcher()) {
+            val testEntries = listOf(
+                CacheEntry("AFG", 60_000L),
+                CacheEntry("AUS", 120_000L),
+            )
+            (fakeCovidRepository as FakeCovidRepository).setCacheEntries(testEntries)
+            viewModel = CacheStatsViewModel(fakeCovidRepository, ApplicationProvider.getApplicationContext())
+
+            viewModel.uiState.test {
+                skipItems(1) // skip Result.Loading
+                val beforeClear = awaitItem()
+                Assert.assertEquals(2, (beforeClear.entries as Result.Success).data.size)
+
+                viewModel.clearCache()
+
+                val afterClear = awaitItem()
+                val entries = (afterClear.entries as Result.Success).data
+                Assert.assertTrue("Expected empty list after clear", entries.isEmpty())
+            }
+        }
+
+    // -------------------------------------------------------------------------
     // Single entry edge case
     // -------------------------------------------------------------------------
 

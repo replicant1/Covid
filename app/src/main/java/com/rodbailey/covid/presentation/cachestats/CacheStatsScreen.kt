@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -130,6 +131,7 @@ fun CacheStatsScreen(
         entries = entries,
         sortOption = uiState.sortOption,
         onSortOptionSelected = viewModel::setSortOption,
+        onClearCache = viewModel::clearCache,
         onDismiss = onDismiss
     )
 }
@@ -157,6 +159,7 @@ fun CacheStatsScreenContent(
     entries: ImmutableList<CacheEntry>,
     sortOption: SortOption,
     onSortOptionSelected: (SortOption) -> Unit,
+    onClearCache: () -> Unit,
     onDismiss: () -> Unit
 ) {
     BackHandler(onBack = onDismiss)
@@ -176,6 +179,11 @@ fun CacheStatsScreenContent(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.cache_stats_back_button)
                         )
+                    }
+                },
+                actions = {
+                    TextButton(onClick = onClearCache) {
+                        Text(stringResource(R.string.cache_stats_clear_button))
                     }
                 }
             )
@@ -349,6 +357,7 @@ private fun PreviewCacheStatsWithData() {
         entries = previewEntries,
         sortOption = SortOption.ISO_CODE_ASC,
         onSortOptionSelected = {},
+        onClearCache = {},
         onDismiss = {}
     )
 }
@@ -360,6 +369,7 @@ private fun PreviewCacheStatsEmpty() {
         entries = persistentListOf(),
         sortOption = SortOption.ISO_CODE_ASC,
         onSortOptionSelected = {},
+        onClearCache = {},
         onDismiss = {}
     )
 }

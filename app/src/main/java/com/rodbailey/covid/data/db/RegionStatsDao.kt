@@ -15,4 +15,7 @@ interface RegionStatsDao {
 
     @Query("SELECT * FROM stats ORDER BY iso3code COLLATE NOCASE ASC")
     fun getAllStatsStream(): Flow<List<RegionStatsEntity>>
+
+    @Query("DELETE FROM stats")
+    suspend fun deleteAll()
 }
