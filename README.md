@@ -33,7 +33,71 @@ It has been built with `Android Studio Panda 4 | 2025.3.4 Patch 1`
 
 The app has a layered architecture. The UI layer uses the MVVM pattern with the UI in `Compose` and the `ViewModel` class from the Android Architecture Components. The data layer exposes a `Repository` that fetches data either from the network or the local database.
 
-![Architecture](/doc/app_architecture.png)
+```mermaid
+graph TD
+    subgraph Presentation
+        MA[MainActivity]
+        subgraph main[main screen]
+            MS[MainScreen]
+            MVM[MainViewModel]
+        end
+        subgraph cachestats[cache stats screen]
+            CSS[CacheStatsScreen]
+            CSVM[CacheStatsViewModel]
+        end
+        NAV[Navigation Compose\nMainRoute / CacheStatsRoute]
+    end
+
+    subgraph Domain
+        R[Region]
+        RD[ReportData]
+        RP[Report]
+    end
+
+    subgraph Data
+        subgraph repo[Repository]
+            CR[CovidRepository\n«interface»]
+            DCR[DefaultCovidRepository]
+        end
+        subgraph network[Network]
+            API[CovidAPI\n«Retrofit»]
+        end
+        subgraph local[Local]
+            DB[(AppDatabase\n«Room»)]
+            RDAO[RegionDao]
+            RSDAO[RegionStatsDao]
+        end
+    end
+
+    subgraph DI[DI — Hilt]
+        NM[NetworkModule]
+        DBM[DatabaseModule]
+        RM[RepositoryModule]
+    end
+
+    MA --> NAV
+    NAV --> MS
+    NAV --> CSS
+    MS --> MVM
+    CSS --> CSVM
+    MVM --> CR
+    CSVM --> CR
+    CR --> DCR
+    DCR --> API
+    DCR --> RDAO
+    DCR --> RSDAO
+    RDAO --> DB
+    RSDAO --> DB
+    API -->|GET /api/regions| network
+    API -->|GET /api/reports/total| network
+
+    NM -.->|provides| API
+    DBM -.->|provides| DB
+    RM -.->|provides| DCR
+
+    MVM -->|UIState / MainIntent| MS
+    CSVM -->|UIState| CSS
+```
 
 ## Data Flow
 
