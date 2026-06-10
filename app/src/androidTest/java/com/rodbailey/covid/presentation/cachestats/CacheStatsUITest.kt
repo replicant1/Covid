@@ -38,6 +38,7 @@ class CacheStatsUITest {
         entries: ImmutableList<CacheEntry> = threeEntries,
         sortOption: SortOption = SortOption.ISO_CODE_ASC,
         onSortOptionSelected: (SortOption) -> Unit = {},
+        onClearCache: () -> Unit = {},
         onDismiss: () -> Unit = {}
     ) {
         rule.setContent {
@@ -46,6 +47,7 @@ class CacheStatsUITest {
                     entries = entries,
                     sortOption = sortOption,
                     onSortOptionSelected = onSortOptionSelected,
+                    onClearCache = onClearCache,
                     onDismiss = onDismiss
                 )
             }
@@ -74,6 +76,20 @@ class CacheStatsUITest {
         setContent(onDismiss = { dismissed = true })
         rule.onNodeWithContentDescription("Back").performClick()
         assertEquals(true, dismissed)
+    }
+
+    @Test
+    fun clear_button_is_displayed() {
+        setContent()
+        rule.onNodeWithText("CLEAR").assertIsDisplayed()
+    }
+
+    @Test
+    fun clear_button_invokes_on_clear_cache() {
+        var cleared = false
+        setContent(onClearCache = { cleared = true })
+        rule.onNodeWithText("CLEAR").performClick()
+        assertEquals(true, cleared)
     }
 
     // -------------------------------------------------------------------------

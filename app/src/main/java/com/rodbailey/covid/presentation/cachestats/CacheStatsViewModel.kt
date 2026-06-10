@@ -9,6 +9,7 @@ import com.rodbailey.covid.presentation.Result
 import com.rodbailey.covid.presentation.asResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ private const val PREF_SORT_OPTION = "sort_option"
 
 @HiltViewModel
 class CacheStatsViewModel @Inject constructor(
-    repo: CovidRepository,
+    private val repo: CovidRepository,
     @ApplicationContext context: Context
 ) : ViewModel() {
 
@@ -54,5 +55,10 @@ class CacheStatsViewModel @Inject constructor(
     fun setSortOption(option: SortOption) {
         _sortOption.value = option
         prefs.edit().putString(PREF_SORT_OPTION, option.name).apply()
+    }
+
+    /** Deletes all cached region stats entries. The cache entries flow re-emits automatically. */
+    fun clearCache() {
+        viewModelScope.launch { repo.clearCache() }
     }
 }

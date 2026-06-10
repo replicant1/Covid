@@ -49,6 +49,10 @@ class DefaultCovidRepository(
             // DAO returns rows ORDER BY iso3code COLLATE NOCASE ASC — no in-memory sort needed
         }
 
+    override suspend fun clearCache() {
+        regionStatsDao.deleteAll()
+    }
+
     private fun codeToApiQueryParam(code: RegionCode): String? {
         return if (code is GlobalCode) {
             null
