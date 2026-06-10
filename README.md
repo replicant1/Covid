@@ -179,9 +179,13 @@ sequenceDiagram
 
 The UI conforms to the Material Design 3 guidelines and has two screens: 
 
+### Main Screen
+
 The **main screen** contains a search field in which the user types the name of a country whose Covid stats they are interested in. The list of available countries is filtered by the search text and presented underneath the search field. The circular icon at the right of the search field provides a way to access "Global" statistics. The card that pops up  at the bottom of the screen displays the covid statistics for the currently selected country (or Global). Tapping the card hides it. The country list is cached in a local database and the only way to clear the database is to uninstall the application.
 
 ![Portrait](/doc/sample_screenshot_main_screen.png)
+
+### Secondary Screen
 
 The **secondary screen** is accessed by triple-tapping anywhere on the main screen. This screens shows statistics relating to the internal caching of covid data. 
 
