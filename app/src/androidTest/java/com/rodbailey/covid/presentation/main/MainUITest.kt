@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToIndex
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.printToLog
@@ -87,6 +88,13 @@ class MainUITest {
     fun can_scroll_to_last_country_alphabetically_in_country_list() {
         rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
             .performScrollToIndex(FakeRegions.NUM_REGIONS - 1)
+        rule.onNodeWithText(FakeRegions.LAST_REGION_BY_NAME.name).assertIsDisplayed()
+    }
+
+    @Test
+    fun scrolling_through_country_list_to_bottom_reveals_last_country() {
+        rule.onNodeWithTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
+            .performScrollToNode(hasText(FakeRegions.LAST_REGION_BY_NAME.name))
         rule.onNodeWithText(FakeRegions.LAST_REGION_BY_NAME.name).assertIsDisplayed()
     }
 
