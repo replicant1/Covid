@@ -204,7 +204,7 @@ fun MainScreenContent(
                     .testTag(MainScreenTag.TAG_LAZY_COLUMN_SEARCH.tag)
             ) {
                 when (val regions = uiState.matchingRegions) {
-                    is Success -> items(regions.data, key = { it.iso3Code }) { region ->
+                    is Success -> items(regions.data, key = { it.id }) { region ->
                         val clickCallback =
                             remember(region, onRegionClicked) { { onRegionClicked(region) } }
                         RegionSearchResultItem(
@@ -245,11 +245,11 @@ fun MainScreenContent(
 // ---------------------------------------------------------------------------
 
 private val previewRegions = listOf(
-    Region("AUS", "Australia"),
-    Region("BRA", "Brazil"),
-    Region("CAN", "Canada"),
-    Region("DEU", "Germany"),
-    Region("IND", "India"),
+    Region(1, "AUS", "Australia"),
+    Region(2, "BRA", "Brazil"),
+    Region(3, "CAN", "Canada"),
+    Region(4, "DEU", "Germany"),
+    Region(5, "IND", "India"),
 )
 
 private val previewReportData = ReportData(
