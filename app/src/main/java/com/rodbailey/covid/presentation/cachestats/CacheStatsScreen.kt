@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rodbailey.covid.R
 import com.rodbailey.covid.data.repo.BYTES_PER_STATS_ROW
 import com.rodbailey.covid.data.repo.CacheEntry
+import com.rodbailey.covid.data.repo.GlobalCode
 import com.rodbailey.covid.presentation.Result
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -73,6 +74,9 @@ private fun formatBytes(bytes: Int): String = when {
 }
 
 private val ageValueFormatter: (Float) -> String = { formatAge(it.toLong()) }
+
+private fun CacheEntry.displayLabel(): String =
+    if (iso3Code == GlobalCode().chars) "GLO" else iso3Code
 
 // ---------------------------------------------------------------------------
 // Sort
@@ -159,7 +163,7 @@ fun CacheStatsScreenContent(
 
     val sortedEntries = remember(entries, sortOption) { entries.applySortOption(sortOption) }
     val barChartEntries = remember(sortedEntries) {
-        sortedEntries.map { BarChartEntry(label = it.iso3Code, value = it.ageMillis.toFloat()) }
+        sortedEntries.map { BarChartEntry(label = it.displayLabel(), value = it.ageMillis.toFloat()) }
     }
 
     Scaffold(
@@ -294,11 +298,11 @@ fun CacheStatsSummaryTable(
             SummaryRow(label = stringResource(R.string.cache_stats_summary_average_age_label), value = formatAge(avgAgeMillis))
             SummaryRow(
                 label = stringResource(R.string.cache_stats_summary_oldest_entry_label),
-                value = if (oldest != null) "${oldest.iso3Code} — ${formatAge(oldest.ageMillis)}" else "—"
+                value = if (oldest != null) "${oldest.displayLabel()} — ${formatAge(oldest.ageMillis)}" else "—"
             )
             SummaryRow(
                 label = stringResource(R.string.cache_stats_summary_youngest_entry_label),
-                value = if (youngest != null) "${youngest.iso3Code} — ${formatAge(youngest.ageMillis)}" else "—"
+                value = if (youngest != null) "${youngest.displayLabel()} — ${formatAge(youngest.ageMillis)}" else "—"
             )
         }
     }
