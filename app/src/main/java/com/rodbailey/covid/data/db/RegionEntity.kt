@@ -20,6 +20,7 @@ data class RegionEntity (
 
 fun RegionEntity.toRegion() =
     Region(
+        id = this.id,
         iso3Code = this.iso3code,
         name = this.name
     )

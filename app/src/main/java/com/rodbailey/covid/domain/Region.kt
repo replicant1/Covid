@@ -8,13 +8,14 @@ import com.rodbailey.covid.data.repo.RegionCode
  * Geographical region that has a 3 letter ISO code.
  */
 data class Region(
+    val id: Int = 0,
+
     @SerializedName("iso")
     val iso3Code: String,
 
     @SerializedName("name")
     val name: String
-) {
-}
+)
 
 fun Region.toRegionEntity() =
     RegionEntity(

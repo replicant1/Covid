@@ -53,7 +53,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
 @Composable
 fun RegionSearchResultItemPreview() {
     RegionSearchResultItem(
-        region = Region("ELO", "Electric Light Orchestra")
+        region = Region(iso3Code = "ELO", name = "Electric Light Orchestra")
     ) {
     }
 }
