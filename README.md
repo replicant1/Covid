@@ -1,9 +1,9 @@
 # Technical Assessment
 
 Rod Bailey
-Thursday 8 February 2024
+Thursday 8 February 2024. Updated Wednesday 10 June 2026.
 
-# Summary
+## Summary
 
 This is an Android technical exercise centered on the presentation of COVID data from an online source at `https://covid-api.com/`. The following libraries are used:
 
@@ -12,21 +12,38 @@ This is an Android technical exercise centered on the presentation of COVID data
 - **Retrofit** for network communications
 - **GSON** for parsing of JSON
 - **Espresso** for instrumented testing
+- **Compose Testing** for UI testing
+- **JUnit** for un-instrumented testing
+- **Jacoco** for code coverage reporting
+- **Hilt** for dependency injection
+- **Kotlin Coroutines** for asynchronous programming
+- **Kotlin Flow** for reactive programming
+- **ViewModel** for state management
+- **Navigation Compose** for navigation between screens
+- **Mermaid** for architecture and sequence diagrams in this README
 
-# Build
+The code was originally developed by hand in 2024, and then refactored, improved and augmented with tests using Claude Code in 2026.
+
+## Build
 
 This Github repository contains a single Android Studio project that is ready to build and install.
-It has been built with `Android Studio Hedgehog | 2023.1.1 Patch 2`
+It has been built with `Android Studio Panda 4 | 2025.3.4 Patch 1`
 
-# Architecture
+## Architecture
 
 The app has a layered architecture. The UI layer uses the MVVM pattern with the UI in `Compose` and the `ViewModel` class from the Android Architecture Components. The data layer exposes a `Repository` that fetches data either from the network or the local database.
 
 ![Architecture](/doc/app_architecture.png)
 
-# Data Flow
+## Data Flow
 
-The following sequence diagram shows the three main data flows: region list load on startup, search filtering, and stats fetch on region tap.
+The following sequence diagram shows the three main data flows: 
+
+- Region list load on startup, 
+- Search filtering, and 
+- Covid stats fetch when region is tapped.
+
+The diagram also shows the error path, which can be triggered by any of the above flows. The error path is not shown in the other flows for clarity, but it is always possible for an error to occur at any point in the data flow, and the app will respond by showing a one-shot Toast message to the user.
 
 ```mermaid
 sequenceDiagram
@@ -94,38 +111,28 @@ sequenceDiagram
     UI-->>User: Toast shown once
 ```
 
-# UI Design
+## UI Design
 
-The UI conforms to the Material Design 3 guidelines.
+The UI conforms to the Material Design 3 guidelines and has two screens: 
 
-# Screen
+The **main screen** contains a search field in which the user types the name of a country whose Covid stats they are interested in. The list of available countries is filtered by the search text and presented underneath the search field. The circular icon at the right of the search field provides a way to access "Global" statistics. The card that pops up  at the bottom of the screen displays the covid statistics for the currently selected country (or Global). Tapping the card hides it. The country list is cached in a local database and the only way to clear the database is to uninstall the application.
 
-The app has only a single screen. A search field is used to filter the country list below it. The circular icon at the right of the search field provides a way to access "Global" statistics. The card at the bottom of the screen displays the covid statistics for the currently selected country (or Global). Tapping the card hides it.
+The **secondary screen** is accessed by triple-tapping anywhere on the main screen. This screens shows statistics relating to the internal caching of covid data. 
 
-The country list is cached in a local database and the only way to clear the database is to uninstall the application.
+![Portrait](/doc/sample_screenshot_main_screen.png)
 
-![Portrait](/doc/sample_screenshot_portrait.png)
+![Landscape](/doc/sample_screenshot_cache_stats_screen.png)
 
-![Landscape](/doc/sample_screenshot_landscape.png)
+## Test Coverage
 
-# Video
+At the time of writing there is a suite of 86 *instrumented tests* and 14 unit tests. Jacoco coverage is measured against non-Compose production code only (Compose UI, generated Hilt/Room code, and preview functions are excluded). The instrumented tests do the heavy lifting; the unit tests cover utility functions only.
 
-The following video demonstrates the application in use. You may need to download the video file to your own machine in order to watch it. It is stored within this repo at `/doc/sample_video.mp4`
-
-![Video](/doc/sample_video.mp4)
-
-# Tests
-
-There is a suite of 62 *instrumented tests* that cover the Compose interface, the ViewModel behind it and all the classes in the domain and data layers.
-
-![Tests](/doc/instrumented_tests.png)
-
-There is a small suite of 6 *un-instrumented tests*.
-
-![Tests](/doc/uninstrumented_tests.png)
-
-The Jacoco coverage report says the instrumented tests give a coverage of 71%, but 100% of production code is actually exercised by these tests. The un-executed code consists of Composable Previews and schema validation code autogenerated by Room.
-
-![Coverage](/doc/coverage.png)
+| Metric      | Unit tests | Instrumented tests |
+|-------------|------------|--------------------|
+| Instruction | 8.4%       | **75.6%**          |
+| Branch      | 0.0%       | **72.2%**          |
+| Line        | 12.8%      | **76.2%**          |
+| Method      | 14.2%      | **80.7%**          |
+| Class       | 11.8%      | **78.4%**          |
 
 

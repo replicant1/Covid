@@ -86,12 +86,13 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
 
     reports {
         html.required.set(true)
-        xml.required.set(false)
+        xml.required.set(true)
     }
 
-    val fileFilter = jacocoExclusions
-    val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
-        exclude(fileFilter)
+    val debugTree = fileTree(
+        "${layout.buildDirectory.get()}/intermediates/classes/debug/transformDebugClassesWithAsm/dirs"
+    ) {
+        exclude(jacocoExclusions)
     }
     val mainSrc = "${project.projectDir}/src/main/java"
 
@@ -107,7 +108,7 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
 
     reports {
         html.required.set(true)
-        xml.required.set(false)
+        xml.required.set(true)
     }
 
     val debugTree = fileTree(
