@@ -5,6 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -20,16 +23,22 @@ import com.rodbailey.covid.domain.ReportData
  */
 @Composable
 fun RegionDataPanelGrid(reportData: ReportData) {
+    val confirmedLabel = stringResource(R.string.data_field_confirmed)
+    val deathsLabel = stringResource(R.string.data_field_deaths)
+    val activeLabel = stringResource(R.string.data_field_active)
+    val fatalityRateLabel = stringResource(R.string.data_field_fatality_rate)
+
     ConstraintLayout {
         val (fieldLabelConfirmed, fieldLabelDeaths, fieldLabelActive, fieldLabelFatalityRate,
             fieldValueConfirmed, fieldValueDeaths, fieldValueActive, fieldValueFatalityRate) = createRefs()
 
-        // "Confirmed:" field label
+        // "Confirmed:" field label — contentDescription merges label+value for TalkBack
         Text(
-            text = stringResource(R.string.data_field_confirmed),
+            text = confirmedLabel,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
+                .semantics { contentDescription = "$confirmedLabel ${reportData.confirmed}" }
                 .padding(bottom = 8.dp, end = 16.dp)
                 .constrainAs(fieldLabelConfirmed) {
                     start.linkTo(parent.start)
@@ -39,10 +48,11 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 
         // "Deaths:" field label
         Text(
-            text = stringResource(R.string.data_field_deaths),
+            text = deathsLabel,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
+                .semantics { contentDescription = "$deathsLabel ${reportData.deaths}" }
                 .padding(bottom = 8.dp, end = 16.dp)
                 .constrainAs(fieldLabelDeaths) {
                     start.linkTo(parent.start)
@@ -52,10 +62,11 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 
         // "Active:" field label
         Text(
-            text = stringResource(R.string.data_field_active),
+            text = activeLabel,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
+                .semantics { contentDescription = "$activeLabel ${reportData.active}" }
                 .padding(bottom = 8.dp, end = 16.dp)
                 .constrainAs(fieldLabelActive) {
                     start.linkTo(parent.start)
@@ -65,10 +76,11 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 
         // "Fatality Rate:" field label
         Text(
-            text = stringResource(R.string.data_field_fatality_rate),
+            text = fatalityRateLabel,
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
+                .semantics { contentDescription = "$fatalityRateLabel ${reportData.fatalityRate}%" }
                 .padding(end = 16.dp)
                 .constrainAs(fieldLabelFatalityRate) {
                     start.linkTo(parent.start)
@@ -80,11 +92,12 @@ fun RegionDataPanelGrid(reportData: ReportData) {
         // Numbers in the second column are left-aligned to the barrier.
         val barrier = createEndBarrier(fieldLabelConfirmed, fieldLabelDeaths, fieldLabelActive, fieldLabelFatalityRate)
 
-        // "Confirmed" field value
+        // "Confirmed" field value — hidden from TalkBack; announced via label's contentDescription
         Text(
             text = "${reportData.confirmed}",
             fontSize = 16.sp,
             modifier = Modifier
+                .semantics { hideFromAccessibility() }
                 .padding(bottom = 8.dp)
                 .constrainAs(fieldValueConfirmed) {
                     start.linkTo(barrier)
@@ -92,10 +105,11 @@ fun RegionDataPanelGrid(reportData: ReportData) {
         )
 
         // "Deaths" field value
-        Text (
+        Text(
             text = "${reportData.deaths}",
             fontSize = 16.sp,
             modifier = Modifier
+                .semantics { hideFromAccessibility() }
                 .padding(bottom = 8.dp)
                 .constrainAs(fieldValueDeaths) {
                     start.linkTo(barrier)
@@ -108,6 +122,7 @@ fun RegionDataPanelGrid(reportData: ReportData) {
             text = "${reportData.active}",
             fontSize = 16.sp,
             modifier = Modifier
+                .semantics { hideFromAccessibility() }
                 .padding(bottom = 8.dp)
                 .constrainAs(fieldValueActive) {
                     start.linkTo(barrier)
@@ -119,11 +134,12 @@ fun RegionDataPanelGrid(reportData: ReportData) {
         Text(
             text = "${reportData.fatalityRate}",
             fontSize = 16.sp,
-            modifier = Modifier.constrainAs(fieldValueFatalityRate) {
-                start.linkTo(barrier)
-                top.linkTo(fieldValueActive.bottom)
-            }
-
+            modifier = Modifier
+                .semantics { hideFromAccessibility() }
+                .constrainAs(fieldValueFatalityRate) {
+                    start.linkTo(barrier)
+                    top.linkTo(fieldValueActive.bottom)
+                }
         )
     } // ConstraintLayout
 }
@@ -131,6 +147,7 @@ fun RegionDataPanelGrid(reportData: ReportData) {
 @Preview
 @Composable
 fun RegionDataPanelGridPreview(
-    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData) {
+    @PreviewParameter(ReportDataParameterProvider::class) reportData: ReportData
+) {
     RegionDataPanelGrid(reportData)
 }
