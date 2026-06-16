@@ -4,6 +4,8 @@
     <string name="no_data_available_for">No data available for \"%1$s\".</string>
     <string name="failed_to_load_country_list">Failed to load country list.</string>
     <string name="region_global">Global</string>
+    <string name="region_view_stats_for">View stats for %1$s</string>
+    <string name="data_panel_collapse">Collapse</string>
 
     <string name="data_field_confirmed">Confirmed:</string>
     <string name="data_field_deaths">Deaths:</string>

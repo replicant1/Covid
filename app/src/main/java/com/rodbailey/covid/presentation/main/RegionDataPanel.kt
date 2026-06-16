@@ -1,5 +1,6 @@
 package com.rodbailey.covid.presentation.main
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.ReportData
 import com.rodbailey.covid.presentation.MainViewModel
 import com.rodbailey.covid.presentation.core.UIText
@@ -36,7 +39,6 @@ private val EmptyReportData = ReportData()
  * @param dataPanelUIState Current state of the data panel — loading or open with data
  * @param clickCallback Invoked when user clicks on this panel
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegionDataPanel(
     dataPanelUIState: MainViewModel.DataPanelUIState,
@@ -49,7 +51,12 @@ fun RegionDataPanel(
     val reportData = openWithData?.reportData ?: EmptyReportData
 
     Card(
-        onClick = clickCallback, modifier = Modifier
+        modifier = Modifier
+            .clickable(
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.data_panel_collapse),
+                onClick = clickCallback
+            )
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .testTag(MainScreenTag.TAG_CARD.tag)
