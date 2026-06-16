@@ -12,11 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rodbailey.covid.R
 import com.rodbailey.covid.domain.Region
 
 /**
@@ -33,6 +35,7 @@ fun RegionSearchResultItem(region: Region, clickCallback: () -> Unit) {
             .semantics(mergeDescendants = true) {}
             .clickable(
                 role = Role.Button,
+                onClickLabel = stringResource(R.string.region_view_stats_for, region.name),
                 onClick = clickCallback
             )
     ) {
