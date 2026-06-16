@@ -16,6 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,7 +76,8 @@ private fun HorizontalBarRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(BAR_HEIGHT),
+            .height(BAR_HEIGHT)
+            .semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Fixed-width label column so all bars start at the same X position
@@ -85,11 +88,12 @@ private fun HorizontalBarRow(
             maxLines = 1
         )
 
-        // Bar — fills remaining width proportionally
+        // Bar — fills remaining width proportionally; purely visual, info is in the text nodes
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
+                .semantics { hideFromAccessibility() }
         ) {
             Box(
                 modifier = Modifier
