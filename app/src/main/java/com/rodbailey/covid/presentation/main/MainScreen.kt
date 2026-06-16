@@ -150,7 +150,7 @@ fun MainScreenContent(
                         longClickCallback = onGlobalLongClicked
                     )
                 },
-                placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
+                label = { Text(text = stringResource(R.string.search_field_hint)) }
             )
 
             // Tracks progress of region list loading

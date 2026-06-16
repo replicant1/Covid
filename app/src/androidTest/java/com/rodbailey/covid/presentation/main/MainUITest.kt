@@ -15,7 +15,9 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextClearance
@@ -274,14 +276,9 @@ class MainUITest {
     }
 
     @Test
-    fun triple_tap_navigates_to_cache_stats_screen() {
-        // PointerEventPass.Initial means the triple-tap modifier intercepts every press
-        // before children, so three quick clicks anywhere on the screen will trigger it.
-        // The search field is used as a reliable always-present tap target.
-        val searchField = rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag)
-        searchField.performClick()
-        searchField.performClick()
-        searchField.performClick()
+    fun long_press_on_global_icon_navigates_to_cache_stats_screen() {
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag)
+            .performTouchInput { longClick() }
 
         rule.waitForIdle()
         rule.onNodeWithText("Cache Statistics").assertIsDisplayed()

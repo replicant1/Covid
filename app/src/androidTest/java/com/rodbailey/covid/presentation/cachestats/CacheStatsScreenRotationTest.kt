@@ -8,7 +8,9 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.rodbailey.covid.data.repo.CovidRepository
@@ -45,13 +47,9 @@ class CacheStatsScreenRotationTest {
     @Before
     fun setup() {
         hiltRule.inject()
-        // Navigate to CacheStatsScreen via triple-tap on the search field.
-        // PointerEventPass.Initial ensures the triple-tap modifier intercepts all three
-        // presses before the search field handles them.
-        val searchField = rule.onNodeWithTag(MainScreenTag.TAG_TEXT_SEARCH.tag)
-        searchField.performClick()
-        searchField.performClick()
-        searchField.performClick()
+        // Navigate to CacheStatsScreen via long-press on the global region icon.
+        rule.onNodeWithTag(MainScreenTag.TAG_ICON_GLOBAL.tag)
+            .performTouchInput { longClick() }
         rule.waitForIdle()
     }
 
