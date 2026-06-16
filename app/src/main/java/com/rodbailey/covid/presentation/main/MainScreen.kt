@@ -23,16 +23,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -104,14 +99,11 @@ fun MainScreen(onNavigateToCacheStats: () -> Unit = {}) {
         snackbarHostState = snackbarHostState,
         onSearchTextChanged = onSearchTextChanged,
         onGlobalClicked = onGlobalClicked,
+        onGlobalLongClicked = onNavigateToCacheStats,
         onRegionClicked = onRegionClicked,
-        onDataPanelCollapsed = onDataPanelCollapsed,
-        onTripleTap = onNavigateToCacheStats
+        onDataPanelCollapsed = onDataPanelCollapsed
     )
 }
-
-/** Time window in milliseconds within which 3 taps must occur to count as a triple-tap. */
-private const val TRIPLE_TAP_TIMEOUT_MS = 500L
 
 /**
  * Stateless content for the main screen. Receives all state and callbacks as parameters,
@@ -121,48 +113,23 @@ private const val TRIPLE_TAP_TIMEOUT_MS = 500L
  * @param snackbarHostState Drives the Scaffold's SnackbarHost for error messages
  * @param onSearchTextChanged Invoked when the search field text changes
  * @param onGlobalClicked Invoked when the global stats icon is tapped
+ * @param onGlobalLongClicked Invoked when the global stats icon is long-pressed (opens cache stats)
  * @param onRegionClicked Invoked when a region list item is tapped
  * @param onDataPanelCollapsed Invoked when the data panel is tapped to collapse it
- * @param onTripleTap Invoked when three taps are detected within [TRIPLE_TAP_TIMEOUT_MS]
  */
-
 @Composable
 fun MainScreenContent(
     uiState: MainViewModel.UIState,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onSearchTextChanged: (String) -> Unit,
     onGlobalClicked: () -> Unit,
+    onGlobalLongClicked: () -> Unit = {},
     onRegionClicked: (Region) -> Unit,
-    onDataPanelCollapsed: () -> Unit,
-    onTripleTap: () -> Unit = {}
+    onDataPanelCollapsed: () -> Unit
 ) {
-    // Triple-tap state tracked at the composable level so it survives recomposition.
-    var tapCount by remember { mutableIntStateOf(0) }
-    var lastTapTime by remember { mutableLongStateOf(0L) }
-
-    // Observe pointer presses using PointerEventPass.Initial so child elements (search
-    // field, list items, data panel) still receive all their own touch events unaffected.
-    val tripleTapModifier = Modifier.pointerInput(onTripleTap) {
-        awaitPointerEventScope {
-            while (true) {
-                val event = awaitPointerEvent(PointerEventPass.Initial)
-                if (event.type == PointerEventType.Press) {
-                    val now = System.currentTimeMillis()
-                    tapCount = if (now - lastTapTime > TRIPLE_TAP_TIMEOUT_MS) 1 else tapCount + 1
-                    lastTapTime = now
-                    if (tapCount >= 3) {
-                        tapCount = 0
-                        onTripleTap()
-                    }
-                }
-            }
-        }
-    }
-
     Scaffold(
         modifier = Modifier
-            .fillMaxSize()
-            .then(tripleTapModifier),
+            .fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
@@ -178,7 +145,10 @@ fun MainScreenContent(
                     .fillMaxWidth()
                     .testTag(MainScreenTag.TAG_TEXT_SEARCH.tag),
                 trailingIcon = {
-                    GlobalRegionIcon(clickCallback = onGlobalClicked)
+                    GlobalRegionIcon(
+                        clickCallback = onGlobalClicked,
+                        longClickCallback = onGlobalLongClicked
+                    )
                 },
                 placeholder = { Text(text = stringResource(R.string.search_field_hint)) }
             )
